@@ -1,7 +1,7 @@
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
@@ -14,7 +14,7 @@ const colors = {
     red: new THREE.Color(1,0,0), //0xff0000,
     blue: new THREE.Color(0,0,1), //0x0000ff,
     orange: new THREE.Color(1,0.5,0), //0xff7700,
-    white: new THREE.Color(0.8,0.8,0.8), //0xffffff,
+    white: new THREE.Color(1,1,1), //0xffffff,
 }
 
 /*
@@ -75,8 +75,12 @@ const rubiks = [
     { x: -1, y: -1, z: -1, bottom: 'white', left: 'red', back: 'blue' },
     { x: 1, y: -1, z: -1, bottom: 'white', right: 'orange', back: 'blue' },
 ].map((data, idx) => {
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const geometry = new THREE.BoxGeometry(0.97, 0.97, 0.97);
     
+    const insides = new THREE.Color(0.3, 0.3, 0.3)
+
+    new Array(12).fill().forEach((_, i) => geometry.faces[i].color = insides)
+
     if (data.right !== undefined) {
         geometry.faces[0].color = colors[data.right]
         geometry.faces[1].color = colors[data.right]
@@ -177,7 +181,6 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 66 && e.shiftKey) {
         queue.push({ filter: d => d.cube.position.z === -1, axis: 'z', reversed: true })
     }
-
 })
 
 function resetRotater() {
