@@ -7,7 +7,7 @@ document.body.appendChild( renderer.domElement );
 
 const queue = []
 //const data = ["R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'"]
-//data.forEach(addToQueue)
+//data.forEach(rotationObject)
 
 const SPEED = 200
 
@@ -114,59 +114,62 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 40) {
         rotate[0] = speed
     }
+    if (e.keyCode === 73) {
+        rotateSide("U", false)
+    }
     if (e.keyCode === 85 && !e.shiftKey) {
-        addToQueue("U'")
+        queue.push("U")
     }
     if (e.keyCode === 85 && e.shiftKey) {
-        addToQueue("U")
+        queue.push("U'")
     }
     if (e.keyCode === 82 && !e.shiftKey) {
-        addToQueue("R")
+        queue.push("R")
     }
     if (e.keyCode === 82 && e.shiftKey) {
-        addToQueue("R'")
+        queue.push("R'")
     }
     if (e.keyCode === 76 && !e.shiftKey) {
-        addToQueue("L")
+        queue.push("L")
     }
     if (e.keyCode === 76 && e.shiftKey) {
-        addToQueue("L'")
+        queue.push("L'")
     }
     if (e.keyCode === 68 && !e.shiftKey) {
-        addToQueue("D")
+        queue.push("D")
     }
     if (e.keyCode === 68 && e.shiftKey) {
-        addToQueue("D'")
+        queue.push("D'")
     }
     if (e.keyCode === 70 && !e.shiftKey) {
-        addToQueue("F")
+        queue.push("F")
     }
     if (e.keyCode === 70 && e.shiftKey) {
-        addToQueue("F'")
+        queue.push("F'")
     }
     if (e.keyCode === 66 && !e.shiftKey) {
-        addToQueue("B")
+        queue.push("B")
     }
     if (e.keyCode === 66 && e.shiftKey) {
-        addToQueue("B'")
+        queue.push("B'")
     }
     if (e.keyCode === 49) {
-        addToQueue("F2")
+        queue.push("F2")
     }
     if (e.keyCode === 50) {
-        addToQueue("R2")
+        queue.push("R2")
     }
     if (e.keyCode === 51) {
-        addToQueue("U2")
+        queue.push("U2")
     }
     if (e.keyCode === 52) {
-        addToQueue("L2")
+        queue.push("L2")
     }
     if (e.keyCode === 53) {
-        addToQueue("B2")
+        queue.push("B2")
     }
     if (e.keyCode === 54) {
-        addToQueue("D2")
+        queue.push("D2")
     }
     if (e.keyCode === 80) {
         console.log(printCube())
@@ -175,8 +178,7 @@ window.addEventListener('keydown', (e) => {
         const cube = printCube()
         const result = net.run(cube)
         const best = pickHighest(result)
-        addToQueue(best)
-        console.log(best)
+        queue.push(best)
     }
 })
 
@@ -204,73 +206,73 @@ function convertColor(color) {
   ].findIndex(x => x === color)
 }
 
-function addToQueue(move) {
+function rotationObject(move) {
     switch (move) {
         case "U":
-            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
+            return { filter: d => d.cube.position.y === 1, axis: 'y' }
             break;
         case "U'":
-            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y', reversed: true })
+            return { filter: d => d.cube.position.y === 1, axis: 'y', reversed: true }
             break;
         case "F":
-            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }) 
+            return { filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }
             break;
         case "F'":
-            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z' })
+            return { filter: d => d.cube.position.z === 1, axis: 'z' }
             break;
         case "L":
-            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
+            return { filter: d => d.cube.position.x === -1, axis: 'x' }
             break;
         case "L'":
-            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x', reversed: true })
+            return { filter: d => d.cube.position.x === -1, axis: 'x', reversed: true }
             break;
         case "R":
-            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
             break;
         case "R'":
-            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
+            return { filter: d => d.cube.position.x === 1, axis: 'x' }
             break;
         case "U":
-            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
             break;
         case "U'":
-            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
+            return { filter: d => d.cube.position.x === 1, axis: 'x' }
             break;
         case "B":
-            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
+            return { filter: d => d.cube.position.z === -1, axis: 'z' }
             break;
         case "B'":
-            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z', reversed: true })
+            return { filter: d => d.cube.position.z === -1, axis: 'z', reversed: true }
             break;
         case "D":
-            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
+            return { filter: d => d.cube.position.y === -1, axis: 'y' }
             break;
         case "D'":
-            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y', reversed: true })
+            return { filter: d => d.cube.position.y === -1, axis: 'y', reversed: true }
             break;
         case "F2":
-            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }) 
-            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }) 
+            return { filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }
+            return { filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }
             break;
         case "R2":
-            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
-            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
+            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
             break;
         case "U2":
-            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
-            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
+            return { filter: d => d.cube.position.y === 1, axis: 'y' }
+            return { filter: d => d.cube.position.y === 1, axis: 'y' }
             break;
         case "L2":
-            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
-            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
+            return { filter: d => d.cube.position.x === -1, axis: 'x' }
+            return { filter: d => d.cube.position.x === -1, axis: 'x' }
             break;
         case "B2":
-            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
-            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
+            return { filter: d => d.cube.position.z === -1, axis: 'z' }
+            return { filter: d => d.cube.position.z === -1, axis: 'z' }
             break;
         case "D2":
-            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
-            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
+            return { filter: d => d.cube.position.y === -1, axis: 'y' }
+            return { filter: d => d.cube.position.y === -1, axis: 'y' }
             break;
 
     }
@@ -282,29 +284,41 @@ function resetRotater() {
     rotater.rotation.z = 0
 }
 
-function rotateSide({ filter, axis, reversed }) {
-    isAnimating = true
+function rotateSide(move, animation) {
+    const { filter, axis, reversed } = rotationObject(move)
     const cubes = rubiks.filter(filter)
     cubes.forEach(obj => rotater.attach(obj.cube))
 
-    const rotation = { value: 0 }
-    const tween = new TWEEN.Tween(rotation)
-        .to({ value: Math.PI / 2 * (reversed ? -1 : 1) }, SPEED)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .onUpdate(() => {
-            rotater.rotation[axis] = rotation.value
-        })
-        .onComplete(() => {
-            cubes.forEach(obj => {
-                cubeContainer.attach( obj.cube );
-                obj.cube.position.x = Math.round(obj.cube.position.x)
-                obj.cube.position.y = Math.round(obj.cube.position.y)
-                obj.cube.position.z = Math.round(obj.cube.position.z)
+    if (animation !== false) {
+        isAnimating = true
+        const rotation = { value: 0 }
+        const tween = new TWEEN.Tween(rotation)
+            .to({ value: Math.PI / 2 * (reversed ? -1 : 1) }, SPEED)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .onUpdate(() => {
+                rotater.rotation[axis] = rotation.value
             })
-            resetRotater()
-            isAnimating = false
+            .onComplete(() => {
+                cubes.forEach(obj => {
+                    cubeContainer.attach( obj.cube );
+                    obj.cube.position.x = Math.round(obj.cube.position.x)
+                    obj.cube.position.y = Math.round(obj.cube.position.y)
+                    obj.cube.position.z = Math.round(obj.cube.position.z)
+                })
+                resetRotater()
+                isAnimating = false
+            })
+            .start();
+    } else {
+        rotater.rotation[axis] = Math.PI / 2 * (reversed ? -1 : 1)
+        cubes.forEach(obj => {
+            cubeContainer.attach( obj.cube );
+            obj.cube.position.x = Math.round(obj.cube.position.x)
+            obj.cube.position.y = Math.round(obj.cube.position.y)
+            obj.cube.position.z = Math.round(obj.cube.position.z)
         })
-        .start();
+        resetRotater()
+    }
 }
 
 window.addEventListener('keyup', (e) => {
@@ -359,16 +373,13 @@ const net = new brain.NeuralNetwork();
 const rawA = [[0,1,0,0,0,0,0,0,0],[1,1,0,0,"orange",0,0,0,0],[-1,1,0,0,0,0,"red",0,0],[0,1,-1,0,0,0,0,0,0],[-1,1,-1,0,0,0,"red",0,0],[1,1,-1,0,"orange",0,0,0,0],[0,0,-1,0,0,0,0,0,0],[-1,0,0,0,0,0,"red",0,0],[1,0,0,0,"orange",0,0,0,0],[-1,0,-1,0,0,0,"red",0,0],[1,0,-1,0,"orange",0,0,0,0],[0,-1,0,0,0,0,0,"white",0],[1,-1,0,0,"orange",0,0,"white",0],[-1,-1,0,0,0,0,"red","white",0],[0,-1,-1,0,0,0,0,"white",0],[-1,-1,-1,0,0,0,"red","white",0],[1,-1,-1,0,"orange",0,0,"white",0],[1,0,1,"green",0,0,0,0,0],[1,1,1,"green",0,0,"red",0,0],[1,-1,1,"green","orange",0,0,0,0],[0,0,1,"green",0,0,0,0,0],[0,1,1,"green",0,0,"red",0,0],[0,-1,1,"green","orange",0,0,0,0],[-1,0,1,"green",0,0,0,"white",0],[-1,1,1,"green",0,0,"red","white",0],[-1,-1,1,"green","orange",0,0,"white",0]]
 const rawB = [[0,1,0,0,0,0,0,0,0],[1,1,0,0,"orange",0,0,0,0],[-1,1,0,0,0,0,"red",0,0],[0,1,-1,0,0,0,0,0,0],[-1,1,-1,0,0,0,"red",0,0],[1,1,-1,0,"orange",0,0,0,0],[0,0,-1,0,0,0,0,0,0],[-1,0,0,0,0,0,"red",0,0],[1,0,0,0,"orange",0,0,0,0],[-1,0,-1,0,0,0,"red",0,0],[1,0,-1,0,"orange",0,0,0,0],[0,-1,0,0,0,0,0,"white",0],[1,-1,0,0,"orange",0,0,"white",0],[-1,-1,0,0,0,0,"red","white",0],[0,-1,-1,0,0,0,0,"white",0],[-1,-1,-1,0,0,0,"red","white",0],[1,-1,-1,0,"orange",0,0,"white",0],[-1,0,1,"green",0,0,0,0,0],[-1,-1,1,"green",0,0,"red",0,0],[-1,1,1,"green","orange",0,0,0,0],[0,0,1,"green",0,0,0,0,0],[0,-1,1,"green",0,0,"red",0,0],[0,1,1,"green","orange",0,0,0,0],[1,0,1,"green",0,0,0,"white",0],[1,-1,1,"green",0,0,"red","white",0],[1,1,1,"green","orange",0,0,"white",0]]
 
-const trainSetA = rawA.flatMap(x => x.map(convertColor))
-const trainSetB = rawB.flatMap(x => x.map(convertColor))
-
 net.train([
   {
-    input: trainSetA,
+    input: rawA.flatMap(x => x.map(convertColor)),
     output: { ["F'"]: 1 }
   },
   {
-    input: trainSetB,
+    input: rawB.flatMap(x => x.map(convertColor)),
     output: { ["F"]: 1 }
   }
 ]);
