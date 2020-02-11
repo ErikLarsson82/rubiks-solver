@@ -141,10 +141,10 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 84) {
         rotateCube('top')
     }
-    if (e.keyCode === 68 && !e.shiftKey) {
+    if (e.keyCode === 82 && !e.shiftKey) {
         queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
     }
-    if (e.keyCode === 68 && e.shiftKey) {
+    if (e.keyCode === 82 && e.shiftKey) {
         queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
     }
     if (e.keyCode === 84 && !e.shiftKey) {
@@ -153,6 +153,31 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 84 && e.shiftKey) {
         queue.push({ filter: d => d.cube.position.y === 1, axis: 'y', reversed: true })
     }
+    if (e.keyCode === 76 && !e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
+    }
+    if (e.keyCode === 76 && e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.x === -1, axis: 'x', reversed: true })
+    }
+    if (e.keyCode === 68 && !e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
+    }
+    if (e.keyCode === 68 && e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.y === -1, axis: 'y', reversed: true })
+    }
+    if (e.keyCode === 70 && !e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.z === 1, axis: 'z' })
+    }
+    if (e.keyCode === 70 && e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true })
+    }
+    if (e.keyCode === 66 && !e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
+    }
+    if (e.keyCode === 66 && e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.z === -1, axis: 'z', reversed: true })
+    }
+
 })
 
 function resetRotater() {
