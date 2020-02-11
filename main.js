@@ -1,9 +1,12 @@
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-var renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
+
+const queue = []
+let isAnimating = false
 
 const colors = {
     yellow: new THREE.Color(1,1,0), //0xffff00,
@@ -30,8 +33,11 @@ const colors = {
     z: towards you is more, away from you is less, origo middle of cube
 */
 
-var pivot = new THREE.Object3D();
-scene.add(pivot);
+const cubeContainer = new THREE.Object3D();
+scene.add(cubeContainer);
+
+const rotater = new THREE.Object3D();
+cubeContainer.add(rotater);
 
 const rubiks = [
     //Yellow side
@@ -106,8 +112,8 @@ const rubiks = [
     cube.position.y = data.y
     cube.position.z = data.z
 
-    pivot.add(cube);
-
+    cubeContainer.add(cube)
+    
     return {...data, cube}
 })
 
@@ -135,7 +141,50 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 84) {
         rotateCube('top')
     }
+    if (e.keyCode === 68 && !e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
+    }
+    if (e.keyCode === 68 && e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+    }
+    if (e.keyCode === 84 && !e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
+    }
+    if (e.keyCode === 84 && e.shiftKey) {
+        queue.push({ filter: d => d.cube.position.y === 1, axis: 'y', reversed: true })
+    }
 })
+
+function resetRotater() {
+    rotater.rotation.x = 0
+    rotater.rotation.y = 0
+    rotater.rotation.z = 0
+}
+
+function rotateSide({ filter, axis, reversed }) {
+    isAnimating = true
+    const cubes = rubiks.filter(filter)
+    cubes.forEach(obj => rotater.attach(obj.cube))
+
+    const rotation = { value: 0 }
+    const tween = new TWEEN.Tween(rotation)
+        .to({ value: Math.PI / 2 * (reversed ? -1 : 1) }, 1000)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .onUpdate(() => {
+            rotater.rotation[axis] = rotation.value
+        })
+        .onComplete(() => {
+            cubes.forEach(obj => {
+                cubeContainer.attach( obj.cube );
+                obj.cube.position.x = Math.round(obj.cube.position.x)
+                obj.cube.position.y = Math.round(obj.cube.position.y)
+                obj.cube.position.z = Math.round(obj.cube.position.z)
+            })
+            resetRotater()
+            isAnimating = false
+        })
+        .start();
+}
 
 window.addEventListener('keyup', (e) => {
     if (e.keyCode === 37 || e.keyCode === 39) {
@@ -170,9 +219,10 @@ function rotateTopCornersClockwise(data) {
 
 function rotateCube(side) {
     if (side === 'top') {
-        rubiks.filter(d => d.cube.position.y === 1 && !(d.cube.position.x === 0 && d.cube.position.z === 0))
-            .forEach(rotateTopCornersClockwise)
+        //rubiks.filter(d => d.cube.position.y === 1 && !(d.cube.position.x === 0 && d.cube.position.z === 0))
+        //    .forEach(rotateTopCornersClockwise)
 
+        
         /*let d
         d = rubiks.find(d => d.x === 1 && d.y === 1 && d.z === 1)
         if (d) {
@@ -191,14 +241,20 @@ function rotateCube(side) {
     }
 }
 
-function animate() {
+function animate(time) {
 	requestAnimationFrame( animate );
 
+    if (!isAnimating && queue.length > 0) {
+        rotateSide(queue.shift())
+    }
+
+    TWEEN.update(time);
+
     if (rotate[0]) {
-        pivot.rotation.x += rotate[0];
+        cubeContainer.rotation.x += rotate[0];
     }
     if (rotate[1]) {
-        pivot.rotation.y += rotate[1];
+        cubeContainer.rotation.y += rotate[1];
     }
 
 	renderer.render( scene, camera );
