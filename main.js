@@ -6,6 +6,11 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
 const queue = []
+//const data = ["R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'"]
+//data.forEach(addToQueue)
+
+const SPEED = 200
+
 let isAnimating = false
 
 const colors = {
@@ -41,42 +46,8 @@ cubeContainer.rotation.y = -0.63
 const rotater = new THREE.Object3D();
 cubeContainer.add(rotater);
 
-const rubiks = [
-    //Yellow side
-    { x: 0, y: 1, z: 0, top: 'yellow' }, //Center
-    { x: 1, y: 1, z: 0, top: 'yellow', right: 'orange' },
-    { x: -1, y: 1, z: 0, top: 'yellow', left: 'red' },
-    { x: 0, y: 1, z: -1, top: 'yellow', back: 'blue' },
-    { x: 0, y: 1, z: 1, top: 'yellow', front: 'green' },
-    //Corners
-    { x: -1, y: 1, z: 1, top: 'yellow', front: 'green', left: 'red' },
-    { x: 1, y: 1, z: 1, top: 'yellow', front: 'green', right: 'orange' },
-    { x: -1, y: 1, z: -1, top: 'yellow', left: 'red', back: 'blue' },
-    { x: 1, y: 1, z: -1, top: 'yellow', right: 'orange', back: 'blue' },
 
-    //Middle layer
-    { x: 0, y: 0, z: 1, front: 'green' }, //Center
-    { x: 0, y: 0, z: -1, back: 'blue' }, //Center
-    { x: -1, y: 0, z: 0, left: 'red' }, //Center
-    { x: 1, y: 0, z: 0, right: 'orange' }, //Center
-    { x: -1, y: 0, z: 1, front: 'green', left: 'red' },
-    { x: 1, y: 0, z: 1, front: 'green', right: 'orange' },
-    { x: -1, y: 0, z: -1, back: 'blue', left: 'red' },
-    { x: 1, y: 0, z: -1, back: 'blue', right: 'orange' },
-
-    //White side
-    { x: 0, y: -1, z: 0, bottom: 'white' }, //Center
-    { x: 1, y: -1, z: 0, bottom: 'white', right: 'orange' },
-    { x: -1, y: -1, z: 0, bottom: 'white', left: 'red' },
-    { x: 0, y: -1, z: -1, bottom: 'white', back: 'blue' },
-    { x: 0, y: -1, z: 1, bottom: 'white', front: 'green' },
-
-    //Corners
-    { x: -1, y: -1, z: 1, bottom: 'white', front: 'green', left: 'red' },
-    { x: 1, y: -1, z: 1, bottom: 'white', front: 'green', right: 'orange' },
-    { x: -1, y: -1, z: -1, bottom: 'white', left: 'red', back: 'blue' },
-    { x: 1, y: -1, z: -1, bottom: 'white', right: 'orange', back: 'blue' },
-].map((data, idx) => {
+const rubiks = originalCube.map((data, idx) => {
     const geometry = new THREE.BoxGeometry(0.97, 0.97, 0.97);
     
     const insides = new THREE.Color(0.3, 0.3, 0.3)
@@ -117,6 +88,8 @@ const rubiks = [
     cube.position.x = data.x
     cube.position.y = data.y
     cube.position.z = data.z
+
+    cube.customData = data
 
     cubeContainer.add(cube)
     
@@ -195,7 +168,41 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 54) {
         addToQueue("D2")
     }
+    if (e.keyCode === 80) {
+        console.log(printCube())
+    }
+    if (e.keyCode === 65) {
+        const cube = printCube()
+        const result = net.run(cube)
+        const best = pickHighest(result)
+        addToQueue(best)
+        console.log(best)
+    }
 })
+
+function printCube() {
+    return cubeContainer.children.filter(x=>x.type === 'Mesh').map(coordsAndRotation).flatMap(x => x.map(convertColor))
+}
+
+function replaceUndefinedWithZero(x) {
+    return x === undefined ? 0 : x
+}
+
+function coordsAndRotation(d) {
+    return [d.position.x, d.position.y, d.position.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.bottom, d.customData.down].map(replaceUndefinedWithZero)
+}
+
+function convertColor(color) {
+  if (typeof color !== "string") return color
+  return [
+    'yellow',
+    'green',
+    'red',
+    'blue',
+    'orange',
+    'white'
+  ].findIndex(x => x === color)
+}
 
 function addToQueue(move) {
     switch (move) {
@@ -282,7 +289,7 @@ function rotateSide({ filter, axis, reversed }) {
 
     const rotation = { value: 0 }
     const tween = new TWEEN.Tween(rotation)
-        .to({ value: Math.PI / 2 * (reversed ? -1 : 1) }, 1000)
+        .to({ value: Math.PI / 2 * (reversed ? -1 : 1) }, SPEED)
         .easing(TWEEN.Easing.Quadratic.Out)
         .onUpdate(() => {
             rotater.rotation[axis] = rotation.value
@@ -342,3 +349,38 @@ function animate(time) {
 	renderer.render( scene, camera );
 }
 animate();
+
+
+
+
+
+const net = new brain.NeuralNetwork();
+
+const rawA = [[0,1,0,0,0,0,0,0,0],[1,1,0,0,"orange",0,0,0,0],[-1,1,0,0,0,0,"red",0,0],[0,1,-1,0,0,0,0,0,0],[-1,1,-1,0,0,0,"red",0,0],[1,1,-1,0,"orange",0,0,0,0],[0,0,-1,0,0,0,0,0,0],[-1,0,0,0,0,0,"red",0,0],[1,0,0,0,"orange",0,0,0,0],[-1,0,-1,0,0,0,"red",0,0],[1,0,-1,0,"orange",0,0,0,0],[0,-1,0,0,0,0,0,"white",0],[1,-1,0,0,"orange",0,0,"white",0],[-1,-1,0,0,0,0,"red","white",0],[0,-1,-1,0,0,0,0,"white",0],[-1,-1,-1,0,0,0,"red","white",0],[1,-1,-1,0,"orange",0,0,"white",0],[1,0,1,"green",0,0,0,0,0],[1,1,1,"green",0,0,"red",0,0],[1,-1,1,"green","orange",0,0,0,0],[0,0,1,"green",0,0,0,0,0],[0,1,1,"green",0,0,"red",0,0],[0,-1,1,"green","orange",0,0,0,0],[-1,0,1,"green",0,0,0,"white",0],[-1,1,1,"green",0,0,"red","white",0],[-1,-1,1,"green","orange",0,0,"white",0]]
+const rawB = [[0,1,0,0,0,0,0,0,0],[1,1,0,0,"orange",0,0,0,0],[-1,1,0,0,0,0,"red",0,0],[0,1,-1,0,0,0,0,0,0],[-1,1,-1,0,0,0,"red",0,0],[1,1,-1,0,"orange",0,0,0,0],[0,0,-1,0,0,0,0,0,0],[-1,0,0,0,0,0,"red",0,0],[1,0,0,0,"orange",0,0,0,0],[-1,0,-1,0,0,0,"red",0,0],[1,0,-1,0,"orange",0,0,0,0],[0,-1,0,0,0,0,0,"white",0],[1,-1,0,0,"orange",0,0,"white",0],[-1,-1,0,0,0,0,"red","white",0],[0,-1,-1,0,0,0,0,"white",0],[-1,-1,-1,0,0,0,"red","white",0],[1,-1,-1,0,"orange",0,0,"white",0],[-1,0,1,"green",0,0,0,0,0],[-1,-1,1,"green",0,0,"red",0,0],[-1,1,1,"green","orange",0,0,0,0],[0,0,1,"green",0,0,0,0,0],[0,-1,1,"green",0,0,"red",0,0],[0,1,1,"green","orange",0,0,0,0],[1,0,1,"green",0,0,0,"white",0],[1,-1,1,"green",0,0,"red","white",0],[1,1,1,"green","orange",0,0,"white",0]]
+
+const trainSetA = rawA.flatMap(x => x.map(convertColor))
+const trainSetB = rawB.flatMap(x => x.map(convertColor))
+
+net.train([
+  {
+    input: trainSetA,
+    output: { ["F'"]: 1 }
+  },
+  {
+    input: trainSetB,
+    output: { ["F"]: 1 }
+  }
+]);
+
+function pickHighest(data) {
+    let bestScore = 0
+    let bestRotation = ''
+    for (rotation in data) {
+        if (data[rotation] > bestScore) {
+            bestScore = data[rotation]
+            bestRotation = rotation
+        }
+    }
+    return bestRotation
+}
