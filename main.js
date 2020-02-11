@@ -35,6 +35,8 @@ const colors = {
 
 const cubeContainer = new THREE.Object3D();
 scene.add(cubeContainer);
+cubeContainer.rotation.x = 0.51
+cubeContainer.rotation.y = -0.63
 
 const rotater = new THREE.Object3D();
 cubeContainer.add(rotater);
@@ -139,12 +141,6 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 40) {
         rotate[0] = speed
     }
-    if (e.keyCode === 70) {
-        rotateCube('front')
-    }
-    if (e.keyCode === 84) {
-        rotateCube('top')
-    }
     if (e.keyCode === 82 && !e.shiftKey) {
         queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
     }
@@ -235,38 +231,6 @@ function cycle(input) {
     if (input[0] === 0 && input[1] === 1) return [-1,0]
     if (input[0] === -1 && input[1] === 0) return [0,-1]
     if (input[0] === 0 && input[1] === -1) return [1, 0]
-}
-
-function rotateTopCornersClockwise(data) {
-    const [x ,z] = cycle([data.cube.position.x, data.cube.position.z])
-    data.cube.position.x = x
-    data.cube.position.z = z
-
-    data.cube.rotation.y += -Math.PI / 2
-}
-
-function rotateCube(side) {
-    if (side === 'top') {
-        //rubiks.filter(d => d.cube.position.y === 1 && !(d.cube.position.x === 0 && d.cube.position.z === 0))
-        //    .forEach(rotateTopCornersClockwise)
-
-        
-        /*let d
-        d = rubiks.find(d => d.x === 1 && d.y === 1 && d.z === 1)
-        if (d) {
-            d.x = -1
-            const cube = d.cube
-            cube.position.x = -1
-            cube.rotation.y += -Math.PI / 2
-        }
-        d = rubiks.find(d => d.x === 1 && d.y === 1 && d.z === -1)
-        if (d) {
-            d.z = 1
-            const cube = d.cube
-            cube.position.z = 1
-            cube.rotation.y += -Math.PI / 2
-        }*/
-    }
 }
 
 function animate(time) {
