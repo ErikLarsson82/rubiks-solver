@@ -141,43 +141,133 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 40) {
         rotate[0] = speed
     }
+    if (e.keyCode === 85 && !e.shiftKey) {
+        addToQueue("U'")
+    }
+    if (e.keyCode === 85 && e.shiftKey) {
+        addToQueue("U")
+    }
     if (e.keyCode === 82 && !e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
+        addToQueue("R")
     }
     if (e.keyCode === 82 && e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
-    }
-    if (e.keyCode === 84 && !e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
-    }
-    if (e.keyCode === 84 && e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.y === 1, axis: 'y', reversed: true })
+        addToQueue("R'")
     }
     if (e.keyCode === 76 && !e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
+        addToQueue("L")
     }
     if (e.keyCode === 76 && e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.x === -1, axis: 'x', reversed: true })
+        addToQueue("L'")
     }
     if (e.keyCode === 68 && !e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
+        addToQueue("D")
     }
     if (e.keyCode === 68 && e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.y === -1, axis: 'y', reversed: true })
+        addToQueue("D'")
     }
     if (e.keyCode === 70 && !e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.z === 1, axis: 'z' })
+        addToQueue("F")
     }
     if (e.keyCode === 70 && e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true })
+        addToQueue("F'")
     }
     if (e.keyCode === 66 && !e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
+        addToQueue("B")
     }
     if (e.keyCode === 66 && e.shiftKey) {
-        queue.push({ filter: d => d.cube.position.z === -1, axis: 'z', reversed: true })
+        addToQueue("B'")
+    }
+    if (e.keyCode === 49) {
+        addToQueue("F2")
+    }
+    if (e.keyCode === 50) {
+        addToQueue("R2")
+    }
+    if (e.keyCode === 51) {
+        addToQueue("U2")
+    }
+    if (e.keyCode === 52) {
+        addToQueue("L2")
+    }
+    if (e.keyCode === 53) {
+        addToQueue("B2")
+    }
+    if (e.keyCode === 54) {
+        addToQueue("D2")
     }
 })
+
+function addToQueue(move) {
+    switch (move) {
+        case "U":
+            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
+            break;
+        case "U'":
+            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y', reversed: true })
+            break;
+        case "F":
+            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }) 
+            break;
+        case "F'":
+            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z' })
+            break;
+        case "L":
+            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
+            break;
+        case "L'":
+            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x', reversed: true })
+            break;
+        case "R":
+            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+            break;
+        case "R'":
+            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
+            break;
+        case "U":
+            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+            break;
+        case "U'":
+            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x' })
+            break;
+        case "B":
+            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
+            break;
+        case "B'":
+            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z', reversed: true })
+            break;
+        case "D":
+            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
+            break;
+        case "D'":
+            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y', reversed: true })
+            break;
+        case "F2":
+            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }) 
+            queue.push({ filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }) 
+            break;
+        case "R2":
+            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+            queue.push({ filter: d => d.cube.position.x === 1, axis: 'x', reversed: true })
+            break;
+        case "U2":
+            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
+            queue.push({ filter: d => d.cube.position.y === 1, axis: 'y' })
+            break;
+        case "L2":
+            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
+            queue.push({ filter: d => d.cube.position.x === -1, axis: 'x' })
+            break;
+        case "B2":
+            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
+            queue.push({ filter: d => d.cube.position.z === -1, axis: 'z' })
+            break;
+        case "D2":
+            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
+            queue.push({ filter: d => d.cube.position.y === -1, axis: 'y' })
+            break;
+
+    }
+}
 
 function resetRotater() {
     rotater.rotation.x = 0
