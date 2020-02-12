@@ -1,17 +1,23 @@
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera.position.z = 6;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-const queue = []
+let queue = []
 //const data = ["R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'"]
 //data.forEach(rotationObject)
 
-const SPEED = 200
+const SPEED = 2000
 
+const rotate = [0,0]
+const speed = 0.03
+
+let rubiks, cubeContainer, rotater, net, comparee
 let isAnimating = false
+let isAISolving = false
 
 const colors = {
     yellow: new THREE.Color(1,1,0), //0xffff00,
@@ -38,68 +44,87 @@ const colors = {
     z: towards you is more, away from you is less, origo middle of cube
 */
 
-const cubeContainer = new THREE.Object3D();
-scene.add(cubeContainer);
-cubeContainer.rotation.x = 0.51
-cubeContainer.rotation.y = -0.63
+function resetCube() {
+    removeCube()
+    createCube()
+}
 
-const rotater = new THREE.Object3D();
-cubeContainer.add(rotater);
+function removeCube() {
+    scene.remove(cubeContainer)
+    rubiks = null
+}
 
-
-const rubiks = originalCube.map((data, idx) => {
-    const geometry = new THREE.BoxGeometry(0.97, 0.97, 0.97);
+function createCube() {
     
-    const insides = new THREE.Color(0.3, 0.3, 0.3)
-
-    new Array(12).fill().forEach((_, i) => geometry.faces[i].color = insides)
-
-    if (data.right !== undefined) {
-        geometry.faces[0].color = colors[data.right]
-        geometry.faces[1].color = colors[data.right]
+    if (rubiks) {
+        console.log('Cannot create, remove first')
+        return
     }
+    cubeContainer = new THREE.Object3D();
+    scene.add(cubeContainer);
+    cubeContainer.rotation.x = 0.51
+    cubeContainer.rotation.y = -0.63
 
-    if (data.left !== undefined) {
-        geometry.faces[2].color = colors[data.left]
-        geometry.faces[3].color = colors[data.left]
-    }
+    rotater = new THREE.Object3D();
+    cubeContainer.add(rotater);
 
-    if (data.top !== undefined) {
-        geometry.faces[4].color = colors[data.top]
-        geometry.faces[5].color = colors[data.top]
-    }
+    rubiks = originalCube.map((data, idx) => {
+        const geometry = new THREE.BoxGeometry(0.97, 0.97, 0.97);
+        
+        const insides = new THREE.Color(0.3, 0.3, 0.3)
 
-    if (data.bottom !== undefined) {
-        geometry.faces[6].color = colors[data.bottom]
-        geometry.faces[7].color = colors[data.bottom]
-    }
+        new Array(12).fill().forEach((_, i) => geometry.faces[i].color = insides)
 
-    if (data.front !== undefined) {
-        geometry.faces[8].color = colors[data.front]
-        geometry.faces[9].color = colors[data.front]
-    }
+        if (data.right !== undefined) {
+            geometry.faces[0].color = colors[data.right]
+            geometry.faces[1].color = colors[data.right]
+        }
 
-    if (data.back !== undefined) {
-        geometry.faces[10].color = colors[data.back]
-        geometry.faces[11].color = colors[data.back]
-    }
-    const material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors } );
-    cube = new THREE.Mesh( geometry, material );
-    cube.position.x = data.x
-    cube.position.y = data.y
-    cube.position.z = data.z
+        if (data.left !== undefined) {
+            geometry.faces[2].color = colors[data.left]
+            geometry.faces[3].color = colors[data.left]
+        }
 
-    cube.customData = data
+        if (data.top !== undefined) {
+            geometry.faces[4].color = colors[data.top]
+            geometry.faces[5].color = colors[data.top]
+        }
 
-    cubeContainer.add(cube)
+        if (data.bottom !== undefined) {
+            geometry.faces[6].color = colors[data.bottom]
+            geometry.faces[7].color = colors[data.bottom]
+        }
+
+        if (data.front !== undefined) {
+            geometry.faces[8].color = colors[data.front]
+            geometry.faces[9].color = colors[data.front]
+        }
+
+        if (data.back !== undefined) {
+            geometry.faces[10].color = colors[data.back]
+            geometry.faces[11].color = colors[data.back]
+        }
+        const material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors } );
+        cube = new THREE.Mesh( geometry, material );
+        cube.position.x = data.x
+        cube.position.y = data.y
+        cube.position.z = data.z
+
+        cube.customData = data
+
+        cubeContainer.add(cube)
+        
+        return {...data, cube}
+    })
+
+    //rotateSide("F", false)
+    //rotateSide("F", false)
+    //rotateSide("F", false)
+    //rotateSide("F", false)
     
-    return {...data, cube}
-})
-
-camera.position.z = 6;
-
-const rotate = [0,0]
-const speed = 0.03
+    //comparee = printCube()
+    //console.log(R.equals(printCube(),comparee))
+}
 
 window.addEventListener('keydown', (e) => {
     if (e.keyCode === 37) {
@@ -175,10 +200,36 @@ window.addEventListener('keydown', (e) => {
         console.log(printCube())
     }
     if (e.keyCode === 65) {
-        const cube = printCube()
-        const result = net.run(cube)
-        const best = pickHighest(result)
-        queue.push(best)
+        if (!net) {
+            console.log("No net trained yet")
+            return
+        }
+        isAISolving = true
+    }
+    if (e.keyCode === 27) {
+        removeCube()
+    }
+    if (e.keyCode === 13) {
+        createCube()
+    }
+    if (e.keyCode === 84) {
+        trainNetwork()
+    }
+    if (e.keyCode === 67) {
+        console.log(R.equals(printCube(),comparee))
+    }
+    if (e.keyCode === 83) {
+        console.log("Saving current")
+        comparee = printCube()
+    }
+})
+
+window.addEventListener('keyup', (e) => {
+    if (e.keyCode === 37 || e.keyCode === 39) {
+        rotate[1] = 0
+    }
+    if (e.keyCode === 38 || e.keyCode === 40) {
+        rotate[0] = 0
     }
 })
 
@@ -191,7 +242,7 @@ function replaceUndefinedWithZero(x) {
 }
 
 function coordsAndRotation(d) {
-    return [d.position.x, d.position.y, d.position.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.bottom, d.customData.down].map(replaceUndefinedWithZero)
+    return [d.position.x, d.position.y, d.position.z, d.rotation.x, d.rotation.y, d.rotation.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.bottom, d.customData.down].map(replaceUndefinedWithZero)
 }
 
 function convertColor(color) {
@@ -204,6 +255,14 @@ function convertColor(color) {
     'orange',
     'white'
   ].findIndex(x => x === color)
+}
+
+function inverse(move) {
+    if (move.includes("2")) return move
+
+    if (move.includes("'")) return move[0]
+
+    return `${move}'`
 }
 
 function rotationObject(move) {
@@ -300,10 +359,15 @@ function rotateSide(move, animation) {
             })
             .onComplete(() => {
                 cubes.forEach(obj => {
-                    cubeContainer.attach( obj.cube );
-                    obj.cube.position.x = Math.round(obj.cube.position.x)
-                    obj.cube.position.y = Math.round(obj.cube.position.y)
-                    obj.cube.position.z = Math.round(obj.cube.position.z)
+                    console.log(obj.cube.rotation.x)//, Math.round(obj.cube.rotation.y * 10))
+                    //scene.attach( obj.cube );
+                    //obj.cube.position.x = Math.round(obj.cube.position.x)
+                    //obj.cube.position.y = Math.round(obj.cube.position.y)
+                    //obj.cube.position.z = Math.round(obj.cube.position.z)
+                    //obj.cube.rotation.x = Math.round(obj.cube.rotation.x)
+                    //obj.cube.rotation.y = Math.round(obj.cube.rotation.y)
+                    //obj.cube.rotation.z = Math.round(obj.cube.rotation.z)
+                    cubeContainer.attach( obj.cube )
                 })
                 resetRotater()
                 isAnimating = false
@@ -316,75 +380,51 @@ function rotateSide(move, animation) {
             obj.cube.position.x = Math.round(obj.cube.position.x)
             obj.cube.position.y = Math.round(obj.cube.position.y)
             obj.cube.position.z = Math.round(obj.cube.position.z)
+            obj.cube.rotation.x = Math.round(obj.cube.rotation.x)
+            obj.cube.rotation.y = Math.round(obj.cube.rotation.y)
+            obj.cube.rotation.z = Math.round(obj.cube.rotation.z)
         })
         resetRotater()
     }
 }
 
-window.addEventListener('keyup', (e) => {
-    if (e.keyCode === 37 || e.keyCode === 39) {
-        rotate[1] = 0
-    }
-    if (e.keyCode === 38 || e.keyCode === 40) {
-        rotate[0] = 0
-    }
-})
+function trainNetwork() {
+    const trainingData = []
 
-function cycle(input) {
-    // corners
-    if (input[0] === 1 && input[1] === -1) return [1,1]
-    if (input[0] === 1 && input[1] === 1) return [-1,1]
-    if (input[0] === -1 && input[1] === 1) return [-1,-1]
-    if (input[0] === -1 && input[1] === -1) return [1,-1]
+    net = new brain.NeuralNetwork({ hiddenLayers: [4] });
 
-    // middles
-    if (input[0] === 1 && input[1] === 0) return [0,1]
-    if (input[0] === 0 && input[1] === 1) return [-1,0]
-    if (input[0] === -1 && input[1] === 0) return [0,-1]
-    if (input[0] === 0 && input[1] === -1) return [1, 0]
+    resetCube()
+
+    const moves = [
+        "F",
+        "F'",
+        "U",
+        "U'",
+        "R",
+        "R'",
+    ]
+
+    for (var i = 0; i < 1; i++) {
+        const rand = Math.floor(Math.random() * moves.length)
+        const move = moves[rand]
+        const inverseMove = inverse(move)
+        console.log('running', rand, move, inverseMove)
+        rotateSide(move, false)
+        trainingData.push({
+            input: printCube(),
+            output: { [inverseMove]: 1 }
+        })
+    } 
+
+    window.trainingData = trainingData
+
+    const result = net.train(trainingData)
+
+    console.log('Training result', result)
 }
-
-function animate(time) {
-	requestAnimationFrame( animate );
-
-    if (!isAnimating && queue.length > 0) {
-        rotateSide(queue.shift())
-    }
-
-    TWEEN.update(time);
-
-    if (rotate[0]) {
-        cubeContainer.rotation.x += rotate[0];
-    }
-    if (rotate[1]) {
-        cubeContainer.rotation.y += rotate[1];
-    }
-
-	renderer.render( scene, camera );
-}
-animate();
-
-
-
-
-
-const net = new brain.NeuralNetwork();
-
-const rawA = [[0,1,0,0,0,0,0,0,0],[1,1,0,0,"orange",0,0,0,0],[-1,1,0,0,0,0,"red",0,0],[0,1,-1,0,0,0,0,0,0],[-1,1,-1,0,0,0,"red",0,0],[1,1,-1,0,"orange",0,0,0,0],[0,0,-1,0,0,0,0,0,0],[-1,0,0,0,0,0,"red",0,0],[1,0,0,0,"orange",0,0,0,0],[-1,0,-1,0,0,0,"red",0,0],[1,0,-1,0,"orange",0,0,0,0],[0,-1,0,0,0,0,0,"white",0],[1,-1,0,0,"orange",0,0,"white",0],[-1,-1,0,0,0,0,"red","white",0],[0,-1,-1,0,0,0,0,"white",0],[-1,-1,-1,0,0,0,"red","white",0],[1,-1,-1,0,"orange",0,0,"white",0],[1,0,1,"green",0,0,0,0,0],[1,1,1,"green",0,0,"red",0,0],[1,-1,1,"green","orange",0,0,0,0],[0,0,1,"green",0,0,0,0,0],[0,1,1,"green",0,0,"red",0,0],[0,-1,1,"green","orange",0,0,0,0],[-1,0,1,"green",0,0,0,"white",0],[-1,1,1,"green",0,0,"red","white",0],[-1,-1,1,"green","orange",0,0,"white",0]]
-const rawB = [[0,1,0,0,0,0,0,0,0],[1,1,0,0,"orange",0,0,0,0],[-1,1,0,0,0,0,"red",0,0],[0,1,-1,0,0,0,0,0,0],[-1,1,-1,0,0,0,"red",0,0],[1,1,-1,0,"orange",0,0,0,0],[0,0,-1,0,0,0,0,0,0],[-1,0,0,0,0,0,"red",0,0],[1,0,0,0,"orange",0,0,0,0],[-1,0,-1,0,0,0,"red",0,0],[1,0,-1,0,"orange",0,0,0,0],[0,-1,0,0,0,0,0,"white",0],[1,-1,0,0,"orange",0,0,"white",0],[-1,-1,0,0,0,0,"red","white",0],[0,-1,-1,0,0,0,0,"white",0],[-1,-1,-1,0,0,0,"red","white",0],[1,-1,-1,0,"orange",0,0,"white",0],[-1,0,1,"green",0,0,0,0,0],[-1,-1,1,"green",0,0,"red",0,0],[-1,1,1,"green","orange",0,0,0,0],[0,0,1,"green",0,0,0,0,0],[0,-1,1,"green",0,0,"red",0,0],[0,1,1,"green","orange",0,0,0,0],[1,0,1,"green",0,0,0,"white",0],[1,-1,1,"green",0,0,"red","white",0],[1,1,1,"green","orange",0,0,"white",0]]
-
-net.train([
-  {
-    input: rawA.flatMap(x => x.map(convertColor)),
-    output: { ["F'"]: 1 }
-  },
-  {
-    input: rawB.flatMap(x => x.map(convertColor)),
-    output: { ["F"]: 1 }
-  }
-]);
 
 function pickHighest(data) {
+    console.log('picking highest from', data)
     let bestScore = 0
     let bestRotation = ''
     for (rotation in data) {
@@ -395,3 +435,53 @@ function pickHighest(data) {
     }
     return bestRotation
 }
+
+
+function animate(time) {
+    //console.log(isAISolving, R.equals(printCube(),comparee))
+    if (isAISolving && R.equals(printCube(),comparee)) {
+        isAISolving = false
+        isAnimating = false
+        queue = []
+        return
+    } else {
+        requestAnimationFrame( animate );
+    }
+
+    renderer.render( scene, camera );
+
+    if (isAnimating) {
+        TWEEN.update(time);
+
+        if (rotate[0]) {
+            cubeContainer.rotation.x += rotate[0];
+        }
+        if (rotate[1]) {
+            cubeContainer.rotation.y += rotate[1];
+        }
+
+        return
+    }
+
+    
+
+    if (isAISolving && queue.length === 0) {
+        const cube = printCube()
+        const result = net.run(cube)
+        const best = pickHighest(result)
+        console.log('best is', best)
+        if (!best) {
+            isAISolving = false
+            console.log('AI gave up')
+            return
+        }
+        queue.push(best)
+    } else if (queue.length > 0) {
+        rotateSide(queue.shift())
+    }
+
+    
+}
+createCube();
+animate();
+
