@@ -7,10 +7,8 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
 let queue = []
-//const data = ["R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'","R","U","R'","U'"]
-//data.forEach(rotationObject)
 
-const SPEED = 2000
+const SPEED = 150
 
 const rotate = [0,0]
 const speed = 0.03
@@ -18,6 +16,7 @@ const speed = 0.03
 let rubiks, cubeContainer, rotater, net, comparee
 let isAnimating = false
 let isAISolving = false
+let isLocked = false
 
 const colors = {
     yellow: new THREE.Color(1,1,0), //0xffff00,
@@ -110,20 +109,15 @@ function createCube() {
         cube.position.y = data.y
         cube.position.z = data.z
 
-        cube.customData = data
+        const defaultData = { front: undefined, left: undefined, right: undefined, bottom: undefined, back: undefined }
+        cube.customData = {...defaultData, ...data}
 
         cubeContainer.add(cube)
         
-        return {...data, cube}
+        return cube
     })
 
-    //rotateSide("F", false)
-    //rotateSide("F", false)
-    //rotateSide("F", false)
-    //rotateSide("F", false)
-    
-    //comparee = printCube()
-    //console.log(R.equals(printCube(),comparee))
+    comparee = printCube()
 }
 
 window.addEventListener('keydown', (e) => {
@@ -204,7 +198,7 @@ window.addEventListener('keydown', (e) => {
             console.log("No net trained yet")
             return
         }
-        isAISolving = true
+        isAISolving = !isAISolving
     }
     if (e.keyCode === 27) {
         removeCube()
@@ -216,7 +210,7 @@ window.addEventListener('keydown', (e) => {
         trainNetwork()
     }
     if (e.keyCode === 67) {
-        console.log(R.equals(printCube(),comparee))
+        console.log("Is cube identical to saved:", R.equals(printCube(),comparee))
     }
     if (e.keyCode === 83) {
         console.log("Saving current")
@@ -234,15 +228,19 @@ window.addEventListener('keyup', (e) => {
 })
 
 function printCube() {
-    return cubeContainer.children.filter(x=>x.type === 'Mesh').map(coordsAndRotation).flatMap(x => x.map(convertColor))
+    return cubeContainer.children.map(x=>x)
+        .sort((a, b) => a.uuid > b.uuid ? 1 : -1)
+        .filter(x=>x.type === 'Mesh')
+        .map(meshData)
+        .flatMap(x => x.map(convertColor).map(replaceMinusZero))
 }
 
 function replaceUndefinedWithZero(x) {
     return x === undefined ? 0 : x
 }
 
-function coordsAndRotation(d) {
-    return [d.position.x, d.position.y, d.position.z, d.rotation.x, d.rotation.y, d.rotation.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.bottom, d.customData.down].map(replaceUndefinedWithZero)
+function meshData(d) {
+    return [d.position.x, d.position.y, d.position.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.bottom, d.customData.down].map(replaceUndefinedWithZero)
 }
 
 function convertColor(color) {
@@ -257,6 +255,10 @@ function convertColor(color) {
   ].findIndex(x => x === color)
 }
 
+function replaceMinusZero(number) {
+    return number === -0 ? 0 : number;
+}
+
 function inverse(move) {
     if (move.includes("2")) return move
 
@@ -268,70 +270,70 @@ function inverse(move) {
 function rotationObject(move) {
     switch (move) {
         case "U":
-            return { filter: d => d.cube.position.y === 1, axis: 'y' }
+            return { filter: d => d.position.y === 1, axis: 'y' }
             break;
         case "U'":
-            return { filter: d => d.cube.position.y === 1, axis: 'y', reversed: true }
+            return { filter: d => d.position.y === 1, axis: 'y', reversed: true }
             break;
         case "F":
-            return { filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }
+            return { filter: d => d.position.z === 1, axis: 'z', reversed: true }
             break;
         case "F'":
-            return { filter: d => d.cube.position.z === 1, axis: 'z' }
+            return { filter: d => d.position.z === 1, axis: 'z' }
             break;
         case "L":
-            return { filter: d => d.cube.position.x === -1, axis: 'x' }
+            return { filter: d => d.position.x === -1, axis: 'x' }
             break;
         case "L'":
-            return { filter: d => d.cube.position.x === -1, axis: 'x', reversed: true }
+            return { filter: d => d.position.x === -1, axis: 'x', reversed: true }
             break;
         case "R":
-            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
+            return { filter: d => d.position.x === 1, axis: 'x', reversed: true }
             break;
         case "R'":
-            return { filter: d => d.cube.position.x === 1, axis: 'x' }
+            return { filter: d => d.position.x === 1, axis: 'x' }
             break;
         case "U":
-            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
+            return { filter: d => d.position.x === 1, axis: 'x', reversed: true }
             break;
         case "U'":
-            return { filter: d => d.cube.position.x === 1, axis: 'x' }
+            return { filter: d => d.position.x === 1, axis: 'x' }
             break;
         case "B":
-            return { filter: d => d.cube.position.z === -1, axis: 'z' }
+            return { filter: d => d.position.z === -1, axis: 'z' }
             break;
         case "B'":
-            return { filter: d => d.cube.position.z === -1, axis: 'z', reversed: true }
+            return { filter: d => d.position.z === -1, axis: 'z', reversed: true }
             break;
         case "D":
-            return { filter: d => d.cube.position.y === -1, axis: 'y' }
+            return { filter: d => d.position.y === -1, axis: 'y' }
             break;
         case "D'":
-            return { filter: d => d.cube.position.y === -1, axis: 'y', reversed: true }
+            return { filter: d => d.position.y === -1, axis: 'y', reversed: true }
             break;
         case "F2":
-            return { filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }
-            return { filter: d => d.cube.position.z === 1, axis: 'z', reversed: true }
+            return { filter: d => d.position.z === 1, axis: 'z', reversed: true }
+            return { filter: d => d.position.z === 1, axis: 'z', reversed: true }
             break;
         case "R2":
-            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
-            return { filter: d => d.cube.position.x === 1, axis: 'x', reversed: true }
+            return { filter: d => d.position.x === 1, axis: 'x', reversed: true }
+            return { filter: d => d.position.x === 1, axis: 'x', reversed: true }
             break;
         case "U2":
-            return { filter: d => d.cube.position.y === 1, axis: 'y' }
-            return { filter: d => d.cube.position.y === 1, axis: 'y' }
+            return { filter: d => d.position.y === 1, axis: 'y' }
+            return { filter: d => d.position.y === 1, axis: 'y' }
             break;
         case "L2":
-            return { filter: d => d.cube.position.x === -1, axis: 'x' }
-            return { filter: d => d.cube.position.x === -1, axis: 'x' }
+            return { filter: d => d.position.x === -1, axis: 'x' }
+            return { filter: d => d.position.x === -1, axis: 'x' }
             break;
         case "B2":
-            return { filter: d => d.cube.position.z === -1, axis: 'z' }
-            return { filter: d => d.cube.position.z === -1, axis: 'z' }
+            return { filter: d => d.position.z === -1, axis: 'z' }
+            return { filter: d => d.position.z === -1, axis: 'z' }
             break;
         case "D2":
-            return { filter: d => d.cube.position.y === -1, axis: 'y' }
-            return { filter: d => d.cube.position.y === -1, axis: 'y' }
+            return { filter: d => d.position.y === -1, axis: 'y' }
+            return { filter: d => d.position.y === -1, axis: 'y' }
             break;
 
     }
@@ -343,10 +345,121 @@ function resetRotater() {
     rotater.rotation.z = 0
 }
 
+function rotateColors(rotation, data) {
+    const sides = {}
+
+    if (rotation === "U") {
+        sides.top = data.top
+        sides.bottom = data.bottom
+
+        sides.front = data.left
+        sides.right = data.front
+        sides.back = data.right
+        sides.left = data.back
+    }
+
+    if (rotation === "U'") {
+        sides.top = data.top
+        sides.bottom = data.bottom
+
+        sides.left = data.front
+        sides.front = data.right
+        sides.right = data.back
+        sides.back = data.left
+    }
+
+    if (rotation === "L") {
+        sides.right = data.right
+        sides.left = data.left
+
+        sides.top = data.back
+        sides.front = data.top
+        sides.back = data.bottom
+        sides.bottom = data.front
+    }
+
+    if (rotation === "L'") {
+        sides.right = data.right
+        sides.left = data.left
+
+        sides.top = data.front
+        sides.front = data.bottom
+        sides.back = data.top
+        sides.bottom = data.back
+    }
+
+    if (rotation === "R") {
+        sides.right = data.right
+        sides.left = data.left
+
+        sides.back = data.top
+        sides.bottom = data.back
+        sides.front = data.bottom
+        sides.top = data.front
+    }
+
+    if (rotation === "R'") {
+        sides.left = data.left
+        sides.right = data.right
+
+        sides.top = data.back
+        sides.front = data.top
+        sides.bottom = data.front
+        sides.back = data.bottom
+    }
+
+    if (rotation === "D") {
+        sides.top = data.top
+        sides.bottom = data.bottom
+
+        sides.front = data.left
+        sides.right = data.front
+        sides.back = data.right
+        sides.left = data.back
+    }
+
+    if (rotation === "D'") {
+        sides.top = data.top
+        sides.bottom = data.bottom
+
+        sides.front = data.right
+        sides.left = data.front
+        sides.back = data.left
+        sides.right = data.back
+    }
+
+    if (rotation === "B") {
+        sides.front = data.front
+        sides.back = data.back
+
+        sides.top = data.right
+        sides.left = data.top
+        sides.bottom = data.left
+        sides.right = data.bottom
+    }
+
+    if (rotation === "B'") {
+        sides.front = data.front
+        sides.back = data.back
+        
+        sides.top = data.left
+        sides.right = data.top
+        sides.bottom = data.right
+        sides.left = data.bottom
+    }
+
+    return {
+        ...sides,
+        x: data.x,
+        y: data.y,
+        z: data.z
+    }
+}
+
 function rotateSide(move, animation) {
     const { filter, axis, reversed } = rotationObject(move)
     const cubes = rubiks.filter(filter)
-    cubes.forEach(obj => rotater.attach(obj.cube))
+    cubes.forEach(cube => rotater.attach(cube))
 
     if (animation !== false) {
         isAnimating = true
@@ -358,16 +471,15 @@ function rotateSide(move, animation) {
                 rotater.rotation[axis] = rotation.value
             })
             .onComplete(() => {
-                cubes.forEach(obj => {
-                    console.log(obj.cube.rotation.x)//, Math.round(obj.cube.rotation.y * 10))
-                    //scene.attach( obj.cube );
-                    //obj.cube.position.x = Math.round(obj.cube.position.x)
-                    //obj.cube.position.y = Math.round(obj.cube.position.y)
-                    //obj.cube.position.z = Math.round(obj.cube.position.z)
-                    //obj.cube.rotation.x = Math.round(obj.cube.rotation.x)
-                    //obj.cube.rotation.y = Math.round(obj.cube.rotation.y)
-                    //obj.cube.rotation.z = Math.round(obj.cube.rotation.z)
-                    cubeContainer.attach( obj.cube )
+                cubes.forEach(cube => {
+                    cubeContainer.attach( cube )
+                    const transformation = rotateColors(move, cube.customData)
+                    for (value in transformation) {
+                        cube.customData[value] = transformation[value]
+                    }
+                    cube.position.x = Math.round(cube.position.x)
+                    cube.position.y = Math.round(cube.position.y)
+                    cube.position.z = Math.round(cube.position.z)
                 })
                 resetRotater()
                 isAnimating = false
@@ -375,56 +487,87 @@ function rotateSide(move, animation) {
             .start();
     } else {
         rotater.rotation[axis] = Math.PI / 2 * (reversed ? -1 : 1)
-        cubes.forEach(obj => {
-            cubeContainer.attach( obj.cube );
-            obj.cube.position.x = Math.round(obj.cube.position.x)
-            obj.cube.position.y = Math.round(obj.cube.position.y)
-            obj.cube.position.z = Math.round(obj.cube.position.z)
-            obj.cube.rotation.x = Math.round(obj.cube.rotation.x)
-            obj.cube.rotation.y = Math.round(obj.cube.rotation.y)
-            obj.cube.rotation.z = Math.round(obj.cube.rotation.z)
+        cubes.forEach(cube => {
+            cubeContainer.attach( cube );
+            const transformation = rotateColors(move, cube.customData)
+            for (value in transformation) {
+                cube.customData[value] = transformation[value]
+            }
+            cube.position.x = Math.round(cube.position.x)
+            cube.position.y = Math.round(cube.position.y)
+            cube.position.z = Math.round(cube.position.z)
         })
         resetRotater()
     }
 }
 
 function trainNetwork() {
-    const trainingData = []
-
-    net = new brain.NeuralNetwork({ hiddenLayers: [4] });
-
-    resetCube()
-
-    const moves = [
-        "F",
-        "F'",
-        "U",
-        "U'",
-        "R",
-        "R'",
+    const trainingData = [
+        {
+            
+        }
     ]
 
-    for (var i = 0; i < 1; i++) {
-        const rand = Math.floor(Math.random() * moves.length)
-        const move = moves[rand]
-        const inverseMove = inverse(move)
-        console.log('running', rand, move, inverseMove)
-        rotateSide(move, false)
-        trainingData.push({
-            input: printCube(),
-            output: { [inverseMove]: 1 }
-        })
-    } 
+    net = new brain.NeuralNetwork({ hiddenLayers: [20] });
+
+    const moves = [
+        "U",
+        "U'",
+        "L",
+        "L'",
+        "R",
+        "R'",
+        "D",
+        "D'",
+        "B",
+        "B'",
+        "F",
+        "F'",
+    ]
+
+    console.log('Creating test data')
+
+    // Full sequences
+    for (var i = 0; i < 30; i++) {
+        let sequence = []
+        let lastMove = ""
+        
+        resetCube()
+
+        // Moves in each sequence
+        for (var j = 0; j < 30; j++) {
+            let rand, move
+            do {
+                rand = Math.floor(Math.random() * moves.length)
+                move = moves[rand]
+            } while(lastMove === inverse(move))
+
+            sequence.push(move)
+            lastMove = move
+            const inverseMove = inverse(move)
+            rotateSide(move, false)
+            const currentCube = printCube()
+
+            if (trainingData.filter(x => R.equals(x, currentCube)).length === 0) {
+                trainingData.push({
+                    input: currentCube,
+                    output: { [inverseMove]: 1 }
+                })
+            }
+        }
+        console.log(sequence)
+    }
 
     window.trainingData = trainingData
 
+    console.log('Begin training...')
+
     const result = net.train(trainingData)
 
-    console.log('Training result', result)
+    console.log('Training result complete:', result)
 }
 
 function pickHighest(data) {
-    console.log('picking highest from', data)
     let bestScore = 0
     let bestRotation = ''
     for (rotation in data) {
@@ -438,14 +581,14 @@ function pickHighest(data) {
 
 
 function animate(time) {
-    //console.log(isAISolving, R.equals(printCube(),comparee))
+    requestAnimationFrame( animate );
+
     if (isAISolving && R.equals(printCube(),comparee)) {
+        console.log("Solved")
         isAISolving = false
         isAnimating = false
         queue = []
         return
-    } else {
-        requestAnimationFrame( animate );
     }
 
     renderer.render( scene, camera );
@@ -469,7 +612,6 @@ function animate(time) {
         const cube = printCube()
         const result = net.run(cube)
         const best = pickHighest(result)
-        console.log('best is', best)
         if (!best) {
             isAISolving = false
             console.log('AI gave up')

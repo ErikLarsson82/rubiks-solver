@@ -12,7 +12,7 @@ const originalCube = [
     { x: 1, y: 1, z: -1, top: 'yellow', right: 'orange', back: 'blue' },
 
     //Middle layer
-    { x: 0, y: 0, z: 1, front: 'green' }, //Center
+   	{ x: 0, y: 0, z: 1, front: 'green' }, //Center
     { x: 0, y: 0, z: -1, back: 'blue' }, //Center
     { x: -1, y: 0, z: 0, left: 'red' }, //Center
     { x: 1, y: 0, z: 0, right: 'orange' }, //Center
