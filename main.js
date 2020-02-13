@@ -227,8 +227,8 @@ window.addEventListener('keydown', (e) => {
         console.log("Saving current")
         comparee = printCube()
     }
-    if (e.keyCode === 80) {
-        console.log("Purging current network")
+    if (e.keyCode === 87) {
+        console.log("Wipe current network")
         net = new brain.NeuralNetwork()
         localStorage.removeItem("rubiks-network");
     }
@@ -248,11 +248,19 @@ function printCube() {
         .sort((a, b) => a.uuid > b.uuid ? 1 : -1)
         .filter(x=>x.type === 'Mesh')
         .map(meshData)
-        .flatMap(x => x.map(convertColor).map(replaceMinusZero))
+        .flatMap(x => x.map(convertColor).map(replaceMinusZero).map(shift))
 }
 
 function replaceUndefinedWithZero(x) {
     return x === undefined ? 0 : x
+}
+
+function shift(x) {
+    return (x + 1) / 6
+}
+
+function unshift(x) {
+    return Math.round((x * 6) - 1)
 }
 
 function meshData(d) {
