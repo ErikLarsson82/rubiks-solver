@@ -53,6 +53,17 @@ function removeCube() {
     rubiks = null
 }
 
+function setupNet() {
+    const json = localStorage.getItem("rubiks-network")
+    if (json) {
+        console.log('Loading saved network from disc')
+        net = new brain.NeuralNetwork().fromJSON(JSON.parse(json));
+    } else {
+        console.log('Creating new network')
+        net = new brain.NeuralNetwork()
+    }
+}
+
 function createCube() {
     
     if (rubiks) {
@@ -215,6 +226,11 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 83) {
         console.log("Saving current")
         comparee = printCube()
+    }
+    if (e.keyCode === 80) {
+        console.log("Purging current network")
+        net = new brain.NeuralNetwork()
+        localStorage.removeItem("rubiks-network");
     }
 })
 
@@ -502,19 +518,13 @@ function rotateSide(move, animation) {
 }
 
 function trainNetwork() {
-    const trainingData = [
-        {
-            
-        }
-    ]
-
-    net = new brain.NeuralNetwork({ hiddenLayers: [20] });
+    const trainingData = []
 
     const moves = [
         "U",
-        "U'",
-        "L",
-        "L'",
+        //"U'",
+        //"L",
+        /*"L'",
         "R",
         "R'",
         "D",
@@ -522,20 +532,20 @@ function trainNetwork() {
         "B",
         "B'",
         "F",
-        "F'",
+        "F'",*/
     ]
 
     console.log('Creating test data')
 
     // Full sequences
-    for (var i = 0; i < 30; i++) {
+    for (var i = 0; i < 1; i++) {
         let sequence = []
         let lastMove = ""
         
         resetCube()
 
         // Moves in each sequence
-        for (var j = 0; j < 30; j++) {
+        for (var j = 0; j < 1; j++) {
             let rand, move
             do {
                 rand = Math.floor(Math.random() * moves.length)
@@ -564,6 +574,9 @@ function trainNetwork() {
 
     const result = net.train(trainingData)
 
+    localStorage.setItem("rubiks-network", JSON.stringify(net.toJSON()));
+
+    console.log('Saving network to disc...')
     console.log('Training result complete:', result)
 }
 
@@ -624,6 +637,7 @@ function animate(time) {
 
     
 }
+setupNet()
 createCube();
 animate();
 
