@@ -27,6 +27,34 @@ const colors = {
     white: new THREE.Color(1,1,1), //0xffffff,
 }
 
+const scrambles = [
+    /*"B F U U",
+    "F U U B",
+    "B U U F",
+    "U U B F",
+    "U U",
+    "F F",
+    "U F U",
+    "F U F",
+    "U",
+    "F"*/
+    //"B F F L U L' B' R D' U U F' U U B B R R U' R' U L' F' R' U' D D R U U R' U",
+    //"R D' L L B B R L L U' L' U' B B D' B B D' U' B D' B B D D B L' D D U U R R L D'",
+    //"U' R R B' F' U' L' D F2 B B L R' B B L L U' F' L R R D F' D F B' L' B R R",
+    //"R' D' U U L' B B R R F2 B R' U F2 U U F B B R F B' U D D L L F' U L L U U F",
+    //"D D U R U' F' L F2 R R F' U' L L U L L R R D D L U' L L B B L D U' L B' F'",
+    //"D U U F2 B' D R R F U R R U' F D' U U B' F' R' D' R R F' L B B D D U' F' R'",
+    //"R' L D R R B' U U R L U' L L R R B L R' B' F2 L B B D' F U F' U' D D F2",
+    //"B B R' B' R R U' B B U' R' L' B R' B' D U L D D B B D F2 R U R D' F2 U U",
+    //"U' L D D R R D U' R U U B B L L F' R R U L B U' F U' F2 R' D' R' D F' L",
+    //"U' L U R R D' U U F' U' B F U U D D L B' L B' D D F2 R' F' R' F2 R R D R'",
+    //"U L B L' B B L' F' D U U L L D D U U R D' R B B D' F2 R R D' U' B U F' B",
+    //"U L F' L' B L' B B F' R R D' R' U U B L' R F' L L R U U B' R R B L L U L",
+    //"R R D D U' L B D D F2 U L L U U D F' D D U B B D R R U' F' R R F2 D' U' L' F2",
+    //"L' B D D L L U L L B B L B D' L B' L' D' F2 R' B L U' B B F2 R R U U L' F'",
+    //"R B B L' F B R R B' F2 D D L D R R D D F' D' F U U R R U D D L U R F2 D'",
+].map(x => x.split(" "))
+
 /*
     Faces:
     A: 0, 1: Höger sida
@@ -65,7 +93,7 @@ function setupNet() {
 
 function createNewNet() {
     console.log('Creating new network')
-    net = new brain.NeuralNetwork({ hiddenLayers: [200, 200, 200] }) //{ log: true, errorThresh: 0.3, learningRate: 0.95 } //{ hiddenLayers: [200, 100, 200, 200, 200] }
+    net = new brain.NeuralNetwork() //{ hiddenLayers: [200, 100, 200, 200, 200] }
 }
 
 function createCube() {
@@ -188,22 +216,24 @@ window.addEventListener('keydown', (e) => {
         queue.push("B'")
     }
     if (e.keyCode === 49) {
-        queue.push("F2")
+        //queue.push("F2")
+        queue = scrambles[0].map(x => x)
     }
     if (e.keyCode === 50) {
-        queue.push("R2")
+        //queue.push("R2")
+        queue = scrambles[1].map(x => x)
     }
     if (e.keyCode === 51) {
-        queue.push("U2")
+        //queue.push("U2")
     }
     if (e.keyCode === 52) {
-        queue.push("L2")
+        //queue.push("L2")
     }
     if (e.keyCode === 53) {
-        queue.push("B2")
+        //queue.push("B2")
     }
     if (e.keyCode === 54) {
-        queue.push("D2")
+        //queue.push("D2")
     }
     if (e.keyCode === 80) {
         console.log(printCube())
@@ -224,7 +254,7 @@ window.addEventListener('keydown', (e) => {
     if (e.keyCode === 84) {
         trainNetwork()
     }
-    if (e.keyCode === 67) {
+    if (e.keyCode === 67) { // C
         console.log("Is cube identical to saved:", R.equals(printCube(),comparee))
     }
     if (e.keyCode === 83) {
@@ -253,7 +283,7 @@ function printCube() {
         .sort((a, b) => a.cubeIndex > b.cubeIndex ? 1 : -1)
         .filter(x=>x.type === 'Mesh')
         .map(meshData)
-        .flatMap(x => x.map(convertColor).map(replaceMinusZero).map(shift))
+        .flatMap(x => x.map(convertColor).map(replaceMinusZero)) //.map(shift)
 }
 
 function replaceUndefinedWithZero(x) {
@@ -294,6 +324,35 @@ function inverse(move) {
     if (move.includes("'")) return move[0]
 
     return `${move}'`
+}
+
+/**
+ * Shuffles array in place. ES6 version
+ * @param {Array} a items An array containing the items.
+ */
+function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function perm(xs) {
+  let ret = [];
+
+  for (let i = 0; i < xs.length; i = i + 1) {
+    let rest = perm(xs.slice(0, i).concat(xs.slice(i + 1)));
+
+    if(!rest.length) {
+      ret.push([xs[i]])
+    } else {
+      for(let j = 0; j < rest.length; j = j + 1) {
+        ret.push([xs[i]].concat(rest[j]))
+      }
+    }
+  }
+  return ret;
 }
 
 function rotationObject(move) {
@@ -535,58 +594,58 @@ function trainNetwork() {
 
     const moves = [
         "U",
-        "U'",
+        //"U'",
         "L",
-        "L'",
+        //"L'",
         "R",
-        "R'",
+        //"R'",
         "D",
-        "D'",
+        //"D'",
         "B",
-        "B'",
+        //"B'",
         "F",
-        "F'"
+        //"F'"
     ]
 
-    const scrambles = [
-        /*"B F U U",
-        "F U U B",
-        "B U U F",
-        "U U B F",
-        "U U",
-        "F F",
-        "U F U",
-        "F U F",
-        "U",
-        "F"*/
-        "B F F L U L' B' R D' U U F' U U B B R R U' R' U L' F' R' U' D D R U U R' U",
-        //"R D' L L B B R L L U' L' U' B B D' B B D' U' B D' B B D D B L' D D U U R R L D'",
-        //"U' R R B' F' U' L' D F2 B B L R' B B L L U' F' L R R D F' D F B' L' B R R",
-        //"R' D' U U L' B B R R F2 B R' U F2 U U F B B R F B' U D D L L F' U L L U U F",
-        //"D D U R U' F' L F2 R R F' U' L L U L L R R D D L U' L L B B L D U' L B' F'",
-        //"D U U F2 B' D R R F U R R U' F D' U U B' F' R' D' R R F' L B B D D U' F' R'",
-        //"R' L D R R B' U U R L U' L L R R B L R' B' F2 L B B D' F U F' U' D D F2",
-        //"B B R' B' R R U' B B U' R' L' B R' B' D U L D D B B D F2 R U R D' F2 U U",
-        //"U' L D D R R D U' R U U B B L L F' R R U L B U' F U' F2 R' D' R' D F' L",
-        //"U' L U R R D' U U F' U' B F U U D D L B' L B' D D F2 R' F' R' F2 R R D R'",
-        //"U L B L' B B L' F' D U U L L D D U U R D' R B B D' F2 R R D' U' B U F' B",
-        //"U L F' L' B L' B B F' R R D' R' U U B L' R F' L L R U U B' R R B L L U L",
-        //"R R D D U' L B D D F2 U L L U U D F' D D U B B D R R U' F' R R F2 D' U' L' F2",
-        //"L' B D D L L U L L B B L B D' L B' L' D' F2 R' B L U' B B F2 R R U U L' F'",
-        //"R B B L' F B R R B' F2 D D L D R R D D F' D' F U U R R U D D L U R F2 D'",
-    ].map(x => x.split(" "))
+    function freeFromTriplets(arr) {
+        console.log(arr)
+        return ["UUU", "LLL", "RRR", "DDD", "BBB", "FFF"].filter(x => {
+            return arr.join('').includes(x)
+        }).length === 0
+    }
+
+    const setOfPermutations = perm(moves).filter(freeFromTriplets)
 
     console.log('Creating test data')
+    //return
+
+    function addMove(move) {
+        const inverseMove = inverse(move)
+        rotateSide(move, false)
+        const currentCube = printCube()
+
+        if (trainingData.filter(x => R.equals(x, currentCube)).length === 0) {
+            trainingData.push({
+                input: currentCube,
+                output: { [inverseMove]: 1 }
+            })
+        }
+    }
 
     // Full sequences
-    //for (var i = 0; i < 1; i++) {
-    //    let sequence = []
-    //    let lastMove = ""
+    //for (var i = 0; i < 200; i++) {
         
+    //    resetCube()
         
+    //    const shuff = shuffle(moves)
+
+    //    shuff.map(addMove)
+
+        /*let sequence = []
+        let lastMove = ""
 
         // Moves in each sequence
-    /*    for (var j = 0; j < 4; j++) {
+        for (var j = 0; j < 10; j++) {
             let rand, move
             do {
                 rand = Math.floor(Math.random() * moves.length)
@@ -594,35 +653,40 @@ function trainNetwork() {
             } while(lastMove === inverse(move))
 
             sequence.push(move)
-            lastMove = move*/
+            lastMove = move
 
-            scrambles.forEach(sequence => {
-                resetCube()
-
-                sequence.forEach(move => {
-                    const inverseMove = inverse(move)
-                    rotateSide(move, false)
-                    const currentCube = printCube()
-
-                    //if (trainingData.filter(x => R.equals(x, currentCube)).length === 0) {
-                        trainingData.push({
-                            input: currentCube,
-                            output: { [inverseMove]: 1 }
-                        })
-                    //}
-
-                })
-
-            })
-        //}
-        //console.log(sequence)
+            addMove(move)
+        }*/
     //}
+
+    setOfPermutations.forEach(sequence => {
+        resetCube()
+
+        sequence.forEach(addMove)
+    })
+
+    scrambles.forEach(sequence => {
+        resetCube()
+
+        sequence.forEach(addMove)
+
+    })
 
     window.trainingData = trainingData
 
     console.log('Begin training...')
 
-    const result = net.train(trainingData)
+    const config = {
+        log: true,
+        logPeriod: 300,
+        errorThresh: 0.02,
+        //errorThresh: 0.005,
+        //learningRate: 0.5,
+        binaryThresh: 0.5,
+        activation: 'leaky-relu',
+        leakyReluAlpha: 0.01,
+    }
+    const result = net.train(trainingData, config)
 
     try {
         localStorage.setItem("rubiks-network", JSON.stringify(net.toJSON()));
