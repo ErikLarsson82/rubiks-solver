@@ -59,9 +59,13 @@ function setupNet() {
         console.log('Loading saved network from disc')
         net = new brain.NeuralNetwork().fromJSON(JSON.parse(json));
     } else {
-        console.log('Creating new network')
-        net = new brain.NeuralNetwork()
+        createNewNet()
     }
+}
+
+function createNewNet() {
+    console.log('Creating new network')
+    net = new brain.NeuralNetwork({ hiddenLayers: [200, 200, 200] }) //{ log: true, errorThresh: 0.3, learningRate: 0.95 } //{ hiddenLayers: [200, 100, 200, 200, 200] }
 }
 
 function createCube() {
@@ -123,12 +127,12 @@ function createCube() {
         const defaultData = { front: undefined, left: undefined, right: undefined, bottom: undefined, back: undefined }
         cube.customData = {...defaultData, ...data}
 
+        cube.cubeIndex = idx
+
         cubeContainer.add(cube)
         
         return cube
     })
-
-    comparee = printCube()
 }
 
 window.addEventListener('keydown', (e) => {
@@ -228,9 +232,10 @@ window.addEventListener('keydown', (e) => {
         comparee = printCube()
     }
     if (e.keyCode === 87) {
-        console.log("Wipe current network")
-        net = new brain.NeuralNetwork()
+        console.log("Wiping current network")
+        net = null
         localStorage.removeItem("rubiks-network");
+        createNewNet()
     }
 })
 
@@ -245,7 +250,7 @@ window.addEventListener('keyup', (e) => {
 
 function printCube() {
     return cubeContainer.children.map(x=>x)
-        .sort((a, b) => a.uuid > b.uuid ? 1 : -1)
+        .sort((a, b) => a.cubeIndex > b.cubeIndex ? 1 : -1)
         .filter(x=>x.type === 'Mesh')
         .map(meshData)
         .flatMap(x => x.map(convertColor).map(replaceMinusZero).map(shift))
@@ -256,7 +261,7 @@ function replaceUndefinedWithZero(x) {
 }
 
 function shift(x) {
-    return (x + 1) / 6
+    return parseFloat(((x + 1) / 6).toFixed(2))
 }
 
 function unshift(x) {
@@ -530,9 +535,9 @@ function trainNetwork() {
 
     const moves = [
         "U",
-        //"U'",
-        //"L",
-        /*"L'",
+        "U'",
+        "L",
+        "L'",
         "R",
         "R'",
         "D",
@@ -540,20 +545,48 @@ function trainNetwork() {
         "B",
         "B'",
         "F",
-        "F'",*/
+        "F'"
     ]
+
+    const scrambles = [
+        /*"B F U U",
+        "F U U B",
+        "B U U F",
+        "U U B F",
+        "U U",
+        "F F",
+        "U F U",
+        "F U F",
+        "U",
+        "F"*/
+        "B F F L U L' B' R D' U U F' U U B B R R U' R' U L' F' R' U' D D R U U R' U",
+        //"R D' L L B B R L L U' L' U' B B D' B B D' U' B D' B B D D B L' D D U U R R L D'",
+        //"U' R R B' F' U' L' D F2 B B L R' B B L L U' F' L R R D F' D F B' L' B R R",
+        //"R' D' U U L' B B R R F2 B R' U F2 U U F B B R F B' U D D L L F' U L L U U F",
+        //"D D U R U' F' L F2 R R F' U' L L U L L R R D D L U' L L B B L D U' L B' F'",
+        //"D U U F2 B' D R R F U R R U' F D' U U B' F' R' D' R R F' L B B D D U' F' R'",
+        //"R' L D R R B' U U R L U' L L R R B L R' B' F2 L B B D' F U F' U' D D F2",
+        //"B B R' B' R R U' B B U' R' L' B R' B' D U L D D B B D F2 R U R D' F2 U U",
+        //"U' L D D R R D U' R U U B B L L F' R R U L B U' F U' F2 R' D' R' D F' L",
+        //"U' L U R R D' U U F' U' B F U U D D L B' L B' D D F2 R' F' R' F2 R R D R'",
+        //"U L B L' B B L' F' D U U L L D D U U R D' R B B D' F2 R R D' U' B U F' B",
+        //"U L F' L' B L' B B F' R R D' R' U U B L' R F' L L R U U B' R R B L L U L",
+        //"R R D D U' L B D D F2 U L L U U D F' D D U B B D R R U' F' R R F2 D' U' L' F2",
+        //"L' B D D L L U L L B B L B D' L B' L' D' F2 R' B L U' B B F2 R R U U L' F'",
+        //"R B B L' F B R R B' F2 D D L D R R D D F' D' F U U R R U D D L U R F2 D'",
+    ].map(x => x.split(" "))
 
     console.log('Creating test data')
 
     // Full sequences
-    for (var i = 0; i < 1; i++) {
-        let sequence = []
-        let lastMove = ""
+    //for (var i = 0; i < 1; i++) {
+    //    let sequence = []
+    //    let lastMove = ""
         
-        resetCube()
+        
 
         // Moves in each sequence
-        for (var j = 0; j < 1; j++) {
+    /*    for (var j = 0; j < 4; j++) {
             let rand, move
             do {
                 rand = Math.floor(Math.random() * moves.length)
@@ -561,20 +594,29 @@ function trainNetwork() {
             } while(lastMove === inverse(move))
 
             sequence.push(move)
-            lastMove = move
-            const inverseMove = inverse(move)
-            rotateSide(move, false)
-            const currentCube = printCube()
+            lastMove = move*/
 
-            if (trainingData.filter(x => R.equals(x, currentCube)).length === 0) {
-                trainingData.push({
-                    input: currentCube,
-                    output: { [inverseMove]: 1 }
+            scrambles.forEach(sequence => {
+                resetCube()
+
+                sequence.forEach(move => {
+                    const inverseMove = inverse(move)
+                    rotateSide(move, false)
+                    const currentCube = printCube()
+
+                    //if (trainingData.filter(x => R.equals(x, currentCube)).length === 0) {
+                        trainingData.push({
+                            input: currentCube,
+                            output: { [inverseMove]: 1 }
+                        })
+                    //}
+
                 })
-            }
-        }
-        console.log(sequence)
-    }
+
+            })
+        //}
+        //console.log(sequence)
+    //}
 
     window.trainingData = trainingData
 
@@ -582,9 +624,13 @@ function trainNetwork() {
 
     const result = net.train(trainingData)
 
-    localStorage.setItem("rubiks-network", JSON.stringify(net.toJSON()));
+    try {
+        localStorage.setItem("rubiks-network", JSON.stringify(net.toJSON()));
+        console.log('Saving network to disc...')
+    } catch(e) {
+        console.log('Unable to save network', e)
+    }
 
-    console.log('Saving network to disc...')
     console.log('Training result complete:', result)
 }
 
@@ -606,6 +652,7 @@ function animate(time) {
 
     if (isAISolving && R.equals(printCube(),comparee)) {
         console.log("Solved")
+        resetCube()
         isAISolving = false
         isAnimating = false
         queue = []
@@ -647,5 +694,6 @@ function animate(time) {
 }
 setupNet()
 createCube();
+comparee = printCube()
 animate();
 
