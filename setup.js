@@ -1,15 +1,15 @@
 const originalCube = [
     //Yellow side
-    { x: 0, y: 1, z: 0, top: 'yellow' }, //Center
-    { x: 1, y: 1, z: 0, top: 'yellow', right: 'orange' },
-    { x: -1, y: 1, z: 0, top: 'yellow', left: 'red' },
-    { x: 0, y: 1, z: -1, top: 'yellow', back: 'blue' },
-    { x: 0, y: 1, z: 1, top: 'yellow', front: 'green' },
+    { x: 0, y: 1, z: 0, up: 'yellow' }, //Center
+    { x: 1, y: 1, z: 0, up: 'yellow', right: 'orange' },
+    { x: -1, y: 1, z: 0, up: 'yellow', left: 'red' },
+    { x: 0, y: 1, z: -1, up: 'yellow', back: 'blue' },
+    { x: 0, y: 1, z: 1, up: 'yellow', front: 'green' },
     //Corners
-    { x: -1, y: 1, z: 1, top: 'yellow', front: 'green', left: 'red' },
-    { x: 1, y: 1, z: 1, top: 'yellow', front: 'green', right: 'orange' },
-    { x: -1, y: 1, z: -1, top: 'yellow', left: 'red', back: 'blue' },
-    { x: 1, y: 1, z: -1, top: 'yellow', right: 'orange', back: 'blue' },
+    { x: -1, y: 1, z: 1, up: 'yellow', front: 'green', left: 'red' },
+    { x: 1, y: 1, z: 1, up: 'yellow', front: 'green', right: 'orange' },
+    { x: -1, y: 1, z: -1, up: 'yellow', left: 'red', back: 'blue' },
+    { x: 1, y: 1, z: -1, up: 'yellow', right: 'orange', back: 'blue' },
 
     //Middle layer
    	{ x: 0, y: 0, z: 1, front: 'green' }, //Center
@@ -22,15 +22,15 @@ const originalCube = [
     { x: 1, y: 0, z: -1, back: 'blue', right: 'orange' },
 
     //White side
-    { x: 0, y: -1, z: 0, bottom: 'white' }, //Center
-    { x: 1, y: -1, z: 0, bottom: 'white', right: 'orange' },
-    { x: -1, y: -1, z: 0, bottom: 'white', left: 'red' },
-    { x: 0, y: -1, z: -1, bottom: 'white', back: 'blue' },
-    { x: 0, y: -1, z: 1, bottom: 'white', front: 'green' },
+    { x: 0, y: -1, z: 0, down: 'white' }, //Center
+    { x: 1, y: -1, z: 0, down: 'white', right: 'orange' },
+    { x: -1, y: -1, z: 0, down: 'white', left: 'red' },
+    { x: 0, y: -1, z: -1, down: 'white', back: 'blue' },
+    { x: 0, y: -1, z: 1, down: 'white', front: 'green' },
 
     //Corners
-    { x: -1, y: -1, z: 1, bottom: 'white', front: 'green', left: 'red' },
-    { x: 1, y: -1, z: 1, bottom: 'white', front: 'green', right: 'orange' },
-    { x: -1, y: -1, z: -1, bottom: 'white', left: 'red', back: 'blue' },
-    { x: 1, y: -1, z: -1, bottom: 'white', right: 'orange', back: 'blue' },
+    { x: -1, y: -1, z: 1, down: 'white', front: 'green', left: 'red' },
+    { x: 1, y: -1, z: 1, down: 'white', front: 'green', right: 'orange' },
+    { x: -1, y: -1, z: -1, down: 'white', left: 'red', back: 'blue' },
+    { x: 1, y: -1, z: -1, down: 'white', right: 'orange', back: 'blue' },
 ]

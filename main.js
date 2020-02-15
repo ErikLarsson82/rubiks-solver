@@ -59,7 +59,7 @@ const scrambles = [
     Faces:
     A: 0, 1: Höger sida
     B: 2, 3: Vänster sida
-    C: 4, 5: Top
+    C: 4, 5: up
     D: 6, 7: Botten
     E: 8, 9: Front
     F: 10, 11: Back
@@ -127,14 +127,14 @@ function createCube() {
             geometry.faces[3].color = colors[data.left]
         }
 
-        if (data.top !== undefined) {
-            geometry.faces[4].color = colors[data.top]
-            geometry.faces[5].color = colors[data.top]
+        if (data.up !== undefined) {
+            geometry.faces[4].color = colors[data.up]
+            geometry.faces[5].color = colors[data.up]
         }
 
-        if (data.bottom !== undefined) {
-            geometry.faces[6].color = colors[data.bottom]
-            geometry.faces[7].color = colors[data.bottom]
+        if (data.down !== undefined) {
+            geometry.faces[6].color = colors[data.down]
+            geometry.faces[7].color = colors[data.down]
         }
 
         if (data.front !== undefined) {
@@ -152,7 +152,7 @@ function createCube() {
         cube.position.y = data.y
         cube.position.z = data.z
 
-        const defaultData = { front: undefined, left: undefined, right: undefined, bottom: undefined, back: undefined }
+        const defaultData = { front: undefined, left: undefined, right: undefined, down: undefined, back: undefined }
         cube.customData = {...defaultData, ...data}
 
         cube.cubeIndex = idx
@@ -278,12 +278,24 @@ window.addEventListener('keyup', (e) => {
     }
 })
 
+const trace = msg => R.tap(x => console.log(msg, x))
+
 function printCube() {
     return cubeContainer.children.map(x=>x)
         .sort((a, b) => a.cubeIndex > b.cubeIndex ? 1 : -1)
         .filter(x=>x.type === 'Mesh')
         .map(meshData)
-        .flatMap(x => x.map(convertColor).map(replaceMinusZero)) //.map(shift)
+        .filter(x => {
+            return Object.keys(colors).filter(y => x.join("").includes(y)).length
+            //console.log(Object.keys(colors).includes(x.join("")))
+            //return Object.keys(colors).includes(x.join(""))
+        })
+        .map(trace('t'))
+        .flatMap(x => {
+            return x.map(convertColor)
+                .map(replaceMinusZero)   
+                //.map(shift)
+        })
 }
 
 function replaceUndefinedWithZero(x) {
@@ -299,7 +311,7 @@ function unshift(x) {
 }
 
 function meshData(d) {
-    return [d.position.x, d.position.y, d.position.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.bottom, d.customData.down].map(replaceUndefinedWithZero)
+    return [d.position.x, d.position.y, d.position.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.back, d.customData.down]//.map(replaceUndefinedWithZero)
 }
 
 function convertColor(color) {
@@ -437,8 +449,8 @@ function rotateColors(rotation, data) {
     const sides = {}
 
     if (rotation === "U") {
-        sides.top = data.top
-        sides.bottom = data.bottom
+        sides.up = data.up
+        sides.down = data.down
 
         sides.front = data.left
         sides.right = data.front
@@ -447,8 +459,8 @@ function rotateColors(rotation, data) {
     }
 
     if (rotation === "U'") {
-        sides.top = data.top
-        sides.bottom = data.bottom
+        sides.up = data.up
+        sides.down = data.down
 
         sides.left = data.front
         sides.front = data.right
@@ -460,45 +472,45 @@ function rotateColors(rotation, data) {
         sides.right = data.right
         sides.left = data.left
 
-        sides.top = data.back
-        sides.front = data.top
-        sides.back = data.bottom
-        sides.bottom = data.front
+        sides.up = data.back
+        sides.front = data.up
+        sides.back = data.down
+        sides.down = data.front
     }
 
     if (rotation === "L'") {
         sides.right = data.right
         sides.left = data.left
 
-        sides.top = data.front
-        sides.front = data.bottom
-        sides.back = data.top
-        sides.bottom = data.back
+        sides.up = data.front
+        sides.front = data.down
+        sides.back = data.up
+        sides.down = data.back
     }
 
     if (rotation === "R") {
         sides.right = data.right
         sides.left = data.left
 
-        sides.back = data.top
-        sides.bottom = data.back
-        sides.front = data.bottom
-        sides.top = data.front
+        sides.back = data.up
+        sides.down = data.back
+        sides.front = data.down
+        sides.up = data.front
     }
 
     if (rotation === "R'") {
         sides.left = data.left
         sides.right = data.right
 
-        sides.top = data.back
-        sides.front = data.top
-        sides.bottom = data.front
-        sides.back = data.bottom
+        sides.up = data.back
+        sides.front = data.up
+        sides.down = data.front
+        sides.back = data.down
     }
 
     if (rotation === "D") {
-        sides.top = data.top
-        sides.bottom = data.bottom
+        sides.up = data.up
+        sides.down = data.down
 
         sides.front = data.left
         sides.right = data.front
@@ -507,8 +519,8 @@ function rotateColors(rotation, data) {
     }
 
     if (rotation === "D'") {
-        sides.top = data.top
-        sides.bottom = data.bottom
+        sides.up = data.up
+        sides.down = data.down
 
         sides.front = data.right
         sides.left = data.front
@@ -520,20 +532,20 @@ function rotateColors(rotation, data) {
         sides.front = data.front
         sides.back = data.back
 
-        sides.top = data.right
-        sides.left = data.top
-        sides.bottom = data.left
-        sides.right = data.bottom
+        sides.up = data.right
+        sides.left = data.up
+        sides.down = data.left
+        sides.right = data.down
     }
 
     if (rotation === "B'") {
         sides.front = data.front
         sides.back = data.back
         
-        sides.top = data.left
-        sides.right = data.top
-        sides.bottom = data.right
-        sides.left = data.bottom
+        sides.up = data.left
+        sides.right = data.up
+        sides.down = data.right
+        sides.left = data.down
     }
 
     return {
@@ -617,18 +629,21 @@ function trainNetwork() {
     const setOfPermutations = perm(moves).filter(freeFromTriplets)
 
     console.log('Creating test data')
-    //return
-
+    
     function addMove(move) {
         const inverseMove = inverse(move)
         rotateSide(move, false)
         const currentCube = printCube()
 
-        if (trainingData.filter(x => R.equals(x, currentCube)).length === 0) {
+        const duplicates = trainingData.filter(x => R.equals(x, currentCube))
+
+        if (duplicates.length === 0) {
             trainingData.push({
                 input: currentCube,
                 output: { [inverseMove]: 1 }
             })
+        } else {
+            console.log('Ive seen this before, skipping', currentCube)
         }
     }
 
