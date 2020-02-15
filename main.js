@@ -55,6 +55,23 @@ const scrambles = [
     //"R B B L' F B R R B' F2 D D L D R R D D F' D' F U U R R U D D L U R F2 D'",
 ].map(x => x.split(" "))
 
+const moves = [
+    "U",
+    //"U'",
+    "L",
+    //"L'",
+    "R",
+    //"R'",
+    "D",
+    //"D'",
+    "B",
+    //"B'",
+    "F",
+    //"F'"
+]
+
+const setOfPermutations = perm(moves).slice(0, 2)
+
 /*
     Faces:
     A: 0, 1: Höger sida
@@ -93,7 +110,7 @@ function setupNet() {
 
 function createNewNet() {
     console.log('Creating new network')
-    net = new brain.NeuralNetwork() //{ hiddenLayers: [200, 100, 200, 200, 200] }
+    net = new brain.NeuralNetwork({ hiddenLayers: [180, 180, 50, 20] }) //{ hiddenLayers: [200, 100, 200, 200, 200] }
 }
 
 function createCube() {
@@ -267,6 +284,9 @@ window.addEventListener('keydown', (e) => {
         localStorage.removeItem("rubiks-network");
         createNewNet()
     }
+    if (e.keyCode === 75) {
+        setOfPermutations[Math.floor(Math.random() * setOfPermutations.length)].forEach(move => queue.push(move))
+    }
 })
 
 window.addEventListener('keyup', (e) => {
@@ -280,17 +300,20 @@ window.addEventListener('keyup', (e) => {
 
 const trace = msg => R.tap(x => console.log(msg, x))
 
+function removeMiddles(x) {
+    return Object.keys(colors).filter(y => x.join("").includes(y)).length > 1
+}
+
+function isMesh(x) {
+    return x.type === 'Mesh'
+}
+
 function printCube() {
     return cubeContainer.children.map(x=>x)
         .sort((a, b) => a.cubeIndex > b.cubeIndex ? 1 : -1)
-        .filter(x=>x.type === 'Mesh')
+        .filter(isMesh)
         .map(meshData)
-        .filter(x => {
-            return Object.keys(colors).filter(y => x.join("").includes(y)).length
-            //console.log(Object.keys(colors).includes(x.join("")))
-            //return Object.keys(colors).includes(x.join(""))
-        })
-        .map(trace('t'))
+        .filter(removeMiddles)
         .flatMap(x => {
             return x.map(convertColor)
                 .map(replaceMinusZero)   
@@ -311,7 +334,7 @@ function unshift(x) {
 }
 
 function meshData(d) {
-    return [d.position.x, d.position.y, d.position.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.back, d.customData.down]//.map(replaceUndefinedWithZero)
+    return [d.position.x, d.position.y, d.position.z, d.customData.front, d.customData.right, d.customData.up, d.customData.left, d.customData.back, d.customData.down].map(replaceUndefinedWithZero)
 }
 
 function convertColor(color) {
@@ -604,30 +627,6 @@ function rotateSide(move, animation) {
 function trainNetwork() {
     const trainingData = []
 
-    const moves = [
-        "U",
-        //"U'",
-        "L",
-        //"L'",
-        "R",
-        //"R'",
-        "D",
-        //"D'",
-        "B",
-        //"B'",
-        "F",
-        //"F'"
-    ]
-
-    function freeFromTriplets(arr) {
-        console.log(arr)
-        return ["UUU", "LLL", "RRR", "DDD", "BBB", "FFF"].filter(x => {
-            return arr.join('').includes(x)
-        }).length === 0
-    }
-
-    const setOfPermutations = perm(moves).filter(freeFromTriplets)
-
     console.log('Creating test data')
     
     function addMove(move) {
@@ -693,13 +692,13 @@ function trainNetwork() {
 
     const config = {
         log: true,
-        logPeriod: 300,
-        errorThresh: 0.02,
+        logPeriod: 10,
+        errorThresh: 0.0001,
         //errorThresh: 0.005,
-        //learningRate: 0.5,
-        binaryThresh: 0.5,
-        activation: 'leaky-relu',
-        leakyReluAlpha: 0.01,
+        learningRate: 0.9999,
+        //binaryThresh: 0.5,
+        //activation: 'leaky-relu',
+        //leakyReluAlpha: 0.01,
     }
     const result = net.train(trainingData, config)
 
