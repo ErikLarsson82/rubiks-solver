@@ -1,4 +1,4 @@
-const brain = require('brain.js')
+const brain = require('brain-browser-min.js')
 
 const config = {
   binaryThresh: 0.5,

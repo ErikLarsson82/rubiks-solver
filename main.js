@@ -70,7 +70,7 @@ const moves = [
     //"F'"
 ]
 
-const setOfPermutations = perm(moves).slice(0, 2)
+const setOfPermutations = perm(moves).slice(0, 10)
 
 /*
     Faces:
