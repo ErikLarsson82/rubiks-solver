@@ -2,6 +2,10 @@ const brain = require('./brain-browser.min.js')
 
 const trainingData = [
 	{
+		input: [0, 1, 0, 1],
+		output: { B: 1 }
+	},
+	{
 		input: [1, 1, 0, 0],
 		output: { A: 1 }
 	},
@@ -13,20 +17,15 @@ const trainingData = [
 		input: [1, 0, 1, 0],
 		output: { A: 1 }
 	},
-	{
-		input: [0, 1, 0, 1],
-		output: { B: 1 }
-	},
-	{
+	/*{
 		input: [1, 1, 1, 1],
 		output: { B: 1 }
-	}
+	}*/
 ]
 
-const testingData = trainingData
-/*.concat({
+const testingData = trainingData.concat({
 	input: [1, 1, 1, 1]
-})*/
+})
 
 console.log('Training data:')
 console.log(trainingData)
@@ -93,13 +92,20 @@ let iteration = 0
 let bestTotal = 0
 let totalScore = 0
 let bestNet
-let totalIterations = 100
+let totalIterations = 1
 
 while (iteration++ < totalIterations) {
 
 	const config = {
 		//hiddenLayers: new Array(rand(5)).fill().map(() => rand(20)),
+		binaryThresh: 0.5,
+	  //hiddenLayers: [3], // array of ints for the sizes of the hidden layers in the network
+	  activation: 'relu', // supported activation types: ['sigmoid', 'relu', 'leaky-relu', 'tanh'],
+	  //leakyReluAlpha: 0.01, // supported for activation type 'leaky-relu'
+	  //learningRate: 0.01,
+	  //decayRate: 0.99,
 	}
+
 
 	const net = new brain.NeuralNetwork(config)
 

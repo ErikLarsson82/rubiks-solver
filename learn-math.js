@@ -8,21 +8,27 @@ const trainingData = [
   "0011=A",
   "1010=A",
   "0000=A",
-  "0101=B"
+  "0101=B",
+  "1001=C",
+  "0110=A",
 ]
   
 const config = {
   log: true,
   logPeriod: 400,
   errorThresh: 0.01,
-  iterations: 1000,
-  binaryThreshold: 0.5,
-  hiddenLayers: [100, 100, 100]
+  iterations: 10000,
+  //binaryThreshold: 0.5,
+  //hiddenLayers: [100, 100, 100]
 }
 
 net.train(trainingData, config);
 
-trainingData.push("1111=B")
+//trainingData.push("1111=B")
+trainingData.push("1110=B")
+trainingData.push("1101=B")
+trainingData.push("0111=B")
+trainingData.push("1011=B")
 
 let errors = 0;
 for (let i = 0; i < trainingData.length; i++) {
