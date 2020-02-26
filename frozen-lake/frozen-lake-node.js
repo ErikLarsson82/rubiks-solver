@@ -60,9 +60,9 @@ for (var qTableTraining = 0; qTableTraining < 10; qTableTraining++) {
 	results.push({ moves: result, qTable: qTable })
 }
 
-const dir = 'frozen-lake-training-data'
+const dir = 'training-data'
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
-const filename = `frozen-lake-training-data/fl-qtables-${formatDate(new Date())}.json`
+const filename = `${dir}/fl-qtables-${formatDate(new Date())}.json`
 fs.writeFileSync(filename, JSON.stringify({ results: results, "hyper-parameters": HYPER }))
 console.log(`Results logged to file: ${filename}`)
 
