@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<style>
+
+  body {
+    font-family: monospace;
+  }
+
+	.axis {
+	  font: 10px sans-serif;
+	}
+
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+	</style>
+</head>
+
+<body>
+
+<h1>Frozen lake - solved with Q-Table</h1>
+<div id="svgContainer"></div>
+<img src="screenshot.png" style="position: absolute; left: 525px;">
+<h3 id="successRate"></h3>
+<div id="hyper"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+
+<script>
+
+var margin = {top: 20, right: 20, bottom: 20, left: 40},
+    width = 600 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+var y = d3.scale.linear().range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(10);
+
+var svg = d3.select("#svgContainer").append("svg:svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+          "translate(" + margin.left + "," + margin.top + ")");
+
+const urlParams = new URLSearchParams(location.search);
+const jsonFilePath = urlParams.get('file')
+
+function isSuccess({ moves }) {
+  return moves !== -1
+}
+
+function isFailure(x) {
+  return !isSuccess(x)
+}
+
+if (jsonFilePath === null) {
+  document.body.innerHTML = "Add JSON file path to url as query string parameter ?file=stats.json"
+} else {
+
+  d3.json(`training-data/${jsonFilePath}`, function(error, data) {
+
+    const successes = data.results.filter(isSuccess).length
+    const failures = data.results.filter(isFailure).length
+    const total = data.results.length
+    const successRate = 100 / (total / successes)
+
+    x.domain(["success", "failure"])
+    y.domain([0, total]);
+
+    const dataAggregate = [
+      {
+        type: "success",
+        amount: successes
+      },
+      {
+        type: "failure",
+        amount: failures
+      }
+    ]
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+      .selectAll("text")
+        .style("text-anchor", "center")
+        .attr("dy", "2em")
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("y", 6)
+        .attr("dy", "-3.8em")
+        .attr("dx", "-10em")
+        .style("text-anchor", "start")
+        .text("Amount")
+        .attr("transform", "rotate(-90)" );
+
+
+    svg.selectAll("bar")
+        .data(dataAggregate)
+      .enter().append("rect")
+        .style("fill", "steelblue")
+        .attr("x", ({ type }) => x(type))
+        .attr("width", x.rangeBand())
+        .attr("y", ({ amount}) => y(amount))
+        .attr("height", ({ amount }) => height - y(amount))
+
+
+    document.getElementById("successRate").innerHTML = `Success rate ${successRate}%`
+
+    document.getElementById("hyper").innerHTML = 
+`<strong>Hyper-parameters:</strong><br>
+Move limit: ${data["hyper-parameters"].MOVES}<br>
+Iterations: ${data["hyper-parameters"].ITERATIONS}<br>
+Amount of Q-Tables trained: ${data["hyper-parameters"].TABLES}<br>
+Exploration rate: ${data["hyper-parameters"]["EXPLORATION_RATE"]}<br>
+Exploration drop-off: ${data["hyper-parameters"]["EXPLORATION_DROPOFF"]}<br>
+
+`
+  })
+  
+}
+
+
+</script>
+
+</body>

@@ -5,8 +5,11 @@ const namespace = ["UP", "DOWN", "LEFT", "RIGHT"]
 const map = "SFFFFHFHFFFHHFFG".split('')
 
 const HYPER = {
-	MOVES: 20,
-	ITERATIONS: 10000
+	"MOVES": 6,
+	"ITERATIONS": 10000,
+	"TABLES": 1000,
+	"EXPLORATION_RATE": 0.01,
+	"EXPLORATION_DROPOFF": 0,
 }
 
 const results = []
@@ -23,7 +26,7 @@ HFFG
 
 //initiate hyper-parameters - random or arguments?
 
-for (var qTableTraining = 0; qTableTraining < 10; qTableTraining++) {
+for (var qTableTraining = 0; qTableTraining < HYPER.TABLES; qTableTraining++) {
 	resetGame()
 
 	qTable = [
@@ -55,7 +58,8 @@ for (var qTableTraining = 0; qTableTraining < 10; qTableTraining++) {
 
 	const result = playGame()
 
-	console.log(`Training net ${qTableTraining} - result: ${result}`)
+	if (qTableTraining % 30 === 0)
+		console.log(`Training net ${qTableTraining} - result: ${result}`)
 	
 	results.push({ moves: result, qTable: qTable })
 }
@@ -63,10 +67,23 @@ for (var qTableTraining = 0; qTableTraining < 10; qTableTraining++) {
 const dir = 'training-data'
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 const filename = `${dir}/fl-qtables-${formatDate(new Date())}.json`
-fs.writeFileSync(filename, JSON.stringify({ results: results, "hyper-parameters": HYPER }))
-console.log(`Results logged to file: ${filename}`)
+fs.writeFileSync(filename, JSON.stringify({ filename: filename, results: results, "hyper-parameters": HYPER }))
 
-//use d3 to plot results to a graph
+const successes = results.filter(isSuccess).length
+const failures = results.filter(isFailure).length
+const total = results.length
+const successRate = 100 / (total / successes)
+
+console.log(`\nResults logged to file: ${filename}\nSuccess rate: ${successRate}%`)
+
+
+function isSuccess({ moves }) {
+  return moves !== -1
+}
+
+function isFailure(x) {
+  return !isSuccess(x)
+}
 		
 function formatDate(date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`
@@ -125,7 +142,7 @@ function trainIteration() {
 
 		let move = namespace[maxIdx]
 
-		if (Math.random() < 0.3) {
+		if (Math.random() < HYPER.EXPLORATION_RATE) {
 			move = namespace[Math.floor(Math.random() * 4)]
 		}
 
