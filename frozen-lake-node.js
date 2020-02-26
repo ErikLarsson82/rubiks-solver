@@ -1,4 +1,17 @@
+const fs = require('fs')
 const R = require('ramda')
+const namespace = ["UP", "DOWN", "LEFT", "RIGHT"]
+
+const map = "SFFFFHFHFFFHHFFG".split('')
+
+const HYPER = {
+	MOVES: 20,
+	ITERATIONS: 10000
+}
+
+const results = []
+
+let agentIndex, qTable
 
 /*
 SFFF
@@ -7,32 +20,57 @@ FFFH
 HFFG
 */
 
-const map = "SFFFFHFHFFFHHFFG".split('')
 
-const qTable = [
-	0,0,0,0, // S
-	0,0,0,0, // F
-	0,0,0,0, // F
-	0,0,0,0, // F
+//initiate hyper-parameters - random or arguments?
 
-	0,0,0,0, // F
-	0,0,0,0, // H
-	0,0,0,0, // F
-	0,0,0,0, // H
+for (var qTableTraining = 0; qTableTraining < 10; qTableTraining++) {
+	resetGame()
 
-	0,0,0,0, // F
-	0,0,0,0, // F
-	0,0,0,0, // F
-	0,0,0,0, // H
+	qTable = [
+		0,0,0,0, // S
+		0,0,0,0, // F
+		0,0,0,0, // F
+		0,0,0,0, // F
 
-	0,0,0,0, // H
-	0,0,0,0, // F
-	0,0,0,0, // F
-	0,0,0,0, // G
-]
-const namespace = ["UP", "DOWN", "LEFT", "RIGHT"]
+		0,0,0,0, // F
+		0,0,0,0, // H
+		0,0,0,0, // F
+		0,0,0,0, // H
+
+		0,0,0,0, // F
+		0,0,0,0, // F
+		0,0,0,0, // F
+		0,0,0,0, // H
+
+		0,0,0,0, // H
+		0,0,0,0, // F
+		0,0,0,0, // F
+		0,0,0,0, // G
+	]
+
+
+	for (var k = 0; k < HYPER.ITERATIONS; k++) {
+		trainIteration()
+	}
+
+	const result = playGame()
+
+	console.log(`Training net ${qTableTraining} - result: ${result}`)
+	
+	results.push({ moves: result, qTable: qTable })
+}
+
+const dir = 'frozen-lake-training-data'
+if (!fs.existsSync(dir)) fs.mkdirSync(dir)
+const filename = `frozen-lake-training-data/fl-qtables-${formatDate(new Date())}.json`
+fs.writeFileSync(filename, JSON.stringify({ results: results, "hyper-parameters": HYPER }))
+console.log(`Results logged to file: ${filename}`)
+
+//use d3 to plot results to a graph
 		
-let agentIndex
+function formatDate(date) {
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`
+}
 
 function moveAgent(dir) {
 	if (dir === "UP" && agentIndex > 3) {
@@ -60,43 +98,6 @@ function render() {
 	}
 }
 
-render()
-
-/*window.addEventListener("keydown", e => {
-	if (e.keyCode === 81) {
-		qTableMove()
-	}
-	if (e.keyCode === 13) {
-		trainIteration()
-		console.log(R.splitEvery(4, qTable).forEach(x => console.log(x)))
-	}
-	if (e.keyCode === 80) {
-		playGame()
-	}
-
-	if (e.keyCode === 38) {
-		moveAgent("UP")
-		console.log('-------------------------------------')
-		render()
-	}
-	if (e.keyCode === 40) {
-		moveAgent("DOWN")
-		console.log('-------------------------------------')
-		render()
-	}
-	if (e.keyCode === 37) {
-		moveAgent("LEFT")
-		console.log('-------------------------------------')
-		render()
-	}
-	if (e.keyCode === 39) {
-		moveAgent("RIGHT")
-		console.log('-------------------------------------')
-		render()
-	}
-
-})*/
-
 function resetGame() {
 	agentIndex = 0
 }
@@ -115,10 +116,10 @@ function trainIteration() {
 	let moveSet = []
 	resetGame()
 
-	for (var i = 0; i < 20; i++) {
+	for (var i = 0; i < HYPER.MOVES; i++) {
 
-		const cooking = R.splitEvery(4, qTable)
-		const options = cooking[agentIndex]
+		const rows = R.splitEvery(4, qTable)
+		const options = rows[agentIndex]
 
 		const maxIdx = options.indexOf(Math.max(...options));
 
@@ -137,10 +138,6 @@ function trainIteration() {
 
 		if (result.gameover) {
 			i = Infinity
-			if (result.reward === 1) {
-				//console.log('Game over, FRISBEE')
-				//debugger
-			}
 		}
 	}
 
@@ -162,38 +159,24 @@ function adjustAllMoves(moveSet) {
 	})
 }
 
-for (var k = 0; k < 10000; k++) {
-	trainIteration()
-}
-
 function pretty(arr) {
 	return `[ ${ arr.map(x => x.toFixed(2)).join(', ') } ]`
 }
-console.log( R.splitEvery(4, qTable).forEach(x => console.log(pretty(x))) )
-
-//resetGame()
 
 function qTableMove() {
 	const options = R.splitEvery(4, qTable)[agentIndex]
 	const maxIdx = options.indexOf(Math.max(...options));
 	const move = namespace[maxIdx]
 	moveAgent(move)
-	const result = resolveMove(move)
-	console.log('-----------------------------------')
-	render()
-	return result
+	return resolveMove(move)
 }
 
 function playGame() {
-	console.log('Playing game')
 	resetGame()
 	for (var i = 0; i < 8; i++) {
 		if (qTableMove().reward === 1) {
-			console.log('Frisbee found!')
-			return
+			return i
 		}
 	}
-	console.log('Froze to death')
+	return -1
 }
-
-playGame()
