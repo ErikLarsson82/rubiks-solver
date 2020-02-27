@@ -1,7 +1,7 @@
 const deepqlearn = require('./deepqlearn')
 
-var num_inputs = 2
-var num_actions = 4
+var num_inputs = 3
+var num_actions = 2
 var temporal_window = 0; // amount of temporal memory. 0 = agent lives in-the-moment :)
 var network_size = num_inputs*temporal_window + num_actions*temporal_window + num_inputs;
 
@@ -33,50 +33,50 @@ opt.tdtrainer_options = tdtrainer_options;
 */
 var brain = new deepqlearn.Brain(num_inputs, num_actions, opt)
 
-var output = [
-	0,
-	1,
-	1,
-	0
-]
-
 var x = 0
 do {
 	x++
 	
-	if (brain.forward([1,0]) === 2) {
-		brain.backward(100)
+	if (brain.forward([0,0,0]) === 1) {
+		brain.backward([1.0])
 	} else {
-		brain.backward(-100)	
+		brain.backward([0.0])
 	}
-	if (brain.forward([0,1]) === 1) {
-		brain.backward(100)
+	if (brain.forward([0,1,0]) === 0) {
+		brain.backward([1.0])
 	} else {
-		brain.backward(-100)	
+		brain.backward([0.0])	
 	}
-	if (brain.forward([1,1]) === 3) {
-		brain.backward(100)
+	if (brain.forward([1,0,0]) === 0) {
+		brain.backward([1.0])
 	} else {
-		brain.backward(-100)	
+		brain.backward([0.0])	
 	}
-	if (brain.forward([0,0]) === 0) {
-		brain.backward(100)
+	if (brain.forward([0,0,1]) === 0) {
+		brain.backward([1.0])
 	} else {
-		brain.backward(-100)	
+		brain.backward([0.0])	
+	}
+	if (brain.forward([1,1,1]) === 1) {
+		brain.backward([1.0])
+	} else {
+		brain.backward([0.0])	
 	}
 	
-} while (x < 500)
+} while (x < 100)
 
 brain.epsilon_test_time = 0.0;
 brain.learning = false;
 
 console.log('After half of test data')
 
-console.log(output[brain.forward([0,0])])
-console.log(output[brain.forward([0,1])])
-console.log(output[brain.forward([1,0])])
-console.log(output[brain.forward([1,1])])
+console.log(brain.forward([0,0,0]))
+console.log(brain.forward([0,1,0]))
+console.log(brain.forward([1,0,0]))
+console.log(brain.forward([0,0,1]))
+console.log(brain.forward([1,1,1]))
 
+/*
 brain.epsilon_test_time = 0.05;
 brain.learning = true;
 
@@ -86,13 +86,15 @@ do {
 	
 	
 	
+	
 } while (y < 500)
 
 brain.epsilon_test_time = 0.0;
 brain.learning = false;
 
 console.log('\nAll test data supplied')
-console.log(output[brain.forward([0,0])])
-console.log(output[brain.forward([0,1])])
-console.log(output[brain.forward([1,0])])
-console.log(output[brain.forward([1,1])])
+console.log(brain.forward([0,0]))
+console.log(brain.forward([0,1]))
+console.log(brain.forward([1,0]))
+console.log(brain.forward([1,1]))
+*/
