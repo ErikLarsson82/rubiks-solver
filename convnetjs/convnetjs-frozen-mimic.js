@@ -9,7 +9,7 @@ net.makeLayers([
 
 trainer = new convnetjs.Trainer(net);
 
-var point = new convnetjs.Vol(1, 1, 4);
+var point = new convnetjs.Vol(1, 1, 2);
 
 for (var iter = 0; iter < 2000; iter++) {
     
