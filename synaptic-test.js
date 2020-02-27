@@ -1,19 +1,49 @@
 var synaptic = require('synaptic');
 
-var perceptron = new synaptic.Architect.Perceptron(2,3,1);
+var perceptron = new synaptic.Architect.Perceptron(2,2,1);
 
 var trainer = new synaptic.Trainer(perceptron)
 
-console.log(perceptron, trainer)
+var trainingSet = [
+  {
+    input: [0,0],
+    output: [0]
+  },
+  /*{
+    input: [0,1],
+    output: [1]
+  },
+  {
+    input: [1,0],
+    output: [1]
+  },
+  {
+    input: [1,1],
+    output: [0]
+  },*/
+]
 
-const result = trainer.XOR({ 
-			iterations: 100000,
-			error: .0001,
-			rate: 1
-		}); 
+trainer.train(trainingSet);
+console.log(perceptron.activate([0,0]))
+console.log(perceptron.activate([0,1]))
+console.log(perceptron.activate([1,0]))
+console.log(perceptron.activate([1,1]))
 
-console.log(result)
-
+var more = [
+  {
+    input: [0,1],
+    output: [1]
+  },
+  {
+    input: [1,0],
+    output: [1]
+  },
+  {
+    input: [1,1],
+    output: [0]
+  },
+]
+trainer.train(more);
 console.log(perceptron.activate([0,0]))
 console.log(perceptron.activate([0,1]))
 console.log(perceptron.activate([1,0]))
