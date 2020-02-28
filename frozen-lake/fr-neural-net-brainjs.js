@@ -6,18 +6,18 @@ const namespace = ['UP', 'DOWN', 'LEFT', 'RIGHT']
 const LOGGING = true
 
 const map = `
-FSFG
-FHFH
+FSFF
+FHGH
 FFFH
 HFFG
-`.trim().split('')
+`.trim().split('').filter(x => ["F","S","H","G"].includes(x))
 
 const HYPER = {
 	"ITERATIONS": 10,
-	"MOVES": 5,
-	"EXPLORATION_RATE": 0.01,
-	"NETS": 2,
-	"SUCCESS_RATE": 1,
+	"MOVES": 6,
+	"EXPLORATION_RATE": 0.5,
+	"NETS": 1,
+	"SUCCESS_RATE": 10,
 	"FAIL_RATE": -0.01,
 	"START_LOCATION": map.findIndex(x=>x === "S")
 }
@@ -30,22 +30,25 @@ log('\n--- [ BEGIN TRAINING ] ---')
 
 results = []
 
+//log(agentIndexToBinary(2))
+
 for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 	trainingData = []
 	resetGame()
 
-	const config = {
+	/*const config = {
 	  binaryThresh: 0.5,
 	  //hiddenLayers: [3], // array of ints for the sizes of the hidden layers in the network
 	  activation: 'leaky-relu', // supported activation types: ['sigmoid', 'relu', 'leaky-relu', 'tanh'],
 	  leakyReluAlpha: 0.01, // supported for activation type 'leaky-relu'
-	}
+	}*/
 
 	net = new brain.NeuralNetwork()
 
+	//Initiate first network with random numbers
 	net.train([
 		{ 
-			input: HYPER.START_LOCATION,
+			input: agentIndexToBinary(HYPER.START_LOCATION),
 			output: {
 				UP: 0.5,
 				DOWN: 0.5,
@@ -55,7 +58,7 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 		}
 	])
 
-	//log(`before training, probability agentIndex ${HYPER.START_LOCATION}: `, net.run(HYPER.START_LOCATION))
+	//log(`Before training - Probability agentIndex ${agentIndexToBinary(HYPER.START_LOCATION)}: `, net.run(agentIndexToBinary(HYPER.START_LOCATION)))
 
 	for (var k = 0; k < HYPER.ITERATIONS; k++) {
 		trainIteration()
@@ -68,18 +71,20 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 	//if (deepNetTraining % 10 === 0)
 	log(`Training net ${deepNetTraining} - result: ${result}`)
 
-	//log(trainingData)
+	log(trainingData)
 
+	map.forEach((x, i) => log(`index ${agentIndexToBinary(i)}`, brain.likely(agentIndexToBinary(i), net), net.run(agentIndexToBinary(i))))
 	//log('running 1', brain.likely(1, net), net.run(1))
 	//log('running 2', brain.likely(2, net), net.run(2))
 }
 
-
+/*
 const dir = 'training-data'
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 const filename = `${dir}/fl-brainjs-${formatDate(new Date())}.json`
 fs.writeFileSync(filename, JSON.stringify({ filename: filename, results: results, "hyper-parameters": HYPER }))
-
+*/
+const filename = "[disabled]"
 const successes = results.filter(isSuccess).length
 const failures = results.filter(isFailure).length
 const total = results.length
@@ -109,7 +114,7 @@ function trainIteration() {
 		// RIGHT = 11
 		*/
 		
-		let move = brain.likely(agentIndex, net)
+		let move = brain.likely(agentIndexToBinary(agentIndex), net)
 
 		//log('move', move, agentIndex)
 
@@ -119,6 +124,8 @@ function trainIteration() {
 
 		const agentIdxBeforeMove = agentIndex
 		
+		//render()
+
 		moveAgent(move)
 		
 		const result = resolveMove(move)
@@ -142,14 +149,14 @@ function trainIteration() {
 function prepareData({gameover, reward, move, agentIndex}) {
 	if (gameover && reward) {
 		return {
-			input: agentIndex,
+			input: agentIndexToBinary(agentIndex),
 			output: {
 				[move]: HYPER["SUCCESS_RATE"]
 			}
 		}
 	}
 	return {
-		input: agentIndex,
+		input: agentIndexToBinary(agentIndex),
 		output: {
 			[move]: HYPER["FAIL_RATE"]
 		}
@@ -190,11 +197,13 @@ function obsolete(moveSet) {
 }
 
 function moveAgent(dir) {
+	//log('im moving', dir, agentIndex)
 	if (dir === 'UP' && agentIndex > 3) {
 		agentIndex = agentIndex - 4
 	}
 	if (dir === 'DOWN' && agentIndex <= 11) {
 		agentIndex = agentIndex + 4
+		//log('down takes me to', agentIndex)
 	}
 	if (dir === 'LEFT' && ![0, 4, 8, 12].includes(agentIndex)) {
 		agentIndex = agentIndex - 1
@@ -307,7 +316,7 @@ function playGame() {
 		const move = namespace[highestIndex]
 		*/
 
-		const move = brain.likely(agentIndex, net)
+		const move = brain.likely(agentIndexToBinary(agentIndex), net)
 
 		moveAgent(move)
 		
