@@ -1,4 +1,4 @@
-const brain = require('./brain-browser.min.js')
+const brain = require('../brain-browser.min.js')
 
 //const LSTM = brain.recurrent.LSTM;
 //const net = new LSTM();
