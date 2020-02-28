@@ -1,6 +1,10 @@
 const convnetjs = require("convnetjs");
 
-net = new convnetjs.Net();
+const opts = {
+    bias_pref: 0.5
+}
+
+net = new convnetjs.Net(opts);
 
 net.makeLayers([
     {type: 'input', out_sx: 1, out_sy: 1, out_depth: 2},
@@ -11,7 +15,7 @@ trainer = new convnetjs.Trainer(net);
 
 var point = new convnetjs.Vol(1, 1, 2);
 
-for (var iter = 0; iter < 2000; iter++) {
+for (var iter = 0; iter < 1000; iter++) {
     
         point.w = [1.0, 1.0];
         trainer.train(point, 0.0);
@@ -29,16 +33,16 @@ for (var iter = 0; iter < 2000; iter++) {
 
 point.w = [1.0, 1.0];
 var prediction = net.forward(point);
-console.log(point.w, prediction.w[1])
+console.log(point.w, prediction.w[1].toFixed(3))
 
 point.w = [1.0, 0.0];
 var prediction = net.forward(point);
-console.log(point.w, prediction.w[1])
+console.log(point.w, prediction.w[1].toFixed(3))
 
 point.w = [0.0, 1.0];
 var prediction = net.forward(point);
-console.log(point.w, prediction.w[1])
+console.log(point.w, prediction.w[1].toFixed(3))
 
 point.w = [0.0, 0.0];
 var prediction = net.forward(point);
-console.log(point.w, prediction.w[1])
+console.log(point.w, prediction.w[1].toFixed(3))
