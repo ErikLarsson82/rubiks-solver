@@ -7,18 +7,18 @@ const LOGGING = true
 
 const map = `
 FSFF
-FHGH
+FHFH
 FFFH
 HFFG
 `.trim().split('').filter(x => ["F","S","H","G"].includes(x))
 
 const HYPER = {
-	"ITERATIONS": 10,
+	"ITERATIONS": 10000,
 	"MOVES": 6,
-	"EXPLORATION_RATE": 0.5,
-	"NETS": 1,
-	"SUCCESS_RATE": 10,
-	"FAIL_RATE": -0.01,
+	"EXPLORATION_RATE": 0.3,
+	"NETS": 20,
+	"SUCCESS_RATE": 1,
+	"FAIL_RATE": -0.0001,
 	"START_LOCATION": map.findIndex(x=>x === "S")
 }
 
@@ -61,6 +61,9 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 	//log(`Before training - Probability agentIndex ${agentIndexToBinary(HYPER.START_LOCATION)}: `, net.run(agentIndexToBinary(HYPER.START_LOCATION)))
 
 	for (var k = 0; k < HYPER.ITERATIONS; k++) {
+		if (k % 1000 === 0) {
+			log('---- iteration', k)
+		}
 		trainIteration()
 	}
 
@@ -71,9 +74,9 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 	//if (deepNetTraining % 10 === 0)
 	log(`Training net ${deepNetTraining} - result: ${result}`)
 
-	log(trainingData)
+	//log(trainingData)
 
-	map.forEach((x, i) => log(`index ${agentIndexToBinary(i)}`, brain.likely(agentIndexToBinary(i), net), net.run(agentIndexToBinary(i))))
+	//map.forEach((x, i) => log(`index ${agentIndexToBinary(i)}`, brain.likely(agentIndexToBinary(i), net), net.run(agentIndexToBinary(i))))
 	//log('running 1', brain.likely(1, net), net.run(1))
 	//log('running 2', brain.likely(2, net), net.run(2))
 }
@@ -129,6 +132,11 @@ function trainIteration() {
 		moveAgent(move)
 		
 		const result = resolveMove(move)
+
+		if (result.reward === 1) {
+			moveSet = moveSet.map((x, i) => ({ ...x, reward: Math.min(x.reward + (1 / (moveSet.length+1) * (i+1)), 1) }))
+			//console.log('adjusting existing moveSet this run', moveSet)
+		}
 
 		moveSet.push({ ...result, move: move, agentIndex: agentIdxBeforeMove })
 
