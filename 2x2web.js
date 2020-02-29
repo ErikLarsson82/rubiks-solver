@@ -9,7 +9,7 @@ document.body.appendChild( renderer.domElement )
 let cubeContainer, rotater, cube, cubits, isAnimating
 
 const rotate = [0,0]
-const speed = 0.08
+const speed = 0.04
 const protrusion = 0.1
 const sideSize = 0.85
 
@@ -20,18 +20,18 @@ const colorRef = {
 	RED: new THREE.Color(1,0,0),
 	BLUE: new THREE.Color(0,0,1),
 	YELLOW: new THREE.Color(1,1,0),
-	ORANGE: new THREE.Color(0.5,1,0),
+	ORANGE: new THREE.Color(1,0.5,0),
 }
 
 const visualBlueprint = [
-	{ x: 0, y: 1, z: 0, color: new THREE.Color(1,1,0) },
-	{ x: 1, y: 1, z: 0, color: new THREE.Color(0,1,0) },
-	{ x: 0, y: 1, z: 1, color: new THREE.Color(1,0,0) },
-	{ x: 1, y: 1, z: 1, color: new THREE.Color(0,0,1) },
-	{ x: 0, y: 0, z: 0, color: new THREE.Color(1,0.5,0) },
-	{ x: 1, y: 0, z: 0, color: new THREE.Color(1,1,1) },
-	{ x: 0, y: 0, z: 1, color: new THREE.Color(0.5,0.5,0) },
-	{ x: 1, y: 0, z: 1, color: new THREE.Color(0.5,0.5,0.5) }
+	{ x: -0.5, y: 0.5, z: -0.5, color: new THREE.Color(1,1,0) },
+	{ x: 0.5, y: 0.5, z: -0.5, color: new THREE.Color(0,1,0) },
+	{ x: -0.5, y: 0.5, z: 0.5, color: new THREE.Color(1,0,0) },
+	{ x: 0.5, y: 0.5, z: 0.5, color: new THREE.Color(0,0,1) },
+	{ x: -0.5, y: -0.5, z: -0.5, color: new THREE.Color(1,0.5,0) },
+	{ x: 0.5, y: -0.5, z: -0.5, color: new THREE.Color(1,1,1) },
+	{ x: -0.5, y: -0.5, z: 0.5, color: new THREE.Color(0.5,0.5,0) },
+	{ x: 0.5, y: -0.5, z: 0.5, color: new THREE.Color(0.5,0.5,0.5) }
 ]
 
 function init() {
@@ -53,9 +53,6 @@ function renderCube() {
 	removeChildren(cubeContainer)
 
 	rotater = new THREE.Object3D()
-	rotater.position.x = 0.5
-	rotater.position.y = 0.5
-	rotater.position.z = 0.5
 	cubeContainer.add(rotater)
 	
 	cubits = cube.map(createCubit)
@@ -69,9 +66,10 @@ function removeChildren(container) {
 	}
 }
 
-function createCubit({ position, up, down, front, back, right, left }, i) {
+function createCubit({ id, position, up, down, front, back, right, left }, i) {
 	const { color, x, y, z } = visualBlueprint[position]
 	const container = new THREE.Object3D()
+	container.customId = id
 
 	const geometry = new THREE.BoxGeometry(0.97, 0.97, 0.97)
 	const material = new THREE.MeshBasicMaterial( { color: new THREE.Color(0.2, 0.2, 0.2) } );
@@ -90,7 +88,8 @@ function createCubit({ position, up, down, front, back, right, left }, i) {
 		{ dir: 'left', color: left }
 	]
 
-	sides.map(side => createFace(side, x, y, z)).forEach(face => container.add(face))
+	const faces = sides.map(side => createFace(side, x, y, z)).filter(x => x)
+	faces.forEach(face => container.add(face))
 
 	return container
 }
@@ -128,8 +127,10 @@ function createFace({ dir, color }, x, y, z) {
 function animateRotation() {
 	if (isAnimating) return
 
-	cubits.forEach(cubit => rotater.attach(cubit))
-
+	const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
+	cubits.filter(cubit => positions['right'].includes(getPosition(cubit)))
+		.forEach(cubit => rotater.attach(cubit))
+	
 	isAnimating = true
 	const rotation = { value: 0 }
 	const tween = new TWEEN.Tween(rotation)
@@ -138,13 +139,9 @@ function animateRotation() {
 			rotater.rotation.x = rotation.value
         })
         .onComplete(() => {
-            isAnimating = false
-
-            setTimeout(() => {
-            	cube = right(cube)
-            	renderCube(cube)
-            	isAnimating = false
-            }, 100)
+            cube = right(cube)
+        	renderCube(cube)
+        	isAnimating = false
         })
         .start()
 }
