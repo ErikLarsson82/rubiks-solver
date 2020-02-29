@@ -23,7 +23,7 @@ function isFailure(x) {
 
 const jsonLineFilePath = 'training.json'
 d3.json(`training-data/${jsonLineFilePath}`, renderLineChart)
-//setInterval(() => d3.json(`training-data/${jsonLineFilePath}`, renderLineChart), 500)
+setInterval(() => d3.json(`training-data/${jsonLineFilePath}`, renderLineChart), 500)
 
 function renderLineChart(error, _data) {
   if (error) {
