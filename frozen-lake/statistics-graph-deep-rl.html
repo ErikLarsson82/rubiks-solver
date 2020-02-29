@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<style>
+
+  body {
+    font-family: monospace;
+  }
+
+	.axis {
+	  font: 10px sans-serif;
+	}
+
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+  path.line {
+        fill: none;
+        stroke: red;
+        stroke-width: 3px;
+      } 
+      
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: slategray;
+      shape-rendering: crispEdges;
+    }
+
+	</style>
+</head>
+
+<body>
+
+<h1>Frozen lake - solved with Deep Q Reinforced Learning</h1>
+<div id="svgContainer-barchart"></div>
+<div id="svgContainer-timeline"></div>
+<img src="screenshot.png" style="position: absolute; left: 525px;">
+<h3 id="successRate"></h3>
+<div id="hyper"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+
+<script src="statistics.js"></script>
+
+</body>
