@@ -6,10 +6,11 @@ const dir = 'training-data'
 
 const startDate = new Date()
 const LOGGING = false
-const LOG_INTERVAL = 100
+const LOG_INTERVAL = 1
 
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 const filename = `${dir}/fl-brainjs-${formatDate(new Date())}.json`
+const trainingfile = `${dir}/training.json`
 
 const startLocations = [0,1,2,3,4,6,8,9,10,13,14].reverse()
 
@@ -54,7 +55,8 @@ const HYPER = {
 	}
 }
 
-let agentIndex, net, trainer, results
+let agentIndex, net, trainer
+let fitnessSnapshots = []
 
 log('\n\n--- [ FROZEN LAKE OPEN-AI CHALLENGE USING BRAIN.JS ] ---')
 log('Hyper-parameters', HYPER)
@@ -62,15 +64,14 @@ log('\n--- [ BEGIN TRAINING ] ---')
 
 let rawFile, file
 try {
-	rawFile = fs.readFileSync(`${dir}/net.json`)
+	rawFile = fs.readFileSync(`${dir}/training.json`)
 	file = JSON.parse(rawFile)
 } catch(e) {
 
 }
-const newNetworkNeeded = process.argv[3] === "reset" || !file
+const newNetworkNeeded = process.argv[2] === "reset" || !file
 
 log(newNetworkNeeded ? '\n\nNew network created' : '\n\nReading file net.json')
-results = []
 
 for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 	resetGame()
@@ -89,33 +90,39 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 			}
 		], HYPER["TRAINING_OPTIONS"])
 	} else {
-		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJSON(file)
+		console.error('Reimplement this plz')
+		//net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJS(file.net)
 	}
 
 	for (var k = 0; k < HYPER.ITERATIONS; k++) {
-		const result = trainIteration()
+		const netTrainStats = trainIteration()
 
 		if (k % LOG_INTERVAL === 0) {
-			const resultsThisRound = []
+			const fitnessThisRound = []
 			for (var i = 0; i < startLocations.length; i++) {
-				const result = playGame(i)
-				results.push(result)
-				resultsThisRound.push(result)
-				log('Testing starting location', startLocations[i], result)
+				const fitness = playGame(i)
+				fitnessThisRound.push(fitness)
+				log('Testing starting location', startLocations[i], fitness)
 			}
-			if (resultsThisRound.filter(isSuccess).length === startLocations.length) {
+			fitnessSnapshots.push({ fitness: fitnessThisRound, date: new Date().toISOString() })
+
+			const jsonStr = JSON.stringify({ training: true, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
+			fs.writeFileSync(trainingfile, jsonStr)
+
+			if (fitnessThisRound.filter(isSuccess).length === startLocations.length) {
 				k = Infinity
 				console.log('Breaking prematurely because all starting points where solved')
 			}
-			renderHelptext(result)
+			renderHelptext(netTrainStats)
+
 		}
 	}
 
 }
 
 console.log(`Results logged to file: ${filename}`)
-fs.writeFileSync(filename, JSON.stringify({ filename: filename, results: results, "hyper-parameters": HYPER }))
-fs.writeFileSync(`${dir}/net.json`, JSON.stringify(net.toJSON()))
+//fs.writeFileSync(trainingfile, JSON.stringify({ training: false, filename: filename }))
+fs.writeFileSync(filename, JSON.stringify({ filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() }))
 
 function trainIteration() {
 	let moveSet = []
@@ -158,9 +165,9 @@ function trainIteration() {
 
 function renderHelptext(result) {
 
-	const successes = results.filter(isSuccess).length
-	const failures = results.filter(isFailure).length
-	const total = results.length
+	const successes = fitnessSnapshots.flatMap(x => x.fitness).filter(isSuccess).length
+	const failures = fitnessSnapshots.flatMap(x => x.fitness).filter(isFailure).length
+	const total = fitnessSnapshots.flatMap(x => x.fitness).length
 	const successRate = 100 / (total / successes)
 	renderPrediction()
 
@@ -256,7 +263,7 @@ function isFailure(x) {
 }
 		
 function formatDate(date) {
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`
+  return `${date.getFullYear()}-${leftPad("00", date.getMonth().toString())}-${leftPad("00", date.getDate().toString())}-${leftPad("00", date.getHours().toString())}-${leftPad("00", date.getMinutes().toString())}-${leftPad("00", date.getSeconds().toString())}`
 }
 
 function playerOrTile(idx) {

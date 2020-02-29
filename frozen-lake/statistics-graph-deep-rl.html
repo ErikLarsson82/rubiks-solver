@@ -6,6 +6,7 @@
 
   body {
     font-family: monospace;
+    background: #d9e7e8;
   }
 
 	.axis {
@@ -20,17 +21,17 @@
 	}
 
   path.line {
-        fill: none;
-        stroke: red;
-        stroke-width: 3px;
-      } 
-      
-    .axis path,
-    .axis line {
-      fill: none;
-      stroke: slategray;
-      shape-rendering: crispEdges;
-    }
+    fill: none;
+    stroke: red;
+    stroke-width: 2px;
+  } 
+  
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: slategray;
+    shape-rendering: crispEdges;
+  }
 
 	</style>
 </head>
@@ -38,7 +39,7 @@
 <body>
 
 <h1>Frozen lake - solved with Deep Q Reinforced Learning</h1>
-<div id="svgContainer-barchart"></div>
+<!--div id="svgContainer-barchart"></div-->
 <div id="svgContainer-timeline"></div>
 <img src="screenshot.png" style="position: absolute; left: 525px;">
 <h3 id="successRate"></h3>
