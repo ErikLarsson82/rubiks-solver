@@ -33,6 +33,22 @@
     shape-rendering: crispEdges;
   }
 
+  blink, .blink {
+    color: #c16b00;
+    -webkit-animation: blink 1s step-end infinite;
+    -moz-animation: blink 1s step-end infinite;
+    -o-animation: blink 1s step-end infinite;
+    animation: blink 1s step-end infinite;
+  }
+  @-webkit-keyframes blink { 67% { opacity: 0 }}
+  @-moz-keyframes blink {  67% { opacity: 0 }}
+  @-o-keyframes blink {  67% { opacity: 0 }}
+  @keyframes blink {  67% { opacity: 0 }}
+
+  .green {
+    color: green;
+  }
+
 	</style>
 </head>
 
@@ -42,6 +58,7 @@
 <!--div id="svgContainer-barchart"></div-->
 <div id="svgContainer-timeline"></div>
 <img src="screenshot.png" style="position: absolute; left: 525px;">
+<h3 id="status"></h3>
 <h3 id="successRate"></h3>
 <div id="hyper"></div>
 

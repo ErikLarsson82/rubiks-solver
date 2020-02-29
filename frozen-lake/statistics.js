@@ -1,3 +1,4 @@
+
 var margin = {top: 20, right: 20, bottom: 60, left: 40},
     width = 600 - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
@@ -42,14 +43,13 @@ function renderLineChart(error, _data) {
   
   minDate = d3.min(data, d => d.date)
   maxDate = d3.max(data, d => d.date)
-  const max = 11 //d3.max(data, d => d.fitness)
-
+  
   var xScale = d3.time.scale()
       .domain([minDate,maxDate])
       .range([0, width])
 
   var yScale = d3.scale.linear()
-      .domain([0, max])
+      .domain([0, _data['max-fitness']])
       .range([height, 0])
 
   var line = d3.svg.line()
@@ -94,12 +94,16 @@ function renderLineChart(error, _data) {
         .text("Fitness")
         .attr("transform", "rotate(-90)" );
 
+    document.getElementById("status").innerHTML = `Status: ${_data.training ? `Training network${new Array(Math.floor(Math.random()*4)).fill(".").join("")}` : 'Training complete'}`
+    document.getElementById("status").className = _data.training ? 'blink' : 'green'
+
     const flatFitness = data.flatMap(x => x.fitness)
     const successes = flatFitness.filter(isSuccess).length
     const total = flatFitness.length
     const failures = total - successes
     const successRate = 100 / (total / successes)
-    document.getElementById("successRate").innerHTML = `Total success rate ${successRate.toFixed(2)}% - Last iteration ${(100 * (data[data.length-1].fitness.filter(isSuccess).length / 11)).toFixed(2)}%`
+    const finalIteration = (100 * (data[data.length-1].fitness.filter(isSuccess).length / _data['max-fitness']))
+    document.getElementById("successRate").innerHTML = `Total success rate ${successRate.toFixed(2)}% - Last iteration ${finalIteration === 100 ? 100 : finalIteration.toFixed(1)}%`
 
     let b = []
     const config = _data["hyper-parameters"]["BRAIN_CONFIG"]

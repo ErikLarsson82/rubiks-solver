@@ -1,3 +1,16 @@
+/*
+	Training tool to solve my own version (without wind) of Frozen Lake, found in OpenAI Gym
+
+	The tool outputs data into a folder it creates called 'training-data'
+
+	Run the tool with # node fr-neural-net-brainjs.js reset
+	The reset flag creates a brand new net for training
+
+	Fiddle with hyper parameters to find an optimal policy-finding policy (meta puns are tight)
+
+	Use any program to serve the folder as HTTP-server (like 'serve' in npmjs) and visit 'statistics-graph-deep-rl.html'
+	to view live graph visualizations as the network trains
+*/
 const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
@@ -106,7 +119,7 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 			}
 			fitnessSnapshots.push({ fitness: fitnessThisRound, date: new Date().toISOString() })
 
-			const jsonStr = JSON.stringify({ training: true, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
+			const jsonStr = JSON.stringify({ training: true, "max-fitness": startLocations.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
 			fs.writeFileSync(trainingfile, jsonStr)
 
 			if (fitnessThisRound.filter(isSuccess).length === startLocations.length) {
@@ -121,8 +134,9 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 }
 
 console.log(`Results logged to file: ${filename}`)
-//fs.writeFileSync(trainingfile, JSON.stringify({ training: false, filename: filename }))
-fs.writeFileSync(filename, JSON.stringify({ filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() }))
+const jsonStr = JSON.stringify({ training: false, "max-fitness": startLocations.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
+fs.writeFileSync(trainingfile, jsonStr)
+fs.writeFileSync(filename, JSON.stringify({ training: false, "max-fitness": startLocations.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() }))
 
 function trainIteration() {
 	let moveSet = []
