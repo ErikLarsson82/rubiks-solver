@@ -1,4 +1,6 @@
-const ANIMATIONS_ENABLED = false
+var loader = new THREE.GLTFLoader();
+
+const ANIMATIONS_ENABLED = true
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 )
@@ -22,7 +24,7 @@ const colorRef = {
 	GREEN: new THREE.Color(0,1,0),
 	RED: new THREE.Color(1,0,0),
 	BLUE: new THREE.Color(0,0,1),
-	YELLOW: new THREE.Color(1,1,0),
+	YELLOW: new THREE.Color(0.2,0.5,0.5),
 	ORANGE: new THREE.Color(1,0.5,0),
 }
 
@@ -50,6 +52,37 @@ function init() {
 
 	renderCube()
 	animate()
+
+	
+	var light = new THREE.PointLight( 0xff0000, 1, 100 );
+	light.position.set( 0, 10, 10 );
+	scene.add( light );
+	
+
+	/*
+	var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 )
+	directionalLight.position.set( 0, 10, 20 );
+	directionalLight.castShadow = true
+	scene.add( directionalLight )
+	*/
+
+	loader.load( './test.glb', function ( gltf ) {
+
+		console.log(gltf)
+		
+		gltf.scene.position.x = 1
+
+		gltf.scene.rotation.x = 0.51
+		gltf.scene.rotation.y = -0.63
+
+		scene.add( gltf.scene );
+
+	}, undefined, function ( error ) {
+
+		console.error( error );
+
+	} );
+
 }
 
 function renderCube() {
@@ -129,7 +162,9 @@ function createFace({ dir, color }, x, y, z) {
 
 function rotateSide(func, label) {
 	if (!ANIMATIONS_ENABLED) {
+		console.log(cube)
 		cube = func(cube)
+		console.log(cube)
     	renderCube(cube)
 	} else {
 		if (isAnimating) return
@@ -139,11 +174,20 @@ function rotateSide(func, label) {
 			.forEach(cubit => rotater.attach(cubit))
 		
 		isAnimating = true
+		const direction = ['front', 'right', 'up'].includes(label) ? -1 : 1
 		const rotation = { value: 0 }
 		const tween = new TWEEN.Tween(rotation)
-			.to({ value: Math.PI / 2 * -1 }, 500) //Math.PI / 2 * (reversed ? -1 : 1)
+			.to({ value: Math.PI / 2 * direction }, 500) //Math.PI / 2 * (reversed ? -1 : 1)
 			.onUpdate(() => {
-				rotater.rotation.x = rotation.value
+				if (['right', 'left'].includes(label)) {
+					rotater.rotation.x = rotation.value
+				}
+				if (['front', 'back'].includes(label)) {
+					rotater.rotation.z = rotation.value
+				}
+				if (['up', 'down'].includes(label)) {
+					rotater.rotation.y = rotation.value
+				}
 	        })
 	        .onComplete(() => {
 	            cube = func(cube)
@@ -172,6 +216,18 @@ function keydown(e) {
     }
     if (e.keyCode === 76) {
     	rotateSide(left, 'left')
+    }
+    if (e.keyCode === 70) {
+    	rotateSide(front, 'front')
+    }
+    if (e.keyCode === 66) {
+    	rotateSide(back, 'back')
+    }
+    if (e.keyCode === 68) {
+    	rotateSide(down, 'down')
+    }
+    if (e.keyCode === 85) {
+    	rotateSide(up, 'up')
     }
     if (e.keyCode === 80) {
     	persist()
