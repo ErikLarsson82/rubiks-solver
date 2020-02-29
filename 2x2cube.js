@@ -24,7 +24,8 @@ function createCube() {
 }
 
 const positions = {
-	'right': [3,1,5,7]
+	'right': [3,1,5,7],
+	'left': [0,2,6,4],
 }
 
 function right(cube) {
@@ -41,6 +42,27 @@ function right(cube) {
 		newCorner.front = corner.down
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions['right'], corner.position)
+
+		return newCorner
+	})
+
+	return [ ...unaffected, ...affected ]
+}
+
+function left(cube) {
+	let unaffected = cube.filter(cubit => !positions['left'].includes(cubit.position))
+
+	let affected = cube.filter(cubit => positions['left'].includes(cubit.position))
+
+	affected = affected.map(corner => {
+		const newCorner = {}
+		newCorner.left = corner.left
+		newCorner.up = corner.back
+		newCorner.back = corner.down
+		newCorner.down = corner.front
+		newCorner.front = corner.up
+		newCorner.id = corner.id
+		newCorner.position = cycle(positions['left'], corner.position)
 
 		return newCorner
 	})

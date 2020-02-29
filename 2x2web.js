@@ -1,3 +1,5 @@
+const ANIMATIONS_ENABLED = false
+
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 )
 camera.position.z = 6
@@ -11,6 +13,7 @@ let cubeContainer, rotater, cube, cubits, isAnimating
 const rotate = [0,0]
 const speed = 0.04
 const protrusion = 0.1
+const baseSize = 0.97
 const sideSize = 0.85
 
 const colorRef = {
@@ -71,7 +74,7 @@ function createCubit({ id, position, up, down, front, back, right, left }, i) {
 	const container = new THREE.Object3D()
 	container.customId = id
 
-	const geometry = new THREE.BoxGeometry(0.97, 0.97, 0.97)
+	const geometry = new THREE.BoxGeometry(baseSize, baseSize, baseSize)
 	const material = new THREE.MeshBasicMaterial( { color: new THREE.Color(0.2, 0.2, 0.2) } );
 	const cubitBase = new THREE.Mesh( geometry, material );
 	cubitBase.position.x = x
@@ -124,26 +127,31 @@ function createFace({ dir, color }, x, y, z) {
 	return face
 }
 
-function animateRotation() {
-	if (isAnimating) return
+function rotateSide(func, label) {
+	if (!ANIMATIONS_ENABLED) {
+		cube = func(cube)
+    	renderCube(cube)
+	} else {
+		if (isAnimating) return
 
-	const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
-	cubits.filter(cubit => positions['right'].includes(getPosition(cubit)))
-		.forEach(cubit => rotater.attach(cubit))
-	
-	isAnimating = true
-	const rotation = { value: 0 }
-	const tween = new TWEEN.Tween(rotation)
-		.to({ value: Math.PI / 2 * -1 }, 2000) //Math.PI / 2 * (reversed ? -1 : 1)
-		.onUpdate(() => {
-			rotater.rotation.x = rotation.value
-        })
-        .onComplete(() => {
-            cube = right(cube)
-        	renderCube(cube)
-        	isAnimating = false
-        })
-        .start()
+		const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
+		cubits.filter(cubit => positions[label].includes(getPosition(cubit)))
+			.forEach(cubit => rotater.attach(cubit))
+		
+		isAnimating = true
+		const rotation = { value: 0 }
+		const tween = new TWEEN.Tween(rotation)
+			.to({ value: Math.PI / 2 * -1 }, 500) //Math.PI / 2 * (reversed ? -1 : 1)
+			.onUpdate(() => {
+				rotater.rotation.x = rotation.value
+	        })
+	        .onComplete(() => {
+	            cube = func(cube)
+	        	renderCube(cube)
+	        	isAnimating = false
+	        })
+	        .start()
+	}
 }
 
 function keydown(e) {
@@ -159,8 +167,11 @@ function keydown(e) {
     if (e.keyCode === 40) {
         rotate[0] = speed
     }
-    if (e.keyCode === 13) {
-    	animateRotation()
+    if (e.keyCode === 82) {
+    	rotateSide(right, 'right')
+    }
+    if (e.keyCode === 76) {
+    	rotateSide(left, 'left')
     }
 }
 
