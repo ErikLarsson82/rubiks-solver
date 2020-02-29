@@ -1,16 +1,17 @@
 
+const AUTO_UPDATE = false
+
 var margin = {top: 20, right: 20, bottom: 60, left: 40},
     width = 600 - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
 
 // ---------------------------------------- Line chart ---------------------------------------- 
-var svgLineChart = d3.select("#svgContainer-timeline").append("svg:svg")
+var svgLineChart = d3.select("#svgContainer-timeline").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
 
 var xNudge = 50;
 var yNudge = 20;
-var parseDate = d3.time.format("%m/%d/%Y").parse;
 var minDate = new Date();
 var maxDate = new Date();
 
@@ -23,47 +24,38 @@ function isFailure(x) {
 }
 
 const jsonLineFilePath = 'training.json'
-d3.json(`training-data/${jsonLineFilePath}`, renderLineChart)
-setInterval(() => d3.json(`training-data/${jsonLineFilePath}`, renderLineChart), 500)
+d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart)
+if (AUTO_UPDATE) {
+  setInterval(() => d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart), 500) 
+}
 
-function renderLineChart(error, _data) {
-  if (error) {
-    console.error(error)
-    return
-  }
-  svgLineChart.select("#test").remove()
+function renderLineChart(_data) {
+  
   svgLineChart.select(".chartGroup").remove()
   
-  svgLineChart.append("g")
-    .attr("id", "test")
-    .attr("transform", 
-          "translate(" + margin.left + "," + margin.top + ")");
-
   const data = _data.fitnessSnapshots.map(x => ({ ...x, date: new Date(x.date)}))
   
   minDate = d3.min(data, d => d.date)
   maxDate = d3.max(data, d => d.date)
   
-  var xScale = d3.time.scale()
+  var xScale = d3.scaleTime()
       .domain([minDate,maxDate])
       .range([0, width])
 
-  var yScale = d3.scale.linear()
+  var yScale = d3.scaleLinear()
       .domain([0, _data['max-fitness']])
       .range([height, 0])
 
-  var line = d3.svg.line()
+  var line = d3.line()
       .x(d => xScale(d.date))
       .y(d => yScale(d.fitness.filter(isSuccess).length))
-      //.curve(d3.curveMonotoneX) // apply smoothing to the line
+      .curve(d3.curveMonotoneX)
 
-  var xAxis = d3.svg.axis()
+  var xAxis = d3.axisBottom()
     .scale(xScale)
-    .orient("bottom")
     
-  var yAxis = d3.svg.axis()
+  var yAxis = d3.axisLeft()
     .scale(yScale)
-    .orient("left")
     .ticks(10);
 
     var chartGroup = svgLineChart.append("g").attr("class","chartGroup").attr("transform","translate("+xNudge+","+yNudge+")");
@@ -77,22 +69,26 @@ function renderLineChart(error, _data) {
       .attr("transform","translate(0,"+height+")")
       .call(xAxis)
       .append("text")
+        .attr("x", 0)
         .attr("y", 0)
         .attr("dy", "3.2em")
         .attr("dx", "24em")
+        .attr("fill", "black")
         .style("text-anchor", "start")
-        .text("Time")
+        .text(() => "Time")
       
     chartGroup.append("g")
       .attr("class","axis y")
       .call(yAxis)
       .append("text")
-        .attr("y", 6)
+        .attr("x", 0)
+        .attr("y", 0)
         .attr("dy", "-3.8em")
         .attr("dx", "-10em")
+        .attr("transform", "rotate(-90)" )
+        .attr("fill", "black")
         .style("text-anchor", "start")
-        .text("Fitness")
-        .attr("transform", "rotate(-90)" );
+        .text(() => "Fitness")
 
     document.getElementById("status").innerHTML = `Status: ${_data.training ? `Training network${new Array(Math.floor(Math.random()*4)).fill(".").join("")}` : 'Training complete'}`
     document.getElementById("status").className = _data.training ? 'blink' : 'green'
