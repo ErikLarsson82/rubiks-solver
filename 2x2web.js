@@ -173,6 +173,12 @@ function keydown(e) {
     if (e.keyCode === 76) {
     	rotateSide(left, 'left')
     }
+    if (e.keyCode === 80) {
+    	persist()
+    }
+    if (e.keyCode === 67) {
+    	compare()
+    }
 }
 
 function keyup(e) {

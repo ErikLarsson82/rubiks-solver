@@ -35,6 +35,7 @@ function right(cube) {
 
 	affected = affected.map(corner => {
 		const newCorner = {}
+		newCorner.left = corner.left
 		newCorner.right = corner.right
 		newCorner.up = corner.front
 		newCorner.back = corner.up
@@ -56,6 +57,7 @@ function left(cube) {
 
 	affected = affected.map(corner => {
 		const newCorner = {}
+		newCorner.right = corner.right
 		newCorner.left = corner.left
 		newCorner.up = corner.back
 		newCorner.back = corner.down
@@ -118,4 +120,32 @@ function cornerToBinary(obj) {
 function leftPad(template, str) {
 	const full = template.concat(str)
 	return full.substr(str.length)
+}
+
+function sorter(a, b) {
+	return a.id > b.id ? 1 : -1
+}
+
+function orderly({ up, front, back, left, right, down, id, position }) {
+	return {
+		up: up,
+		front: front,
+		back: back,
+		left: left,
+		right: right,
+		down: down,
+		id: id,
+		position: position,
+	}
+}
+
+let persistedCube
+
+function persist() {
+	persistedCube = R.clone(cube.map(orderly).sort(sorter))
+	console.log('peristed', persistedCube)
+}
+
+function compare() {
+	console.log(R.difference(persistedCube.map(orderly).sort(sorter), cube.map(orderly).sort(sorter))) // ? 'Identical!' : 'Not even close...'
 }
