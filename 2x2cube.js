@@ -243,14 +243,14 @@ function orderly({ up, front, back, left, right, down, id, position }) {
 }
 
 function persist() {
-	//persistedBinaryStr = R.clone(cube.map(orderly).sort(sorter))
 	persistedBinaryStr = binaryStr()
-	console.log('peristed', persistedBinaryStr)
+	console.log('Persisting binary cube data', persistedBinaryStr)
 }
 
 function compare() {
-	//console.log(R.difference(persistedBinaryStr.map(orderly).sort(sorter), cube.map(orderly).sort(sorter))) // ? 'Identical!' : 'Not even close...'
-	console.log(R.equals(persistedBinaryStr, binaryStr())) // ? 'Identical!' : 'Not even close...'
+	const currentCube = binaryStr()
+	const equal = R.equals(persistedBinaryStr, currentCube)
+	console.log(`Equal: ${equal}\nPersisted binary cube: ${persistedBinaryStr}\nCurrent binary cube: ${currentCube}`)
 }
 
 function binaryStr() {
