@@ -11,11 +11,11 @@ var svgLineChart = d3.select("#svgContainer-timeline").append("svg")
 
 var xNudge = 50;
 var yNudge = 20;
-var minDate = new Date();
-var maxDate = new Date();
+var minDate = new Date()
+var maxDate = new Date()
 
-function isSuccess(data) {
-  return data !== -1
+function isSuccess(x) {
+  return x.success !== -1
 }
 
 function isFailure(x) {
@@ -26,7 +26,7 @@ const jsonLineFilePath = 'training.json'
 const jsonFullPath = `training-data/${jsonLineFilePath}`
 d3.json(jsonFullPath).then(renderLineChart).catch(error)
 if (AUTO_UPDATE) {
-  setInterval(() => d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart), 500) 
+  setInterval(() => d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart).catch(timeout), 500) 
 }
 
 function renderLineChart(_data) {
@@ -117,4 +117,8 @@ Brain.js parameters: <br>${b}<br>
 
 function error() {
   document.getElementById("status").innerHTML = `JSON file '${jsonFullPath}' not found`
+}
+
+function timeout() {
+  console.log('Cannot load file - probably write lock')
 }

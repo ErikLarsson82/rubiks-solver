@@ -1,4 +1,7 @@
-/*  Schema for cubits ID
+/*  
+	Common file for both Web rendering of cubes and node Trainers of cube solves
+
+	Schema for cubits ID
 	Top layer viewed from top:
 	01
 	23

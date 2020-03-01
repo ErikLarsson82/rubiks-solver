@@ -13,7 +13,8 @@
 	to view live graph visualizations as the network trains
 */
 
-const { createCube, persist, compare, up, down, left, right, front, back, scrambleCube, moveFuncs } = require('./2x2cube')
+const { createCube, persist, compare, up, down, left, right, front, back, scrambleCube, moveFuncs } = require('./2x2cube-common')
+const scrambles = require('./scrambles')
 const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
@@ -21,22 +22,16 @@ const dir = 'training-data'
 
 const startDate = new Date()
 const LOGGING = true
+const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
 const trainingfile = `${dir}/training.json`
 
-const scrambles = [
-	['L'],
-	['L', 'L'],
-	['L', 'L', 'L'],
-	['R'],
-]
-
 const HYPER = {
-	"ITERATIONS": 2,
-	"MOVES": 4,
+	"ITERATIONS": 10000,
+	"MOVES": 10,
 	"EXPLORATION_RATE": 0.01,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
@@ -68,10 +63,11 @@ const HYPER = {
 	}
 }
 
-let cube, net, trainer, newNetworkNeeded
-let fitnessSnapshots = []
+let cube, net, trainer, newNetworkNeeded, fitnessSnapshots
 
 function initTrainer() {
+	fitnessSnapshots = []
+
 	log('\n\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n--- [ SETUP ] ---')
@@ -97,7 +93,7 @@ function setup() {
 
 	if (newNetworkNeeded) {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
-		//net.train([ /* TODO */ {}], HYPER["TRAINING_OPTIONS"])
+		net.train([{ input: 1, output: 1 }], HYPER["TRAINING_OPTIONS"])
 	} else {
 		console.error('Reimplement this plz')
 		//net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJS(file.net)
@@ -117,40 +113,38 @@ function train() {
 		}
 	})
 
+	if (WRITE_FILES) {
+		writeTrainingLogFile(false)
+	}
+
 	log('\n--- [ RESULTS BY PLAYING TEST-DATA ] ---')
 	results.forEach(point => {
 		log(`\nTraining Stats: ${point.trainingStats.error}`)
 		point.solveStats.forEach(x => log(x))
-		log(`Success rate: ${ ((point.solveStats.filter(x => x.success !== -1).length / point.solveStats.length ) * 100).toFixed(1)}%`)
+		log(`Success rate: ${ ((point.solveStats.filter(isSuccess).length / point.solveStats.length ) * 100).toFixed(1)}%`)
 		
 	})
+}
 
+function isSuccess(x) {
+	return x.success !== -1
 }
 
 function logIteration(iteration, stats) {
 	if (iteration % LOG_INTERVAL === 0) {
-		//const iterationFitness = []
+		const iterationFitness = scrambles.map(solveCube)
 
-		const solveStats = scrambles.map(solveCube)
-
-		return solveStats
-		/*
-		for (var i = 0; i < startLocations.length; i++) {
-			const fitness = playGame(i)
-			iterationFitness.push(fitness)
-			log('Testing starting location', startLocations[i], fitness)
-		}
 		fitnessSnapshots.push({ fitness: iterationFitness, date: new Date().toISOString() })
-
-		const jsonStr = JSON.stringify({ training: true, "max-fitness": startLocations.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
-		fs.writeFileSync(trainingfile, jsonStr)
-
-		if (iterationFitness.filter(isSuccess).length === startLocations.length) {
-			k = Infinity
-			console.log('Breaking prematurely because all starting points where solved')
+		if (WRITE_FILES) {
+			writeTrainingLogFile(true)
 		}
-		renderHelptext(netTrainStats)*/
+		return iterationFitness
 	}
+}
+
+function writeTrainingLogFile(isTraining) {
+	const jsonStr = JSON.stringify({ training: isTraining, "max-fitness": scrambles.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
+	fs.writeFileSync(trainingfile, jsonStr)
 }
 
 function trainIteration() {
@@ -169,7 +163,7 @@ function solveCube(scramble) {
 		if (compare(cube)) {
 			return
 		}
-		const policy = 'L' // ask net
+		const policy = ['L', 'R', 'F', 'B', 'U', 'D'][Math.floor(Math.random() * 6)] // random policy 'L' // ask net
 		solution.push(policy)
 
 		cube = moveFuncs[policy](cube)
