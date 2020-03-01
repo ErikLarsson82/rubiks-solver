@@ -36,6 +36,21 @@ const positions = {
 	'down': [4,6,7,5]
 }
 
+const moveFuncs = {
+	'up': up,
+	'U': up,
+	'down': down,
+	'D': down,
+	'left': left,
+	'L': left,
+	'right': right,
+	'R': right,
+	'front': front,
+	'F': front,
+	'back': back,
+	'B': back
+}
+
 function right(cube) {
 	let unaffected = cube.filter(cubit => !positions['right'].includes(cubit.position))
 
@@ -242,18 +257,23 @@ function orderly({ up, front, back, left, right, down, id, position }) {
 	}
 }
 
-function persist() {
-	persistedBinaryStr = binaryStr()
-	console.log('Persisting binary cube data', persistedBinaryStr)
+function scrambleCube(cube, scramble) {
+	scramble.forEach(move => {
+		cube = moveFuncs[move](cube)
+	})
+	return cube
 }
 
-function compare() {
-	const currentCube = binaryStr()
-	const equal = R.equals(persistedBinaryStr, currentCube)
-	console.log(`Equal: ${equal}\nPersisted binary cube: ${persistedBinaryStr}\nCurrent binary cube: ${currentCube}`)
+function persist(cube) {
+	persistedBinaryStr = binaryStr(cube)
 }
 
-function binaryStr() {
+function compare(cube) {
+	const currentCube = binaryStr(cube)
+	return persistedBinaryStr === currentCube
+}
+
+function binaryStr(cube) {
 	return cube.map(x=>x).sort(sorter).flatMap(cornerToBinary).join("")
 }
 
@@ -266,6 +286,9 @@ if (typeof module !== "undefined" && module.exports) {
 		down,
 		front,
 		back,
-		binaryStr
+		persist,
+		compare,
+		scrambleCube,
+		moveFuncs
 	}
 }

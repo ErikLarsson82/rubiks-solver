@@ -233,13 +233,13 @@ function keydown(e) {
     	rotateSide(up, 'up')
     }
     if (e.keyCode === 80) {
-    	persist()
+    	persist(cube)
     }
     if (e.keyCode === 67) {
-    	compare()
+    	compare(cube)
     }
     if (e.keyCode === 49) {
-    	binary()
+    	binaryStr(cube)
     }
 }
 

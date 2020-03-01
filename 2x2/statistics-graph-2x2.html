@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<style>
+
+  body {
+    font-family: monospace;
+    background: #d9e7e8;
+  }
+
+	.axis {
+	  font: 10px sans-serif;
+	}
+
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+  path.line {
+    fill: none;
+    stroke: red;
+    stroke-width: 2px;
+  } 
+  
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: slategray;
+    shape-rendering: crispEdges;
+  }
+
+  blink, .blink {
+    color: #c16b00;
+    -webkit-animation: blink 1s step-end infinite;
+    -moz-animation: blink 1s step-end infinite;
+    -o-animation: blink 1s step-end infinite;
+    animation: blink 1s step-end infinite;
+  }
+  @-webkit-keyframes blink { 67% { opacity: 0 }}
+  @-moz-keyframes blink {  67% { opacity: 0 }}
+  @-o-keyframes blink {  67% { opacity: 0 }}
+  @keyframes blink {  67% { opacity: 0 }}
+
+  .green {
+    color: green;
+  }
+
+	</style>
+</head>
+
+<body>
+
+<h1>Rubiks Cube 2x2 - solving using Deep Q Reinforced Learning</h1>
+<div id="svgContainer-timeline"></div>
+<img src="screenshot.png" style="position: absolute; left: 525px; width: 80px; height: 80px;">
+<h3 id="status"></h3>
+<h3 id="successRate"></h3>
+<div id="hyper"></div>
+
+<script src="https://d3js.org/d3.v5.min.js"></script>
+
+<script src="statistics-2x2.js"></script>
+
+</body>
