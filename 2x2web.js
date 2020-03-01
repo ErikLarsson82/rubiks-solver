@@ -1,6 +1,7 @@
-var loader = new THREE.GLTFLoader();
-
 const ANIMATIONS_ENABLED = true
+const RENDER_SCENE = false
+
+var loader = new THREE.GLTFLoader();
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 )
@@ -24,7 +25,7 @@ const colorRef = {
 	GREEN: new THREE.Color(0,1,0),
 	RED: new THREE.Color(1,0,0),
 	BLUE: new THREE.Color(0,0,1),
-	YELLOW: new THREE.Color(0.2,0.5,0.5),
+	YELLOW: new THREE.Color(1,1,0),
 	ORANGE: new THREE.Color(1,0.5,0),
 }
 
@@ -50,10 +51,15 @@ function init() {
 	cubeContainer.rotation.x = 0.51
 	cubeContainer.rotation.y = -0.63
 
+	createScene()
+
 	renderCube()
 	animate()
+}
 
-	
+function createScene() {
+	if (!RENDER_SCENE) return
+
 	var light = new THREE.PointLight( 0xff0000, 1, 100 );
 	light.position.set( 0, 10, 10 );
 	scene.add( light );
