@@ -31,6 +31,8 @@ if (AUTO_UPDATE) {
 
 function renderLineChart(_data) {
   
+  document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net)
+
   svgLineChart.select(".chartGroup").remove()
   
   const data = _data.fitnessSnapshots.map(x => ({ ...x, date: new Date(x.date)}))
