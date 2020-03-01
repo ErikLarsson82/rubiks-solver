@@ -13,7 +13,20 @@
 	to view live graph visualizations as the network trains
 */
 
-const { createCube, persist, compare, up, down, left, right, front, back, scrambleCube, moveFuncs } = require('./2x2cube-common')
+const {
+	createCube,
+	persist,
+	compare,
+	up,
+	down,
+	left,
+	right,
+	front,
+	back,
+	scrambleCube,
+	moveFuncs,
+	binary
+} = require('./2x2cube-common')
 const scrambles = require('./scrambles')
 const brain = require('../brain-browser.js')
 const fs = require('fs')
@@ -31,7 +44,7 @@ const trainingfile = `${dir}/training.json`
 
 const HYPER = {
 	"ITERATIONS": 10000,
-	"MOVES": 10,
+	"MOVES": 1,
 	"EXPLORATION_RATE": 0.01,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
@@ -42,7 +55,7 @@ const HYPER = {
 	    errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
 	    //log: true, // true to use console.log, when a function is supplied it is used --> Either true or a function
 	    //logPeriod: 10000, // iterations between logging out --> number greater than 0
-	    learningRate: 0.01, // scales with delta to effect training rate --> number between 0 and 1
+	    //learningRate: 0.1, // scales with delta to effect training rate --> number between 0 and 1
 	    momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
 	    callback: null, // a periodic call back that can be triggered while training --> null or function
 	    callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
@@ -89,11 +102,11 @@ function initTrainer() {
 }
 
 function setup() {
-	//cube = createCube()
+	cube = createCube()
 
 	if (newNetworkNeeded) {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
-		net.train([{ input: 1, output: 1 }], HYPER["TRAINING_OPTIONS"])
+		net.train({ input: binary(cube), output: { F: 0.5, B: 0.5, L: 0.5, R: 0.5, U: 0.5, D: 0.5 } }, { iterations: 1 })
 	} else {
 		console.error('Reimplement this plz')
 		//net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJS(file.net)
@@ -103,9 +116,16 @@ function setup() {
 function train() {
 	setup()
 
+	let isDone = false
+
 	const results = new Array(HYPER.ITERATIONS).fill().map((x, i) => {
+		if (isDone) return null
 		const trainingStats = trainIteration()
 		const solveStats = logIteration(i, trainingStats)
+
+		if (solveStats.filter(isSuccess).length === scrambles.length) {
+			isDone = true
+		}
 
 		return {
 			trainingStats: trainingStats,
@@ -118,12 +138,71 @@ function train() {
 	}
 
 	log('\n--- [ RESULTS BY PLAYING TEST-DATA ] ---')
-	results.forEach(point => {
+	results.filter(x=>x!==null).forEach(point => {
 		log(`\nTraining Stats: ${point.trainingStats.error}`)
 		point.solveStats.forEach(x => log(x))
 		log(`Success rate: ${ ((point.solveStats.filter(isSuccess).length / point.solveStats.length ) * 100).toFixed(1)}%`)
 		
 	})
+}
+
+function trainIteration() {
+	cube = createCube()
+
+	const data = scrambles.map(scramble => solveCube(scramble, true))
+	log(data)
+	const preparedData = data.flatMap(({ binarySnapshots, success }, i) => {
+		return binarySnapshots.map(snap => {
+			return {
+				input: snap.binaryData,
+				output: {
+					[snap.policy]: success !== -1 ? HYPER["SUCCESS_RATE"] : HYPER["FAIL_RATE"]
+				}
+			}
+		})
+	})
+	log('preparedData', preparedData)
+	return net.train(preparedData, HYPER["TRAINING_OPTIONS"])
+}
+
+function solveCube(scramble, collectMoveData) {
+	const solution = []
+	const binarySnapshots = []
+	cube = createCube()
+	persist(cube)
+
+	cube = scrambleCube(cube, scramble)
+
+	new Array(HYPER.MOVES).fill().forEach((x, i) => {
+
+		if (compare(cube)) {
+			return
+		}
+		let policy
+		if (Math.random() < HYPER.EXPLORATION_RATE) {
+			policy = randomAgent()
+		} else {
+			policy = brain.likely(binary(cube), net)
+		}
+		
+		log('Net total policy', net.run(binary(cube)))
+		solution.push(policy)
+
+		cube = moveFuncs[policy](cube)
+
+		if (collectMoveData)
+			binarySnapshots.push({
+				binaryData: binary(cube),
+				policy: policy
+			})
+	})
+
+	return {
+		scramble: scramble,
+		solution: solution,
+		binarySnapshots: collectMoveData ? binarySnapshots : null,
+		success: compare(cube) ? solution.length : -1
+	}
 }
 
 function isSuccess(x) {
@@ -132,7 +211,7 @@ function isSuccess(x) {
 
 function logIteration(iteration, stats) {
 	if (iteration % LOG_INTERVAL === 0) {
-		const iterationFitness = scrambles.map(solveCube)
+		const iterationFitness = scrambles.map(x => solveCube(x, false))
 
 		fitnessSnapshots.push({ fitness: iterationFitness, date: new Date().toISOString() })
 		if (WRITE_FILES) {
@@ -147,35 +226,6 @@ function writeTrainingLogFile(isTraining) {
 	fs.writeFileSync(trainingfile, jsonStr)
 }
 
-function trainIteration() {
-	return { error: 0.2 }
-}
-
-function solveCube(scramble) {
-	const solution = []
-	cube = createCube()
-	persist(cube)
-
-	cube = scrambleCube(cube, scramble)
-
-	new Array(HYPER.MOVES).fill().forEach((x, i) => {
-
-		if (compare(cube)) {
-			return
-		}
-		const policy = ['L', 'R', 'F', 'B', 'U', 'D'][Math.floor(Math.random() * 6)] // random policy 'L' // ask net
-		solution.push(policy)
-
-		cube = moveFuncs[policy](cube)
-	})
-
-	return {
-		scramble: scramble,
-		solution: solution,
-		success: compare(cube) ? solution.length : -1
-	}
-}
-
 function formatDate(date) {
   return `${date.getFullYear()}-${leftPad("00", date.getMonth().toString())}-${leftPad("00", date.getDate().toString())}-${leftPad("00", date.getHours().toString())}-${leftPad("00", date.getMinutes().toString())}-${leftPad("00", date.getSeconds().toString())}`
 }
@@ -188,6 +238,11 @@ function leftPad(template, str) {
 function log() {
 	if (!LOGGING) return
 	return console.log(...arguments)
+}
+
+function randomAgent() {
+	//return 'L'
+	return ['L', 'R', 'F', 'B', 'U', 'D'][Math.floor(Math.random() * 6)]
 }
 
 initTrainer()

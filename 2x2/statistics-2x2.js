@@ -1,5 +1,5 @@
 
-const AUTO_UPDATE = false
+const AUTO_UPDATE = true
 
 var margin = {top: 20, right: 20, bottom: 60, left: 40},
     width = 600 - margin.left - margin.right,

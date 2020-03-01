@@ -280,6 +280,10 @@ function binaryStr(cube) {
 	return cube.map(x=>x).sort(sorter).flatMap(cornerToBinary).join("")
 }
 
+function binary(cube) {
+	return cube.map(x=>x).sort(sorter).flatMap(cornerToBinary)
+}
+
 if (typeof module !== "undefined" && module.exports) {
 	module.exports = {
 		createCube,
@@ -291,6 +295,7 @@ if (typeof module !== "undefined" && module.exports) {
 		back,
 		persist,
 		compare,
+		binary,
 		scrambleCube,
 		moveFuncs
 	}
