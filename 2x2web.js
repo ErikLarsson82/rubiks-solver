@@ -44,6 +44,7 @@ function init() {
 	isAnimating = false
 
 	cube = createCube()
+	originalCubeBinaryString = binaryStr(cube)
 
 	cubeContainer = new THREE.Object3D()
 	scene.add(cubeContainer)
@@ -73,8 +74,6 @@ function createScene() {
 	*/
 
 	loader.load( './test.glb', function ( gltf ) {
-
-		console.log(gltf)
 		
 		gltf.scene.position.x = 1
 
@@ -108,7 +107,7 @@ function removeChildren(container) {
 	}
 }
 
-function createCubit({ id, position, up, down, front, back, right, left }, i) {
+function createCubit({ id, position, up, down, front, back, right, left }) {
 	const { color, x, y, z } = visualBlueprint[position]
 	const container = new THREE.Object3D()
 	container.customId = id
@@ -168,10 +167,8 @@ function createFace({ dir, color }, x, y, z) {
 
 function rotateSide(func, label) {
 	if (!ANIMATIONS_ENABLED) {
-		console.log(cube)
 		cube = func(cube)
 		console.log(cube)
-    	renderCube(cube)
 	} else {
 		if (isAnimating) return
 
@@ -240,6 +237,9 @@ function keydown(e) {
     }
     if (e.keyCode === 67) {
     	compare()
+    }
+    if (e.keyCode === 49) {
+    	binary()
     }
 }
 

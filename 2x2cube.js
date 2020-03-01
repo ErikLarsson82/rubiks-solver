@@ -10,6 +10,10 @@
 	24 rotations per cubit - 8 cubits = 192
 	00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - [000] */
 
+
+let persistedBinaryStr
+let originalCubeBinaryString
+
 function createCube() {
 	return [
 		defs({ id: 0, position: 0, up: 'white', back: 'blue', left: 'orange' }),
@@ -238,13 +242,17 @@ function orderly({ up, front, back, left, right, down, id, position }) {
 	}
 }
 
-let persistedCube
-
 function persist() {
-	persistedCube = R.clone(cube.map(orderly).sort(sorter))
-	console.log('peristed', persistedCube)
+	//persistedBinaryStr = R.clone(cube.map(orderly).sort(sorter))
+	persistedBinaryStr = binaryStr()
+	console.log('peristed', persistedBinaryStr)
 }
 
 function compare() {
-	console.log(R.difference(persistedCube.map(orderly).sort(sorter), cube.map(orderly).sort(sorter))) // ? 'Identical!' : 'Not even close...'
+	//console.log(R.difference(persistedBinaryStr.map(orderly).sort(sorter), cube.map(orderly).sort(sorter))) // ? 'Identical!' : 'Not even close...'
+	console.log(R.equals(persistedBinaryStr, binaryStr())) // ? 'Identical!' : 'Not even close...'
+}
+
+function binaryStr() {
+	return cube.map(x=>x).sort(sorter).flatMap(cornerToBinary).join("")
 }
