@@ -1,5 +1,7 @@
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
+const AUTOPLAY_SOLVES = true
+const ATTEMPT_THRESHOLD = 4
 
 var loader = new THREE.GLTFLoader();
 
@@ -11,7 +13,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
 
-let cubeContainer, rotater, cube, cubits, isAnimating
+let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer
 
 const rotate = [0,0]
 const speed = 0.04
@@ -41,6 +43,8 @@ const visualBlueprint = [
 ]
 
 function init() {
+	queue = []
+
 	isAnimating = false
 
 	cube = createCube()
@@ -55,7 +59,25 @@ function init() {
 	createScene()
 
 	renderCube()
-	animate()
+	
+	if (AUTOPLAY_SOLVES) {
+		timer = 0
+		nextScrambleSequence = 0
+		setState('SCRAMBLE')
+		loadNet()
+	} else {
+		animate()
+	}
+}
+
+function loadNet() {
+	const dir = 'training-data'
+	const trainingfile = `${dir}/training.json`
+	d3.json(trainingfile).then(data => {
+		net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
+		animate()
+	})
+
 }
 
 function createScene() {
@@ -165,35 +187,36 @@ function createFace({ dir, color }, x, y, z) {
 	return face
 }
 
-function rotateSide(func, label) {
+function rotateSide(move, speed = 2000) {
 	if (!ANIMATIONS_ENABLED) {
-		cube = func(cube)
-		console.log(cube)
+		cube = moveFuncs[move](cube)
 	} else {
 		if (isAnimating) return
-
-		const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
-		cubits.filter(cubit => positions[label].includes(getPosition(cubit)))
-			.forEach(cubit => rotater.attach(cubit))
 		
 		isAnimating = true
-		const direction = ['front', 'right', 'up'].includes(label) ? -1 : 1
+
+		const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
+		
+		cubits.filter(cubit => positions[move].includes(getPosition(cubit)))
+			.forEach(cubit => rotater.attach(cubit))
+		
+		const direction = ['F', 'R', 'U'].includes(move) ? -1 : 1
 		const rotation = { value: 0 }
 		const tween = new TWEEN.Tween(rotation)
-			.to({ value: Math.PI / 2 * direction }, 500) //Math.PI / 2 * (reversed ? -1 : 1)
+			.to({ value: Math.PI / 2 * direction }, speed)
 			.onUpdate(() => {
-				if (['right', 'left'].includes(label)) {
+				if (['R', 'L'].includes(move)) {
 					rotater.rotation.x = rotation.value
 				}
-				if (['front', 'back'].includes(label)) {
+				if (['F', 'B'].includes(move)) {
 					rotater.rotation.z = rotation.value
 				}
-				if (['up', 'down'].includes(label)) {
+				if (['U', 'D'].includes(move)) {
 					rotater.rotation.y = rotation.value
 				}
 	        })
 	        .onComplete(() => {
-	            cube = func(cube)
+	            cube = moveFuncs[move](cube)
 	        	renderCube(cube)
 	        	isAnimating = false
 	        })
@@ -215,22 +238,22 @@ function keydown(e) {
         rotate[0] = speed
     }
     if (e.keyCode === 82) {
-    	rotateSide(right, 'right')
+    	rotateSide('R')
     }
     if (e.keyCode === 76) {
-    	rotateSide(left, 'left')
+    	rotateSide('L')
     }
     if (e.keyCode === 70) {
-    	rotateSide(front, 'front')
+    	rotateSide('F')
     }
     if (e.keyCode === 66) {
-    	rotateSide(back, 'back')
+    	rotateSide('B')
     }
     if (e.keyCode === 68) {
-    	rotateSide(down, 'down')
+    	rotateSide('D')
     }
     if (e.keyCode === 85) {
-    	rotateSide(up, 'up')
+    	rotateSide('U')
     }
     if (e.keyCode === 80) {
     	persist(cube)
@@ -259,6 +282,8 @@ function animate(time) {
     requestAnimationFrame( animate )
     TWEEN.update( time )
 
+    autoPlay()
+
 	if (rotate[0]) {
         cubeContainer.rotation.x += rotate[0];
     }
@@ -266,6 +291,80 @@ function animate(time) {
         cubeContainer.rotation.y += rotate[1];
     }    
     renderer.render( scene, camera )
+}
+
+function autoPlay() {
+	if (!AUTOPLAY_SOLVES || isAnimating) return
+
+	if (state === 'SCRAMBLE') {
+		animateScramble()
+		return
+	} else if (state === 'SOLVING') {
+		animateSolving()
+		return
+	}
+	if (state === 'FINISHED' || state === 'FAILED') {
+		animateEnd()
+		return
+	}
+}
+
+function setState(s) {
+	state = s
+	if (s === 'SCRAMBLE') {
+		cube = createCube()
+		document.getElementById('help-text').innerHTML = "Scrambling"
+    	document.getElementById('help-text').className = "scrambling"
+    	queue = [...scrambles[nextScrambleSequence]]
+    	nextScrambleSequence++
+		if (nextScrambleSequence >= scrambles.length) nextScrambleSequence = 0
+	}
+	if (s === 'SOLVING') {
+		attempts = 0
+		document.getElementById('help-text').innerHTML = "Solving"
+    	document.getElementById('help-text').className = "solving"
+	}
+	if (s === 'FINISHED') {
+		timer = 120
+		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} successful`
+    	document.getElementById('help-text').className = "success"
+	}
+	if (s === 'FAILED') {
+		timer = 120
+		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} failed...`
+    	document.getElementById('help-text').className = "failed"	
+	}
+}
+
+function animateSolving() {
+	attempts++
+	if (binaryStr(cube) === binaryStr(createCube())) {
+		setState('FINISHED')
+		return
+	} else if (attempts > ATTEMPT_THRESHOLD) {
+		setState('FAILED')
+		return
+	}
+	const policy = brain.likely(binary(cube), net)
+	rotateSide(policy, 1000)
+}
+
+function animateScramble() {
+	if (queue.length === 0) {
+		setState('SOLVING')
+		return
+	}
+
+	const move = queue.shift()
+	rotateSide(move, 300)
+}
+
+function animateEnd() {
+	timer--
+
+	if (timer < 0) {
+		setState('SCRAMBLE')
+	}
 }
 
 init()

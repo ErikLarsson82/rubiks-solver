@@ -14,6 +14,11 @@ var yNudge = 20;
 var minDate = new Date()
 var maxDate = new Date()
 
+const svgOptions = {
+  width: 700,
+  height: 2000
+}
+
 function isSuccess(x) {
   return x.success !== -1
 }
@@ -30,7 +35,9 @@ if (AUTO_UPDATE) {
 }
 
 function renderLineChart(_data) {
-  
+
+  //document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net, svgOptions)
+
   svgLineChart.select(".chartGroup").remove()
   
   const data = _data.fitnessSnapshots.map(x => ({ ...x, date: new Date(x.date)}))
@@ -99,24 +106,25 @@ function renderLineChart(_data) {
     const failures = total - successes
     const successRate = 100 / (total / successes)
     const finalIteration = (100 * (data[data.length-1].fitness.filter(isSuccess).length / _data['max-fitness']))
-    document.getElementById("successRate").innerHTML = `Total success rate ${successRate.toFixed(2)}% - Last iteration ${finalIteration === 100 ? 100 : finalIteration.toFixed(1)}%`
+    document.getElementById("successRate").innerHTML = `Lastest iteration solve success: ${finalIteration === 100 ? 100 : finalIteration.toFixed(1)}%<br>Total success rate: ${successRate.toFixed(2)}%<br>Iterations performed: ${_data['trained-iterations']}`
 
     let b = []
     const config = _data["hyper-parameters"]["BRAIN_CONFIG"]
     for (var p in config) {
-      b.push(`&nbsp;&nbsp;&nbsp;${p}: ${config[p]}<br>`)
+      b.push(`&nbsp;&nbsp;&nbsp;${p}: ${config[p]}`)
     }
     document.getElementById("hyper").innerHTML = 
 `<strong>Hyper-parameters:</strong><br>
 Move limit: ${_data["hyper-parameters"].MOVES}<br>
 Iterations: ${_data["hyper-parameters"].ITERATIONS}<br>
 Exploration rate: ${_data["hyper-parameters"]["EXPLORATION_RATE"]}<br>
-Brain.js parameters: <br>${b}<br>
+Brain.js parameters: <br>${b.join('<br>')}<br>
 `
 }
 
-function error() {
+function error(e) {
   document.getElementById("status").innerHTML = `JSON file '${jsonFullPath}' not found`
+  console.error(e)
 }
 
 function timeout() {

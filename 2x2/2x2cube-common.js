@@ -31,33 +31,27 @@ function createCube() {
 }
 
 const positions = {
-	'right': [3,1,5,7],
-	'left': [0,2,6,4],
-	'front': [2,3,7,6],
-	'back': [1,0,4,5],
-	'up': [0,1,3,2],
-	'down': [4,6,7,5]
+	'R': [3,1,5,7],
+	'L': [0,2,6,4],
+	'F': [2,3,7,6],
+	'B': [1,0,4,5],
+	'U': [0,1,3,2],
+	'D': [4,6,7,5]
 }
 
 const moveFuncs = {
-	'up': up,
 	'U': up,
-	'down': down,
 	'D': down,
-	'left': left,
 	'L': left,
-	'right': right,
 	'R': right,
-	'front': front,
 	'F': front,
-	'back': back,
 	'B': back
 }
 
 function right(cube) {
-	let unaffected = cube.filter(cubit => !positions['right'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions['R'].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['right'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions['R'].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -69,7 +63,7 @@ function right(cube) {
 		newCorner.down = corner.back
 		newCorner.front = corner.down
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['right'], corner.position)
+		newCorner.position = cycle(positions['R'], corner.position)
 
 		return newCorner
 	})
@@ -78,9 +72,9 @@ function right(cube) {
 }
 
 function left(cube) {
-	let unaffected = cube.filter(cubit => !positions['left'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions['L'].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['left'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions['L'].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -92,7 +86,7 @@ function left(cube) {
 		newCorner.down = corner.front
 		newCorner.front = corner.up
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['left'], corner.position)
+		newCorner.position = cycle(positions['L'], corner.position)
 
 		return newCorner
 	})
@@ -101,9 +95,9 @@ function left(cube) {
 }
 
 function front(cube) {
-	let unaffected = cube.filter(cubit => !positions['front'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions['F'].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['front'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions['F'].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -115,7 +109,7 @@ function front(cube) {
 		newCorner.down = corner.right
 		newCorner.right = corner.up
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['front'], corner.position)
+		newCorner.position = cycle(positions['F'], corner.position)
 
 		return newCorner
 	})
@@ -124,9 +118,9 @@ function front(cube) {
 }
 
 function back(cube) {
-	let unaffected = cube.filter(cubit => !positions['back'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions['B'].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['back'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions['B'].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -138,7 +132,7 @@ function back(cube) {
 		newCorner.left = corner.up
 		newCorner.right = corner.down
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['back'], corner.position)
+		newCorner.position = cycle(positions['B'], corner.position)
 
 		return newCorner
 	})
@@ -147,9 +141,9 @@ function back(cube) {
 }
 
 function up(cube) {
-	let unaffected = cube.filter(cubit => !positions['up'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions['U'].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['up'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions['U'].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -161,7 +155,7 @@ function up(cube) {
 		newCorner.back = corner.left
 		newCorner.left = corner.front
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['up'], corner.position)
+		newCorner.position = cycle(positions['U'], corner.position)
 
 		return newCorner
 	})
@@ -170,9 +164,9 @@ function up(cube) {
 }
 
 function down(cube) {
-	let unaffected = cube.filter(cubit => !positions['down'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions['D'].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['down'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions['D'].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -185,7 +179,7 @@ function down(cube) {
 		newCorner.right = corner.front
 		
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['down'], corner.position)
+		newCorner.position = cycle(positions['D'], corner.position)
 
 		return newCorner
 	})

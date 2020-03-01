@@ -2,18 +2,62 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Rubiks solver</title>
+		<title>Rubiks 2x2 demo</title>
 		<style>
 			body { margin: 0; }
 			canvas { display: block; }
+
+			.solving {
+				font-family: 'Roboto Mono';
+				position: absolute;
+				top: 100px;
+				left: 100px;
+				color: #7a00ff;
+    			z-index: 100;
+    			font-size: 44px;
+			}
+
+			.scrambling {
+				font-family: 'Roboto Mono';
+				position: absolute;
+				top: 100px;
+				left: 100px;
+				color: #efff00;
+    			z-index: 100;
+    			font-size: 44px;
+			}
+
+			.success {
+				font-family: 'Roboto Mono';
+				position: absolute;
+				top: 100px;
+				left: 100px;
+				color: #10ff00;
+    			z-index: 100;
+    			font-size: 44px;
+			}
+
+			.failed {
+				font-family: 'Roboto Mono';
+				position: absolute;
+				top: 100px;
+				left: 100px;
+				color: red;
+    			z-index: 100;
+    			font-size: 44px;
+			}
+
 		</style>
+		<link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
 	</head>
 	<body>
+		<div id="help-text"></div>
 		<script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>
 		<script src="../node_modules/three/build/three.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
 		<script src="../node_modules/@tweenjs/tween.js/dist/tween.umd.js"></script>
 		<script src="../node_modules/ramda/dist/ramda.min.js"></script>
+		<script src="https://d3js.org/d3.v5.min.js"></script>
 		<script src="scrambles.js"></script>
 		<script src="2x2cube-common.js"></script>
 		<script src="2x2web.js"></script>

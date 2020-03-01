@@ -34,7 +34,7 @@ const R = require('ramda')
 const dir = 'training-data'
 
 const startDate = new Date()
-const LOGGING = true
+const LOGGING = false
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
@@ -43,43 +43,45 @@ const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
 const trainingfile = `${dir}/training.json`
 
 const HYPER = {
-	"ITERATIONS": 10000,
+	"ITERATIONS": 1000,
 	"MOVES": 1,
-	"EXPLORATION_RATE": 0.01,
+	"EXPLORATION_RATE": 0.0,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
+	"OTHER_RATE": 0.1,
 	"NEUTRAL_RATE": -0.001,
-	"FAIL_RATE": -0.01,
+	"FAIL_RATE": -0.1,
 	"TRAINING_OPTIONS": {
-		//iterations: 10000, // the maximum times to iterate the training data --> number greater than 0
-	    errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
-	    //log: true, // true to use console.log, when a function is supplied it is used --> Either true or a function
-	    //logPeriod: 10000, // iterations between logging out --> number greater than 0
-	    //learningRate: 0.1, // scales with delta to effect training rate --> number between 0 and 1
-	    momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
-	    callback: null, // a periodic call back that can be triggered while training --> null or function
-	    callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
-	    timeout: 60000, // the max number of milliseconds to train for --> number greater than 0
+		//iterations: 500, // the maximum times to iterate the training data --> number greater than 0
+	    //errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
+	    log: true, // true to use console.log, when a function is supplied it is used --> Either true or a function
+	    logPeriod: 200, // iterations between logging out --> number greater than 0
+	    //learningRate: 0.9, // scales with delta to effect training rate --> number between 0 and 1
+	    //momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
+	    //callback: null, // a periodic call back that can be triggered while training --> null or function
+	    //callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
+	    //timeout: 60000, // the max number of milliseconds to train for --> number greater than 0
 	},
 	"BRAIN_CONFIG": {
 		//inputSize: 20,
 		//inputRange: 20,
-		//hiddenLayers: [4],
+		//hiddenLayers: [500, 200],
 		//outputSize: 20,
-		//learningRate: 0.05,
+		//learningRate: 0.95,
 		//decayRate: 0.999,
 		//reinforce: true, // not used since not FeedForward
-		binaryThresh: 0.5,
+		//binaryThresh: 0.5,
   		//hiddenLayers: [10, 4], // array of ints for the sizes of the hidden layers in the network
-  		//activation: 'relu', // supported activation types: ['sigmoid', 'relu', 'leaky-relu', 'tanh'],
+  		//activation: 'leaky-relu', // supported activation types: ['sigmoid', 'relu', 'leaky-relu', 'tanh'],
   		//leakyReluAlpha: 0.01, // supported for activation type 'leaky-relu'
 	}
 }
 
-let cube, net, trainer, newNetworkNeeded, fitnessSnapshots
+let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, totalIterations
 
 function initTrainer() {
 	fitnessSnapshots = []
+	totalIterations = 0
 
 	log('\n\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
@@ -108,7 +110,7 @@ function setup() {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
 		net.train({ input: binary(cube), output: { F: 0.5, B: 0.5, L: 0.5, R: 0.5, U: 0.5, D: 0.5 } }, { iterations: 1 })
 	} else {
-		console.error('Reimplement this plz')
+		console.error('Cannot load from file - not implemented')
 		//net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJS(file.net)
 	}
 }
@@ -117,14 +119,18 @@ function train() {
 	setup()
 
 	let isDone = false
+	let breakpoint = HYPER.ITERATIONS
 
 	const results = new Array(HYPER.ITERATIONS).fill().map((x, i) => {
 		if (isDone) return null
+		log('\n\n\n\nTRAINING')
 		const trainingStats = trainIteration()
+		log('SOLVING')
 		const solveStats = logIteration(i, trainingStats)
 
 		if (solveStats.filter(isSuccess).length === scrambles.length) {
 			isDone = true
+			breakpoint = i
 		}
 
 		return {
@@ -134,7 +140,7 @@ function train() {
 	})
 
 	if (WRITE_FILES) {
-		writeTrainingLogFile(false)
+		writeTrainingLogFile(breakpoint, false)
 	}
 
 	log('\n--- [ RESULTS BY PLAYING TEST-DATA ] ---')
@@ -153,10 +159,34 @@ function trainIteration() {
 	log(data)
 	const preparedData = data.flatMap(({ binarySnapshots, success }, i) => {
 		return binarySnapshots.map(snap => {
+			if (success === -1) {
+				return {
+					input: snap.binaryData,
+					output: {
+						...{
+							'U': HYPER["OTHER_RATE"],
+							'D': HYPER["OTHER_RATE"],
+							'F': HYPER["OTHER_RATE"],
+							'B': HYPER["OTHER_RATE"],
+							'L': HYPER["OTHER_RATE"],
+							'R': HYPER["OTHER_RATE"],
+						},
+						[snap.policy]: HYPER["FAIL_RATE"]
+					}	
+				}
+			}
 			return {
 				input: snap.binaryData,
 				output: {
-					[snap.policy]: success !== -1 ? HYPER["SUCCESS_RATE"] : HYPER["FAIL_RATE"]
+					...{
+						'U': HYPER["OTHER_RATE"],
+						'D': HYPER["OTHER_RATE"],
+						'F': HYPER["OTHER_RATE"],
+						'B': HYPER["OTHER_RATE"],
+						'L': HYPER["OTHER_RATE"],
+						'R': HYPER["OTHER_RATE"],
+					},
+					[snap.policy]: HYPER["SUCCESS_RATE"]
 				}
 			}
 		})
@@ -173,6 +203,8 @@ function solveCube(scramble, collectMoveData) {
 
 	cube = scrambleCube(cube, scramble)
 
+	log('For scramble', scramble)
+
 	new Array(HYPER.MOVES).fill().forEach((x, i) => {
 
 		if (compare(cube)) {
@@ -185,7 +217,7 @@ function solveCube(scramble, collectMoveData) {
 			policy = brain.likely(binary(cube), net)
 		}
 		
-		log('Net total policy', net.run(binary(cube)))
+		log('Policy selected:', policy, 'Net total policy', net.run(binary(cube)))
 		solution.push(policy)
 
 		cube = moveFuncs[policy](cube)
@@ -215,14 +247,22 @@ function logIteration(iteration, stats) {
 
 		fitnessSnapshots.push({ fitness: iterationFitness, date: new Date().toISOString() })
 		if (WRITE_FILES) {
-			writeTrainingLogFile(true)
+			writeTrainingLogFile(iteration, true)
 		}
 		return iterationFitness
 	}
 }
 
-function writeTrainingLogFile(isTraining) {
-	const jsonStr = JSON.stringify({ training: isTraining, "max-fitness": scrambles.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
+function writeTrainingLogFile(trainedIterations, isTraining) {
+	const jsonStr = JSON.stringify({
+		training: isTraining,
+		"max-fitness": scrambles.length,
+		"trained-iterations": trainedIterations,
+		filename: filename,
+		fitnessSnapshots: fitnessSnapshots,
+		"hyper-parameters": HYPER,
+		net: net.toJSON()
+	})
 	fs.writeFileSync(trainingfile, jsonStr)
 }
 
@@ -241,7 +281,6 @@ function log() {
 }
 
 function randomAgent() {
-	//return 'L'
 	return ['L', 'R', 'F', 'B', 'U', 'D'][Math.floor(Math.random() * 6)]
 }
 
