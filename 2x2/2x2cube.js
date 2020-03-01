@@ -256,3 +256,16 @@ function compare() {
 function binaryStr() {
 	return cube.map(x=>x).sort(sorter).flatMap(cornerToBinary).join("")
 }
+
+if (typeof module !== "undefined" && module.exports) {
+	module.exports = {
+		createCube,
+		right,
+		left,
+		up,
+		down,
+		front,
+		back,
+		binaryStr
+	}
+}
