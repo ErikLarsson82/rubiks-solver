@@ -34,7 +34,7 @@ const R = require('ramda')
 const dir = 'training-data'
 
 const startDate = new Date()
-const LOGGING = false
+const LOGGING = true
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
@@ -45,36 +45,17 @@ const trainingfile = `${dir}/training.json`
 const HYPER = {
 	"ITERATIONS": 1000,
 	"MOVES": 1,
-	"EXPLORATION_RATE": 0.0,
+	"EXPLORATION_RATE": 0.5,
 	"NETS": 1,
-	"SUCCESS_RATE": 1,
+	"SUCCESS_RATE": 0.2,
 	"OTHER_RATE": 0.1,
-	"NEUTRAL_RATE": -0.001,
 	"FAIL_RATE": -0.1,
 	"TRAINING_OPTIONS": {
-		//iterations: 500, // the maximum times to iterate the training data --> number greater than 0
-	    //errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
-	    log: true, // true to use console.log, when a function is supplied it is used --> Either true or a function
-	    logPeriod: 200, // iterations between logging out --> number greater than 0
-	    //learningRate: 0.9, // scales with delta to effect training rate --> number between 0 and 1
-	    //momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
-	    //callback: null, // a periodic call back that can be triggered while training --> null or function
-	    //callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
-	    //timeout: 60000, // the max number of milliseconds to train for --> number greater than 0
+		iterations: 1000,
+	    log: true,
+	    logPeriod: 10
 	},
-	"BRAIN_CONFIG": {
-		//inputSize: 20,
-		//inputRange: 20,
-		//hiddenLayers: [500, 200],
-		//outputSize: 20,
-		//learningRate: 0.95,
-		//decayRate: 0.999,
-		//reinforce: true, // not used since not FeedForward
-		//binaryThresh: 0.5,
-  		//hiddenLayers: [10, 4], // array of ints for the sizes of the hidden layers in the network
-  		//activation: 'leaky-relu', // supported activation types: ['sigmoid', 'relu', 'leaky-relu', 'tanh'],
-  		//leakyReluAlpha: 0.01, // supported for activation type 'leaky-relu'
-	}
+	"BRAIN_CONFIG": {}
 }
 
 let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, totalIterations
@@ -111,6 +92,7 @@ function setup() {
 		net.train({ input: binary(cube), output: { F: 0.5, B: 0.5, L: 0.5, R: 0.5, U: 0.5, D: 0.5 } }, { iterations: 1 })
 	} else {
 		console.error('Cannot load from file - not implemented')
+		process.exit()
 		//net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJS(file.net)
 	}
 }
@@ -156,7 +138,12 @@ function trainIteration() {
 	cube = createCube()
 
 	const data = scrambles.map(scramble => solveCube(scramble, true))
-	log(data)
+	
+	data.forEach(d => {
+		log(d)
+		d.binarySnapshots.forEach(x => log(x.binaryData.join('')))
+	})
+
 	const preparedData = data.flatMap(({ binarySnapshots, success }, i) => {
 		return binarySnapshots.map(snap => {
 			if (success === -1) {
@@ -191,7 +178,8 @@ function trainIteration() {
 			}
 		})
 	})
-	log('preparedData', preparedData)
+	log('preparedData')
+	preparedData.forEach(data => log(data.input.join(''),' - ',data.output))
 	return net.train(preparedData, HYPER["TRAINING_OPTIONS"])
 }
 
@@ -217,7 +205,7 @@ function solveCube(scramble, collectMoveData) {
 			policy = brain.likely(binary(cube), net)
 		}
 		
-		log('Policy selected:', policy, 'Net total policy', net.run(binary(cube)))
+		log('Policy selected: [[ -> ', policy, ' <- ]]\nNet total policy', net.run(binary(cube)))
 		solution.push(policy)
 
 		cube = moveFuncs[policy](cube)
