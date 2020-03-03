@@ -110,7 +110,7 @@ function train() {
 		log('SOLVING')
 		const solveStats = logIteration(i, trainingStats)
 
-		if (solveStats.filter(isSuccess).length === scrambles.length) {
+		if (solveStats.filter(x => isSuccess(x) && x.exploration === false).length === scrambles.length) {
 			isDone = true
 			breakpoint = i
 		}
@@ -193,6 +193,8 @@ function solveCube(scramble, collectMoveData) {
 
 	log('For scramble', scramble)
 
+	let exploration = false
+
 	new Array(HYPER.MOVES).fill().forEach((x, i) => {
 
 		if (compare(cube)) {
@@ -201,6 +203,7 @@ function solveCube(scramble, collectMoveData) {
 		let policy
 		if (Math.random() < HYPER.EXPLORATION_RATE) {
 			policy = randomAgent()
+			exploration = true
 		} else {
 			policy = brain.likely(binary(cube), net)
 		}
@@ -221,7 +224,8 @@ function solveCube(scramble, collectMoveData) {
 		scramble: scramble,
 		solution: solution,
 		binarySnapshots: collectMoveData ? binarySnapshots : null,
-		success: compare(cube) ? solution.length : -1
+		success: compare(cube) ? solution.length : -1,
+		exploration: exploration
 	}
 }
 
