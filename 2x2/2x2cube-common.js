@@ -222,14 +222,31 @@ function convert(x) {
 }
 
 function cornerToBinary(obj) {
-	return [
-		obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0,
+	return onehot(8)(obj.position)
+		/*obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0,
 		obj.front && colors.findIndex(x => x === obj.front.toUpperCase()) || 0,
 		obj.back && colors.findIndex(x => x === obj.back.toUpperCase()) || 0,
 		obj.left && colors.findIndex(x => x === obj.left.toUpperCase()) || 0,
 		obj.right && colors.findIndex(x => x === obj.right.toUpperCase()) || 0,
-		obj.down && colors.findIndex(x => x === obj.down.toUpperCase()) || 0
-	].flatMap(convert)
+		obj.down && colors.findIndex(x => x === obj.down.toUpperCase()) || 0*/
+		
+	//.flatMap(convert)
+}
+
+// Define size with max and let id be zero indexed
+// onehotStr(8)(0) === "00000001"
+// onehotStr(8)(4) === "00010000"
+// onehotStr(8)(7) === "10000000"
+function onehotStr(max) {
+	return id => {
+		return new Array(max).fill().map((x, i) => {
+			return i === id ? "1" : "0"
+		}).reverse().join("")
+	}
+}
+
+function onehot(max) {
+	return id => onehotStr(max)(id).split("").map(x => parseInt(x))
 }
 
 function leftPad(template, str) {
@@ -275,7 +292,14 @@ function binaryStr(cube) {
 }
 
 function binary(cube) {
-	return cube.map(x=>x).sort(sorter).flatMap(cornerToBinary)
+	const o = cube.map(x=>x).sort(sorter).flatMap(cornerToBinary)
+	//console.log(o)
+	var i,j,temparray,chunk = 8;
+	for (i=0,j=o.length; i<j; i+=chunk) {
+	    temparray = o.slice(i,i+chunk);
+	    console.log(temparray.join(""))
+	}
+	return o
 }
 
 if (typeof module !== "undefined" && module.exports) {

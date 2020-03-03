@@ -43,17 +43,17 @@ const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
 const trainingfile = `${dir}/training.json`
 
 const HYPER = {
-	"ITERATIONS": 1000,
+	"ITERATIONS": 10,
 	"MOVES": 1,
 	"EXPLORATION_RATE": 0.5,
 	"NETS": 1,
-	"SUCCESS_RATE": 0.2,
-	"OTHER_RATE": 0.1,
-	"FAIL_RATE": -0.1,
+	"SUCCESS_RATE": 1,
+	"OTHER_RATE": null,
+	"FAIL_RATE": -0.5,
 	"TRAINING_OPTIONS": {
-		iterations: 1000,
+		iterations: 20000,
 	    log: true,
-	    logPeriod: 10
+	    logPeriod: 5000
 	},
 	"BRAIN_CONFIG": {}
 }
@@ -105,9 +105,9 @@ function train() {
 
 	const results = new Array(HYPER.ITERATIONS).fill().map((x, i) => {
 		if (isDone) return null
-		log('\n\n\n\nTRAINING')
+		log('\n\n\n\n!!! <<<<<<<<<<<<<<<<<< TRAINING >>>>>>>>>>>>>>>>>> !!!')
 		const trainingStats = trainIteration()
-		log('SOLVING')
+		log('\n=== <<<<<<<<<<<<<<<<<< SOLVING >>>>>>>>>>>>>>>>>> ===')
 		const solveStats = logIteration(i, trainingStats)
 
 		if (solveStats.filter(x => isSuccess(x) && x.exploration === false).length === scrambles.length) {
@@ -137,7 +137,7 @@ function train() {
 function trainIteration() {
 	cube = createCube()
 
-	const data = scrambles.map(scramble => solveCube(scramble, true))
+	const data = scrambles.map(scramble => solveCube(scramble, true, true))
 	
 	data.forEach(d => {
 		log(d)
@@ -183,7 +183,7 @@ function trainIteration() {
 	return net.train(preparedData, HYPER["TRAINING_OPTIONS"])
 }
 
-function solveCube(scramble, collectMoveData) {
+function solveCube(scramble, collectMoveData, exploreEnabled) {
 	const solution = []
 	const binarySnapshots = []
 	cube = createCube()
@@ -200,22 +200,24 @@ function solveCube(scramble, collectMoveData) {
 		if (compare(cube)) {
 			return
 		}
+		const binaryCube = binary(cube)
+		const selectRandom = exploreEnabled && Math.random() < HYPER.EXPLORATION_RATE
 		let policy
-		if (Math.random() < HYPER.EXPLORATION_RATE) {
+		if (selectRandom) {
 			policy = randomAgent()
 			exploration = true
 		} else {
-			policy = brain.likely(binary(cube), net)
+			policy = brain.likely(binaryCube, net)
 		}
 		
-		log('Policy selected: [[ -> ', policy, ' <- ]]\nNet total policy', net.run(binary(cube)))
+		log( 'Policy selected: [[ -> ', policy, ' <- ]]', selectRandom ? 'IM SO RANDOM' : '', '\nNet total policy', net.run(binaryCube) )
 		solution.push(policy)
 
 		cube = moveFuncs[policy](cube)
 
 		if (collectMoveData)
 			binarySnapshots.push({
-				binaryData: binary(cube),
+				binaryData: binaryCube,
 				policy: policy
 			})
 	})
@@ -235,7 +237,7 @@ function isSuccess(x) {
 
 function logIteration(iteration, stats) {
 	if (iteration % LOG_INTERVAL === 0) {
-		const iterationFitness = scrambles.map(x => solveCube(x, false))
+		const iterationFitness = scrambles.map(x => solveCube(x, false, false))
 
 		fitnessSnapshots.push({ fitness: iterationFitness, date: new Date().toISOString() })
 		if (WRITE_FILES) {

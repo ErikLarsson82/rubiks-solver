@@ -8,7 +8,8 @@ const scrambles = [
 	['F', 'F', 'F'],
 	//['F', 'F'],
 	['B', 'B', 'B'],
-	//['U', 'U', 'U'],
+	['U', 'U', 'U'],
+	['D', 'D', 'D'],
 ]
 
 if (typeof module !== "undefined" && module.exports) {
