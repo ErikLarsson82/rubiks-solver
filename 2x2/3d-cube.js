@@ -311,7 +311,7 @@ function setState(s) {
 	if (s === 'SCRAMBLE') {
 		cube = createCube()
 		document.getElementById('help-text').innerHTML = "Scrambling"
-    	document.getElementById('help-text').className = "scrambling"
+    	document.getElementById('help-text').className = "label scrambling"
     	queue = [...scrambles[nextScrambleSequence]]
     	nextScrambleSequence++
 		if (nextScrambleSequence >= scrambles.length) nextScrambleSequence = 0
@@ -319,17 +319,17 @@ function setState(s) {
 	if (s === 'SOLVING') {
 		attempts = 0
 		document.getElementById('help-text').innerHTML = "Solving"
-    	document.getElementById('help-text').className = "solving"
+    	document.getElementById('help-text').className = "label solving"
 	}
 	if (s === 'FINISHED') {
 		timer = 120
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} successful`
-    	document.getElementById('help-text').className = "success"
+    	document.getElementById('help-text').className = "label success"
 	}
 	if (s === 'FAILED') {
 		timer = 120
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} failed...`
-    	document.getElementById('help-text').className = "failed"
+    	document.getElementById('help-text').className = "label failed"
 	}
 }
 
