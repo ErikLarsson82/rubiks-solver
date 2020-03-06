@@ -43,7 +43,7 @@ const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
 const trainingfile = `${dir}/training.json`
 
 const HYPER = {
-	"ITERATIONS": 1,
+	"ITERATIONS": 4,
 	"MOVES": 2,
 	"EXPLORATION_RATE": 0.3,
 	"NETS": 1,
@@ -134,7 +134,7 @@ function train() {
 		log(`\nTraining Stats: ${point.trainingStats.error}`)
 		point.solveStats.forEach(x => log(x))
 		log(`Success rate: ${ ((point.solveStats.filter(isSuccess).length / point.solveStats.length ) * 100).toFixed(1)}%`)
-		
+
 	})
 }
 
@@ -142,7 +142,7 @@ function trainIteration() {
 	cube = createCube()
 
 	const data = scrambles.map(scramble => solveCube(scramble, true, true))
-	
+
 	data.forEach(d => {
 		log(d)
 		d.binarySnapshots.forEach(x => log(x.binaryData.join('')))
@@ -163,7 +163,7 @@ function trainIteration() {
 							'R': HYPER["OTHER_RATE"],
 						},
 						[snap.policy]: HYPER["FAIL_RATE"]
-					}	
+					}
 				}
 			}
 			return {
@@ -213,7 +213,7 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 		} else {
 			policy = brain.likely(binaryCube, net)
 		}
-		
+
 		log( 'Policy selected: [[ -> ', policy, ' <- ]]', selectRandom ? 'IM SO RANDOM' : '', '\nNet total policy', net.run(binaryCube) )
 		solution.push(policy)
 

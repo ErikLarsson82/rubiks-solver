@@ -1,5 +1,5 @@
 const ANIMATIONS_ENABLED = true
-const RENDER_SCENE = false
+const RENDER_SCENE = true
 const AUTOPLAY_SOLVES = true
 const ATTEMPT_THRESHOLD = 4
 
@@ -59,7 +59,7 @@ function init() {
 	createScene()
 
 	renderCube()
-	
+
 	if (AUTOPLAY_SOLVES) {
 		timer = 0
 		nextScrambleSequence = 0
@@ -86,9 +86,9 @@ function createScene() {
 	var light = new THREE.PointLight( 0xff0000, 1, 100 );
 	light.position.set( 0, 10, 10 );
 	scene.add( light );
-	
+
 	loader.load( './test.glb', function ( gltf ) {
-		
+
 		gltf.scene.position.x = 1
 
 		gltf.scene.rotation.x = 0.51
@@ -109,7 +109,7 @@ function renderCube() {
 
 	rotater = new THREE.Object3D()
 	cubeContainer.add(rotater)
-	
+
 	cubits = cube.map(createCubit)
 	cubits.forEach(cubit => cubeContainer.add(cubit))
 }
@@ -174,7 +174,7 @@ function createFace({ dir, color }, x, y, z) {
 	}
 	if (dir === 'back') {
 		face.position.z = z - protrusion
-	} 
+	}
 
 	return face
 }
@@ -184,14 +184,14 @@ function rotateSide(move, speed = 2000) {
 		cube = moveFuncs[move](cube)
 	} else {
 		if (isAnimating) return
-		
+
 		isAnimating = true
 
 		const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
-		
+
 		cubits.filter(cubit => positions[move].includes(getPosition(cubit)))
 			.forEach(cubit => rotater.attach(cubit))
-		
+
 		const direction = ['F', 'R', 'U'].includes(move) ? -1 : 1
 		const rotation = { value: 0 }
 		const tween = new TWEEN.Tween(rotation)
@@ -284,7 +284,7 @@ function animate(time) {
     }
     if (rotate[1]) {
         cubeContainer.rotation.y += rotate[1];
-    }    
+    }
     renderer.render( scene, camera )
 }
 
@@ -327,7 +327,7 @@ function setState(s) {
 	if (s === 'FAILED') {
 		timer = 120
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} failed...`
-    	document.getElementById('help-text').className = "failed"	
+    	document.getElementById('help-text').className = "failed"
 	}
 }
 

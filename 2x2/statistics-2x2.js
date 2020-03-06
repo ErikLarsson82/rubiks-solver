@@ -1,5 +1,5 @@
 
-const AUTO_UPDATE = true
+const AUTO_UPDATE = false
 
 var margin = {top: 20, right: 20, bottom: 60, left: 40},
     width = 600 - margin.left - margin.right,
@@ -31,7 +31,7 @@ const jsonLineFilePath = 'training.json'
 const jsonFullPath = `training-data/${jsonLineFilePath}`
 d3.json(jsonFullPath).then(renderLineChart).catch(error)
 if (AUTO_UPDATE) {
-  setInterval(() => d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart).catch(timeout), 500) 
+  setInterval(() => d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart).catch(timeout), 500)
 }
 
 function renderLineChart(_data) {
@@ -39,12 +39,12 @@ function renderLineChart(_data) {
   //document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net, svgOptions)
 
   svgLineChart.select(".chartGroup").remove()
-  
+
   const data = _data.fitnessSnapshots.map(x => ({ ...x, date: new Date(x.date)}))
-  
+
   minDate = d3.min(data, d => d.date)
   maxDate = d3.max(data, d => d.date)
-  
+
   var xScale = d3.scaleTime()
       .domain([minDate,maxDate])
       .range([0, width])
@@ -60,16 +60,16 @@ function renderLineChart(_data) {
 
   var xAxis = d3.axisBottom()
     .scale(xScale)
-    
+
   var yAxis = d3.axisLeft()
     .scale(yScale)
     .ticks(10);
 
     var chartGroup = svgLineChart.append("g").attr("class","chartGroup").attr("transform","translate("+xNudge+","+yNudge+")");
-    
+
     chartGroup.append("path")
       .attr("class","line")
-      .attr("d",function(d){ return line(data); })    
+      .attr("d",function(d){ return line(data); })
 
     chartGroup.append("g")
       .attr("class","axis x")
@@ -83,7 +83,7 @@ function renderLineChart(_data) {
         .attr("fill", "black")
         .style("text-anchor", "start")
         .text(() => "Time")
-      
+
     chartGroup.append("g")
       .attr("class","axis y")
       .call(yAxis)
@@ -113,7 +113,7 @@ function renderLineChart(_data) {
     for (var p in config) {
       b.push(`&nbsp;&nbsp;&nbsp;${p}: ${config[p]}`)
     }
-    document.getElementById("hyper").innerHTML = 
+    document.getElementById("hyper").innerHTML =
 `<strong>Hyper-parameters:</strong><br>
 Move limit: ${_data["hyper-parameters"].MOVES}<br>
 Iterations: ${_data["hyper-parameters"].ITERATIONS}<br>
