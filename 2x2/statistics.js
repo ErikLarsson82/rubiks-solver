@@ -40,7 +40,7 @@ function renderLineChart(_data) {
 
   svgLineChart.select(".chartGroup").remove()
 
-  const data = _data.fitnessSnapshots.map(x => ({ ...x, date: new Date(x.date)}))
+  const data = _data['fitness-snapshots'].map(x => ({ ...x, date: new Date(x.date)}))
 
   minDate = d3.min(data, d => d.date)
   maxDate = d3.max(data, d => d.date)
@@ -123,8 +123,17 @@ Binary snapshots: ${_data['binary-snapshots'].length}`
 Move limit: ${_data["hyper-parameters"].MOVES}<br>
 Epochs: ${_data["hyper-parameters"].EPOCHS}<br>
 Exploration rate: ${_data["hyper-parameters"]["EXPLORATION_RATE"]}<br>
-Brain.js parameters: <br>${b.join('<br>')}<br>
-`
+Brain.js parameters: <br>${b.join('<br>')}<br><br>
+` + scrambleLog(data)
+}
+
+function pair(x, i) {
+  return `[${i}] ${x.scramble.join(" ")} - -> <span class="${x.success !== -1 ? "green" : "red" }">${x.solution.join(" ")}</span>`
+}
+
+function scrambleLog(snapshots) {
+  const last = snapshots.pop()
+  return `${last.fitness.map(pair).join('<br>')}`
 }
 
 function error(e) {

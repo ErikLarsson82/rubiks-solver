@@ -34,28 +34,31 @@ const R = require('ramda')
 const dir = 'training-data'
 
 const startDate = new Date()
-const LOGGING = true
+const LOGGING = false
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 const HYPER = {
-	"EPOCHS": 2,
+	"EPOCHS": 10000,
 	"MOVES": 5,
 	"EXPLORATION_RATE": 0.3,
 	"NETS": 1,
-	"SUCCESS_RATE": 1,
+	"SUCCESS_RATE": 0.1,
+	//"OTHER_RATE": 0.01,
+	//"FAIL_RATE": -0.1,
 	"TRAINING_OPTIONS": {
-		iterations: 10000,
-		errorThresh: 0.01,
-		timeout: 5000,
+		iterations: 1000,
+		errorThresh: 0.1,
+		timeout: 10000,
 	  	log: true,
 	  	logPeriod: 1
 	},
 	"BRAIN_CONFIG": {
 		hiddenLayers: [480],
-		learningRate: 0.5
+		//learningRate: 0.5,
+		//binaryThresh: 0.5
 	}
 }
 
@@ -264,7 +267,7 @@ function writeLogFile(file, epochs, isTraining) {
 		"max-fitness": scrambles.length,
 		"epochs": epochs,
 		file: file,
-		fitnessSnapshots: fitnessSnapshots,
+		"fitness-snapshots": fitnessSnapshots,
 		"binary-snapshots": binarySnapshotsAggregate.flatMap(x=>x),
 		"hyper-parameters": HYPER,
 		"iterations": resultAggregate.filter(x=>x!==null).map(x => x.trainingStats.iterations).reduce((acc, curr) => acc + curr, 0),
@@ -278,7 +281,7 @@ function createTrainingFile() {
 		training: true,
 		"max-fitness": "-",
 		"epochs": "-",
-		fitnessSnapshots: [],
+		"fitness-snapshots": [],
 		"binary-snapshots": [],
 		"hyper-parameters": HYPER,
 		"iterations": "-",
