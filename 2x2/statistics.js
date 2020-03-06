@@ -104,9 +104,14 @@ function renderLineChart(_data) {
     const successes = flatFitness.filter(isSuccess).length
     const total = flatFitness.length
     const failures = total - successes
-    const successRate = 100 / (total / successes)
-    const finalIteration = (100 * (data[data.length-1].fitness.filter(isSuccess).length / _data['max-fitness']))
-    document.getElementById("successRate").innerHTML = `Lastest iteration solve success: ${finalIteration === 100 ? 100 : finalIteration.toFixed(1)}%<br>Total success rate: ${successRate.toFixed(2)}%<br>Iterations performed: ${_data['trained-iterations']}`
+    const successRate = data.length > 0 ? 100 / (total / successes) : 0.0
+    const finalEpoch = data.length > 0 ? (100 * (data[data.length-1].fitness.filter(isSuccess).length / _data['max-fitness'])) : 0.0
+    document.getElementById("successRate").innerHTML = 
+`Lastest epoch solve success: ${finalEpoch === 100 ? 100 : finalEpoch.toFixed(1)}%<br>
+Total success rate: ${successRate.toFixed(2)}%<br><br>
+Epochs: ${_data['epochs']}<br>
+Iterations: ${_data['iterations']}<br>
+Binary snapshots: ${_data['binary-snapshots'].length}`
 
     let b = []
     const config = _data["hyper-parameters"]["BRAIN_CONFIG"]
@@ -116,7 +121,7 @@ function renderLineChart(_data) {
     document.getElementById("hyper").innerHTML =
 `<strong>Hyper-parameters:</strong><br>
 Move limit: ${_data["hyper-parameters"].MOVES}<br>
-Iterations: ${_data["hyper-parameters"].ITERATIONS}<br>
+Epochs: ${_data["hyper-parameters"].EPOCHS}<br>
 Exploration rate: ${_data["hyper-parameters"]["EXPLORATION_RATE"]}<br>
 Brain.js parameters: <br>${b.join('<br>')}<br>
 `

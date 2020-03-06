@@ -39,11 +39,9 @@ const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
-const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
-const trainingfile = `${dir}/training.json`
 
 const HYPER = {
-	"ITERATIONS": 100000,
+	"EPOCHS": 2,
 	"MOVES": 5,
 	"EXPLORATION_RATE": 0.3,
 	"NETS": 1,
@@ -51,17 +49,22 @@ const HYPER = {
 	"TRAINING_OPTIONS": {
 		iterations: 10000,
 		errorThresh: 0.01,
-	  log: true,
-	  logPeriod: 200
+		timeout: 5000,
+	  	log: true,
+	  	logPeriod: 1
 	},
-	"BRAIN_CONFIG": {}
+	"BRAIN_CONFIG": {
+		hiddenLayers: [480],
+		learningRate: 0.5
+	}
 }
 
-let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, totalIterations
+let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate
 
 function initTrainer() {
 	fitnessSnapshots = []
-	totalIterations = 0
+	resultAggregate = []
+	binarySnapshotsAggregate = []
 
 	log('\n\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
@@ -84,35 +87,39 @@ function initTrainer() {
 }
 
 function setup() {
+
 	cube = createCube()
 
 	if (newNetworkNeeded) {
-		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
-		net.train({ input: binary(cube), output: { F: 0.5, B: 0.5, L: 0.5, R: 0.5, U: 0.5, D: 0.5 } }, { iterations: 1 })
+		net = new brain.NeuralNetworkGPU(HYPER["BRAIN_CONFIG"])
+		log(net.train({ input: binary(cube), output: { F: 0.5, B: 0.5, L: 0.5, R: 0.5, U: 0.5, D: 0.5 } }, { iterations: 1 }))
 	} else {
 		console.error('Cannot load from file - not implemented')
 		process.exit()
-		//net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJS(file.net)
 	}
+
+	createTrainingFile()
 }
 
 function train() {
 	setup()
 
 	let isDone = false
-	let breakpoint = HYPER.ITERATIONS
+	let breakpoint = HYPER.EPOCHS
 
-	const results = new Array(HYPER.ITERATIONS).fill().map((x, i) => {
+	const results = new Array(HYPER.EPOCHS).fill().map((x, i) => {
 		if (isDone) return null
 		log('\n\n\n\n!!! <<<<<<<<<<<<<<<<<< TRAINING >>>>>>>>>>>>>>>>>> !!!')
-		const trainingStats = trainIteration()
+		const trainingStats = trainEpoch()
 		log('\n=== <<<<<<<<<<<<<<<<<< SOLVING >>>>>>>>>>>>>>>>>> ===')
-		const solveStats = logIteration(i, trainingStats)
+		const solveStats = logEpoch(i)
 
 		if (solveStats.filter(x => isSuccess(x) && x.exploration === false).length === scrambles.length) {
 			isDone = true
 			breakpoint = i
 		}
+
+		log('trainingStats', i, trainingStats)
 
 		return {
 			trainingStats: trainingStats,
@@ -120,30 +127,28 @@ function train() {
 		}
 	})
 
+	resultAggregate = results
+
 	if (WRITE_FILES) {
-		writeTrainingLogFile(breakpoint, false)
+		writeLogFile('training', breakpoint, false)
+		writeLogFile(`${formatDate(new Date())}`, breakpoint, false)
 	}
 
-	log('\n--- [ RESULTS BY PLAYING TEST-DATA ] ---')
-	results.filter(x=>x!==null).forEach(point => {
-		log(`\nTraining Stats: ${point.trainingStats.error}`)
-		point.solveStats.forEach(x => log(x))
-		log(`Success rate: ${ ((point.solveStats.filter(isSuccess).length / point.solveStats.length ) * 100).toFixed(1)}%`)
-
-	})
+	log('\n--- [ FINAL RESULT BY PLAYING TEST-DATA ] ---')
+	const filtered = results.filter(x=>x!==null)
+	const last = filtered.pop()
+	log(`\nTraining Stats: ${last.trainingStats.error}`)
+	log(last.trainingStats)
+	last.solveStats.forEach(x => log(x))
+	log(`Success rate: ${ ((last.solveStats.filter(isSuccess).length / last.solveStats.length ) * 100).toFixed(1)}%`)
 }
 
-function trainIteration() {
+function trainEpoch() {
 	cube = createCube()
 
 	const data = scrambles.map(scramble => solveCube(scramble, true, true))
 
-	/*data.forEach(d => {
-		log(d)
-		d.binarySnapshots.forEach(x => log(x.binaryData.join('')))
-	})*/
-
-	const preparedData = data.flatMap(({ binarySnapshots, success }, i) => {
+	const rewardedPolicyBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
 		return binarySnapshots.map(snap => {
 			if (success === -1) {
 				return {
@@ -177,12 +182,16 @@ function trainIteration() {
 			}
 		})
 	})
-	log('Prepared data:')
-	preparedData.forEach(data => {
+	log('Prepared data:', rewardedPolicyBinarySnapshots.length)
+	rewardedPolicyBinarySnapshots.forEach(data => {
 		log(`Snapshot:\n${data.input.join('')}\nReward:`)
 		log(data.output)
 	})
-	return net.train(preparedData, HYPER["TRAINING_OPTIONS"])
+
+	binarySnapshotsAggregate.push(rewardedPolicyBinarySnapshots)
+
+	log(`\n\n\nRunning brain.js train API`)
+	return net.train(rewardedPolicyBinarySnapshots, HYPER["TRAINING_OPTIONS"])
 }
 
 function solveCube(scramble, collectMoveData, exploreEnabled) {
@@ -237,29 +246,44 @@ function isSuccess(x) {
 	return x.success !== -1
 }
 
-function logIteration(iteration, stats) {
-	if (iteration % LOG_INTERVAL === 0) {
-		const iterationFitness = scrambles.map(x => solveCube(x, false, false))
+function logEpoch(epoch) {
+	if (epoch % LOG_INTERVAL === 0) {
+		const epochFitness = scrambles.map(x => solveCube(x, false, false))
 
-		fitnessSnapshots.push({ fitness: iterationFitness, date: new Date().toISOString() })
+		fitnessSnapshots.push({ fitness: epochFitness, date: new Date().toISOString() })
 		if (WRITE_FILES) {
-			writeTrainingLogFile(iteration, true)
+			writeLogFile('training', epoch, true)
 		}
-		return iterationFitness
+		return epochFitness
 	}
 }
 
-function writeTrainingLogFile(trainedIterations, isTraining) {
+function writeLogFile(file, epochs, isTraining) {
 	const jsonStr = JSON.stringify({
 		training: isTraining,
 		"max-fitness": scrambles.length,
-		"trained-iterations": trainedIterations,
-		filename: filename,
+		"epochs": epochs,
+		file: file,
 		fitnessSnapshots: fitnessSnapshots,
+		"binary-snapshots": binarySnapshotsAggregate.flatMap(x=>x),
 		"hyper-parameters": HYPER,
+		"iterations": resultAggregate.filter(x=>x!==null).map(x => x.trainingStats.iterations).reduce((acc, curr) => acc + curr, 0),
 		net: net.toJSON()
 	})
-	fs.writeFileSync(trainingfile, jsonStr)
+	fs.writeFileSync(`${dir}/${file}.json`, jsonStr)
+}
+
+function createTrainingFile() {
+	fs.writeFileSync(`${dir}/training.json`, JSON.stringify({
+		training: true,
+		"max-fitness": "-",
+		"epochs": "-",
+		fitnessSnapshots: [],
+		"binary-snapshots": [],
+		"hyper-parameters": HYPER,
+		"iterations": "-",
+		net: net.toJSON()
+	}))
 }
 
 function formatDate(date) {
