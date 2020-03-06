@@ -43,19 +43,23 @@ const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
 const trainingfile = `${dir}/training.json`
 
 const HYPER = {
-	"ITERATIONS": 10,
-	"MOVES": 1,
-	"EXPLORATION_RATE": 0.5,
+	"ITERATIONS": 1,
+	"MOVES": 2,
+	"EXPLORATION_RATE": 0.3,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
-	"OTHER_RATE": null,
-	"FAIL_RATE": -0.5,
+	//"OTHER_RATE": 0.1,
+	//"FAIL_RATE": -0.5,
 	"TRAINING_OPTIONS": {
-		iterations: 20000,
+		//iterations: 5000,
 	    log: true,
-	    logPeriod: 5000
+	    //learningRate: 0.99,
+	    logPeriod: 1000
 	},
-	"BRAIN_CONFIG": {}
+	"BRAIN_CONFIG": {
+		//hiddenLayers: [6,6,6,6,6,6],
+		//decayRate: 0.0,
+	}
 }
 
 let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, totalIterations

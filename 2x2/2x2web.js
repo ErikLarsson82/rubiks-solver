@@ -87,14 +87,6 @@ function createScene() {
 	light.position.set( 0, 10, 10 );
 	scene.add( light );
 	
-
-	/*
-	var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 )
-	directionalLight.position.set( 0, 10, 20 );
-	directionalLight.castShadow = true
-	scene.add( directionalLight )
-	*/
-
 	loader.load( './test.glb', function ( gltf ) {
 		
 		gltf.scene.position.x = 1
@@ -261,8 +253,11 @@ function keydown(e) {
     if (e.keyCode === 67) {
     	compare(cube)
     }
-    if (e.keyCode === 49) {
+    if (e.keyCode === 49) { // 1
     	binaryStr(cube)
+    }
+    if (e.keyCode === 50) { // 2
+    	binary(cube)
     }
 }
 

@@ -221,15 +221,78 @@ function convert(x) {
 	return paddedStr.split('').map(x => parseInt(x))
 }
 
+/*
+6 * 2
+000000 000000
+
+4 * 6
+1 - 24
+*/
+
+function rotationToOnehot(obj) {
+	let first, second
+	if (obj.up === "white" || obj.down === "yellow") {
+		first = onehotStr(6)(0)
+	}
+	if (obj.front === "white" || obj.back === "yellow") {
+		first = onehotStr(6)(1)
+	}
+	if (obj.left === "white" || obj.right === "yellow") {
+		first = onehotStr(6)(2)
+	}
+	if (obj.down === "white" || obj.up === "yellow") {
+		first = onehotStr(6)(3)
+	}
+	if (obj.back === "white" || obj.front === "yellow") {
+		first = onehotStr(6)(4)
+	}
+	if (obj.right === "white" || obj.left === "yellow") {
+		first = onehotStr(6)(5)
+	}
+
+	if (obj.up === "green" || obj.down === "blue") {
+		second = onehotStr(6)(0)
+	}
+	if (obj.front === "green" || obj.back === "blue") {
+		second = onehotStr(6)(1)
+	}
+	if (obj.left === "green" || obj.right === "blue") {
+		second = onehotStr(6)(2)
+	}
+	if (obj.down === "green" || obj.up === "blue") {
+		second = onehotStr(6)(3)
+	}
+	if (obj.back === "green" || obj.front === "blue") {
+		second = onehotStr(6)(4)
+	}
+	if (obj.right === "green" || obj.left === "blue") {
+		second = onehotStr(6)(5)
+	}
+	//console.log(first, second)
+	return [ first, second ].flatMap(x => x.split("")).map(x => parseInt(x))
+}
+
 function cornerToBinary(obj) {
-	return onehot(8)(obj.position)
+	//console.log(onehot(8)(obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0))
+	return [
+		onehot(8)(obj.position),
+		rotationToOnehot(obj)
+	].flatMap(x=>x)
+	//[
+		//
+		
+		/*onehot(8)(obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0),
+		onehot(8)(obj.down && colors.findIndex(x => x === obj.down.toUpperCase()) || 0),
+		onehot(8)(obj.front && colors.findIndex(x => x === obj.front.toUpperCase()) || 0),
+		onehot(8)(obj.back && colors.findIndex(x => x === obj.back.toUpperCase()) || 0),
+		onehot(8)(obj.left && colors.findIndex(x => x === obj.left.toUpperCase()) || 0),
+		onehot(8)(obj.right && colors.findIndex(x => x === obj.right.toUpperCase()) || 0)*/
 		/*obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0,
 		obj.front && colors.findIndex(x => x === obj.front.toUpperCase()) || 0,
 		obj.back && colors.findIndex(x => x === obj.back.toUpperCase()) || 0,
 		obj.left && colors.findIndex(x => x === obj.left.toUpperCase()) || 0,
 		obj.right && colors.findIndex(x => x === obj.right.toUpperCase()) || 0,
 		obj.down && colors.findIndex(x => x === obj.down.toUpperCase()) || 0*/
-		
 	//.flatMap(convert)
 }
 
@@ -256,6 +319,10 @@ function leftPad(template, str) {
 
 function sorter(a, b) {
 	return a.id > b.id ? 1 : -1
+}
+
+function sorterPosition(a, b) {
+	return a.position > b.position ? 1 : -1
 }
 
 function orderly({ up, front, back, left, right, down, id, position }) {
@@ -288,18 +355,23 @@ function compare(cube) {
 }
 
 function binaryStr(cube) {
-	return cube.map(x=>x).sort(sorter).flatMap(cornerToBinary).join("")
+	return cube.map(x=>x).sort(sorterPosition).flatMap(cornerToBinary).join("")
 }
 
 function binary(cube) {
-	const o = cube.map(x=>x).sort(sorter).flatMap(cornerToBinary)
+	const o = cube.map(x=>x).sort(sorterPosition)
+	//console.table(o) //[obj.up, obj.down, obj.front, obj.back, obj.left, obj.right]
+
+	const o2 = o.flatMap(cornerToBinary)
+
+	//console.log(o2)
 	//console.log(o)
-	var i,j,temparray,chunk = 8;
-	for (i=0,j=o.length; i<j; i+=chunk) {
-	    temparray = o.slice(i,i+chunk);
+	/*var i,j,temparray,chunk = 12;
+	for (i=0,j=o2.length; i<j; i+=chunk) {
+	    temparray = o2.slice(i,i+chunk);
 	    console.log(temparray.join(""))
-	}
-	return o
+	}*/
+	return o2
 }
 
 if (typeof module !== "undefined" && module.exports) {
