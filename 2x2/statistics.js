@@ -1,5 +1,5 @@
-
-const AUTO_UPDATE = false
+const RENDER_NETWORK = false
+const AUTO_UPDATE = true
 
 var margin = {top: 20, right: 20, bottom: 60, left: 40},
     width = 600 - margin.left - margin.right,
@@ -36,7 +36,7 @@ if (AUTO_UPDATE) {
 
 function renderLineChart(_data) {
 
-  //document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net, svgOptions)
+  if (RENDER_NETWORK) document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net, svgOptions)
 
   svgLineChart.select(".chartGroup").remove()
 

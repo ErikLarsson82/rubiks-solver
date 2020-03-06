@@ -1,3 +1,5 @@
+console.log('scrambles', scrambles)
+
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = true
 const AUTOPLAY_SOLVES = true
@@ -87,7 +89,7 @@ function createScene() {
 	light.position.set( 0, 10, 10 );
 	scene.add( light );
 
-	loader.load( './test.glb', function ( gltf ) {
+	loader.load( 'blender/test.glb', function ( gltf ) {
 
 		gltf.scene.position.x = 1
 

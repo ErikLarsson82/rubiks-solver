@@ -26,7 +26,7 @@ const {
 	scrambleCube,
 	moveFuncs,
 	binary
-} = require('./2x2cube-common')
+} = require('./common')
 const scrambles = require('./scrambles')
 const brain = require('../brain-browser.js')
 const fs = require('fs')
@@ -43,23 +43,18 @@ const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
 const trainingfile = `${dir}/training.json`
 
 const HYPER = {
-	"ITERATIONS": 4,
+	"ITERATIONS": 1000,
 	"MOVES": 2,
 	"EXPLORATION_RATE": 0.3,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
-	//"OTHER_RATE": 0.1,
-	//"FAIL_RATE": -0.5,
 	"TRAINING_OPTIONS": {
-		//iterations: 5000,
-	    log: true,
-	    //learningRate: 0.99,
-	    logPeriod: 1000
+		iterations: 5000,
+		errorThresh: 0.02,
+	  log: true,
+	  logPeriod: 100
 	},
-	"BRAIN_CONFIG": {
-		//hiddenLayers: [6,6,6,6,6,6],
-		//decayRate: 0.0,
-	}
+	"BRAIN_CONFIG": {}
 }
 
 let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, totalIterations
@@ -143,10 +138,10 @@ function trainIteration() {
 
 	const data = scrambles.map(scramble => solveCube(scramble, true, true))
 
-	data.forEach(d => {
+	/*data.forEach(d => {
 		log(d)
 		d.binarySnapshots.forEach(x => log(x.binaryData.join('')))
-	})
+	})*/
 
 	const preparedData = data.flatMap(({ binarySnapshots, success }, i) => {
 		return binarySnapshots.map(snap => {
@@ -182,8 +177,11 @@ function trainIteration() {
 			}
 		})
 	})
-	log('preparedData')
-	preparedData.forEach(data => log(data.input.join(''),' - ',data.output))
+	log('Prepared data:')
+	preparedData.forEach(data => {
+		log(`Snapshot:\n${data.input.join('')}\nReward:`)
+		log(data.output)
+	})
 	return net.train(preparedData, HYPER["TRAINING_OPTIONS"])
 }
 
@@ -276,6 +274,13 @@ function leftPad(template, str) {
 function log() {
 	if (!LOGGING) return
 	return console.log(...arguments)
+}
+
+function logObj(obj) {
+	log('Object:')
+	for (var i in obj) {
+		log(`${i}: ${obj[i]}`)
+	}
 }
 
 function randomAgent() {

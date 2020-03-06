@@ -1,4 +1,4 @@
-/*  
+/*
 	Common file for both Web rendering of cubes and node Trainers of cube solves
 
 	Schema for cubits ID
@@ -177,7 +177,7 @@ function down(cube) {
 		newCorner.left = corner.back
 		newCorner.back = corner.right
 		newCorner.right = corner.front
-		
+
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions['D'], corner.position)
 
@@ -273,27 +273,15 @@ function rotationToOnehot(obj) {
 }
 
 function cornerToBinary(obj) {
-	//console.log(onehot(8)(obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0))
 	return [
-		onehot(8)(obj.position),
-		rotationToOnehot(obj)
-	].flatMap(x=>x)
-	//[
-		//
-		
-		/*onehot(8)(obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0),
+		onehot(8)(obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0),
 		onehot(8)(obj.down && colors.findIndex(x => x === obj.down.toUpperCase()) || 0),
 		onehot(8)(obj.front && colors.findIndex(x => x === obj.front.toUpperCase()) || 0),
 		onehot(8)(obj.back && colors.findIndex(x => x === obj.back.toUpperCase()) || 0),
 		onehot(8)(obj.left && colors.findIndex(x => x === obj.left.toUpperCase()) || 0),
-		onehot(8)(obj.right && colors.findIndex(x => x === obj.right.toUpperCase()) || 0)*/
-		/*obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0,
-		obj.front && colors.findIndex(x => x === obj.front.toUpperCase()) || 0,
-		obj.back && colors.findIndex(x => x === obj.back.toUpperCase()) || 0,
-		obj.left && colors.findIndex(x => x === obj.left.toUpperCase()) || 0,
-		obj.right && colors.findIndex(x => x === obj.right.toUpperCase()) || 0,
-		obj.down && colors.findIndex(x => x === obj.down.toUpperCase()) || 0*/
-	//.flatMap(convert)
+		onehot(8)(obj.right && colors.findIndex(x => x === obj.right.toUpperCase()) || 0),
+		rotationToOnehot(obj)
+	].flatMap(x=>x)
 }
 
 // Define size with max and let id be zero indexed
@@ -360,7 +348,6 @@ function binaryStr(cube) {
 
 function binary(cube) {
 	const o = cube.map(x=>x).sort(sorterPosition)
-	//console.table(o) //[obj.up, obj.down, obj.front, obj.back, obj.left, obj.right]
 
 	const o2 = o.flatMap(cornerToBinary)
 
