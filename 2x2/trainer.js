@@ -43,16 +43,16 @@ const filename = `${dir}/2x2cube-${formatDate(new Date())}.json`
 const trainingfile = `${dir}/training.json`
 
 const HYPER = {
-	"ITERATIONS": 1000,
-	"MOVES": 2,
+	"ITERATIONS": 100000,
+	"MOVES": 5,
 	"EXPLORATION_RATE": 0.3,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 5000,
-		errorThresh: 0.02,
+		iterations: 10000,
+		errorThresh: 0.01,
 	  log: true,
-	  logPeriod: 100
+	  logPeriod: 200
 	},
 	"BRAIN_CONFIG": {}
 }
