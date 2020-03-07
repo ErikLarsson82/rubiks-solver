@@ -128,6 +128,7 @@ Binary snapshots: ${_data['binary-snapshots'].length}`*/
   setText('j', _data["hyper-parameters"].EPOCHS)
   setText('l', _data["hyper-parameters"]["EXPLORATION_RATE"])
   setText('m', b.join('<br>'))
+  setText('n', scrambleLog(data))
     /*document.getElementById("hyper").innerHTML =
 `<strong>Hyper-parameters:</strong><br>
 Move limit: ${_data["hyper-parameters"].MOVES}<br>

@@ -24,7 +24,7 @@
   }
 
   hr {
-    border: 5px solid #52072d;
+    border: 2px solid #52072d;
     width: 100%;
     border-radius: 15px;
   }
@@ -84,10 +84,15 @@
     grid-gap: 3px;
     color: #444;
     margin: 20px;
+    margin-left: 0px;
   }
 
   .wide {
     grid-template-columns: 450px;
+  }
+
+  .narrow {
+    grid-template-columns: 200px;
   }
 
   .box {
@@ -95,7 +100,10 @@
     color: #000;
     border-radius: 5px;
     padding: 10px;
-    font-size: 150%;
+  }
+
+  .big-text > div {
+    font-size: 25px;
   }
 
   .value {
@@ -122,6 +130,10 @@
     border-left: 4px solid white;
   }
 
+  .graph-divider {
+    display: flex;
+  }
+
 	</style>
 </head>
 
@@ -135,30 +147,40 @@
   <hr>
   <div id="svgContainer-timeline"></div>
   <h3 id="status"></h3>
-  <!--h3 id="successRate"></h3-->
-  <!--div id="hyper"></div-->
-  <h2>Network statistics</h2>
-  <div class="wrapper">
-    <div class="box a">Latest epoch solve success</div>
-    <div class="box b value">-</div>
-    <div class="box c">Total success rate</div>
-    <div class="box d value">-</div>
-    <div class="box e">Epoch</div>
-    <div class="box f value">-</div>
+  <div class="graph-divider">
+    <div class="big-text">
+      <h2>Network statistics</h2>
+      <div class="wrapper">
+        <div class="box a">Epoch solve success</div>
+        <div class="box b value">-</div>
+        <div class="box c">Total success rate</div>
+        <div class="box d value">-</div>
+        <div class="box e">Epoch</div>
+        <div class="box f value">-</div>
+      </div>
+      <h2>Hyper-parameters</h2>
+      <div class="wrapper">
+        <div class="box g">Move limit</div>
+        <div class="box h value">-</div>
+        <div class="box i">Total epochs</div>
+        <div class="box j value">-</div>
+        <div class="box k">Exploration rate</div>
+        <div class="box l value">-</div>
+      </div>
+      <h2>Brain.js parameters</h2>
+      <div class="wrapper wide">
+        <div class="box m">{}</div>
+      </div>
+    </div>
+    <div>
+      <h2>Solution space</h2>
+      <div class="wrapper narrow">
+        <div class="box n">{}</div>
+      </div>
+    </div>
   </div>
-  <h2>Hyper-parameters</h2>
-  <div class="wrapper">
-    <div class="box g">Move limit</div>
-    <div class="box h value">-</div>
-    <div class="box i">Total epochs</div>
-    <div class="box j value">-</div>
-    <div class="box k">Exploration rate</div>
-    <div class="box l value">-</div>
-  </div>
-  <h2>Brain.js parameters</h2>
-  <div class="wrapper wide">
-    <div class="box m">{}</div>
-  </div>
+  
+  
   <div id="net-svg"></div>
 </div>
 <iframe class="iframe" src="3d-cube.html"></iframe>
