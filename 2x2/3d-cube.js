@@ -1,13 +1,14 @@
-console.log('scrambles', scrambles)
 
 const ANIMATIONS_ENABLED = true
-const RENDER_SCENE = true
-const AUTOPLAY_SOLVES = true
+const RENDER_SCENE = false
+const AUTOPLAY_SOLVES = false
 const ATTEMPT_THRESHOLD = 4
+const HIQ_COLORS = true
 
 var loader = new THREE.GLTFLoader();
 
 const scene = new THREE.Scene()
+scene.background = new THREE.Color(27/255,25/255,25/255)
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 )
 camera.position.z = 6
 
@@ -27,9 +28,9 @@ const colorRef = {
 	EMPTY: new THREE.Color(0,0,0),
 	WHITE: new THREE.Color(1,1,1),
 	GREEN: new THREE.Color(0,1,0),
-	RED: new THREE.Color(1,0,0),
-	BLUE: new THREE.Color(0,0,1),
-	YELLOW: new THREE.Color(1,1,0),
+	RED: HIQ_COLORS ? new THREE.Color(225/255,22/255,124/255) : new THREE.Color(1,0,0),
+	BLUE: HIQ_COLORS ? new THREE.Color(100/255,22/255,225/255) : new THREE.Color(0,0,1),
+	YELLOW: HIQ_COLORS ? new THREE.Color(0,0,0) : new THREE.Color(1,1,0),
 	ORANGE: new THREE.Color(1,0.5,0),
 }
 

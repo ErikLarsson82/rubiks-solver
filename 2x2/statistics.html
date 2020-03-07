@@ -7,7 +7,26 @@
 
   body {
     font-family: monospace;
-    background: #d9e7e8;
+    background: #1b1919;
+  }
+
+  svg {
+    color: white;
+  }
+
+  h1 {
+    color: #e1167c;
+  }
+
+  h2 {
+    color: #e1167c;
+    margin-bottom: 0px;
+  }
+
+  hr {
+    border: 5px solid #52072d;
+    width: 100%;
+    border-radius: 15px;
   }
 
 	.axis {
@@ -17,20 +36,20 @@
 	.axis path,
 	.axis line {
 	  fill: none;
-	  stroke: #000;
+	  stroke: white;
 	  shape-rendering: crispEdges;
 	}
 
   path.line {
     fill: none;
-    stroke: red;
+    stroke: #e1167c;
     stroke-width: 2px;
   }
 
   .axis path,
   .axis line {
     fill: none;
-    stroke: slategray;
+    stroke: white;
     shape-rendering: crispEdges;
   }
 
@@ -59,20 +78,90 @@
     transform: translate(0px, 5px);
   }
 
+  .wrapper {
+    display: grid;
+    grid-template-columns: 300px 150px;
+    grid-gap: 3px;
+    color: #444;
+    margin: 20px;
+  }
+
+  .wide {
+    grid-template-columns: 450px;
+  }
+
+  .box {
+    background-color: #bbcacc;
+    color: #000;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 150%;
+  }
+
+  .value {
+    text-align: right;
+  }
+
+  .divider {
+    width: 37%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .iframe {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    border-left: 4px solid white;
+  }
+
 	</style>
 </head>
 
 <body>
 
-<div style="display: flex; align-items: center;">
-  <img src="images/screenshot.png" style="padding: 10px; width: 80px; height: 80px;">
-  <h1>Rubiks Cube 2x2 - solving using Model-Free Deep Q Reinforced Learning</h1>
+<div class="divider">
+  <div style="display: flex; align-items: center;">
+    <img src="images/screenshot.png" style="padding: 10px; width: 80px; height: 80px;">
+    <h1>Rubiks Cube 2x2 - solving using Model-Free Deep Q Reinforced Learning</h1>
+  </div>
+  <hr>
+  <div id="svgContainer-timeline"></div>
+  <h3 id="status"></h3>
+  <!--h3 id="successRate"></h3-->
+  <!--div id="hyper"></div-->
+  <h2>Network statistics</h2>
+  <div class="wrapper">
+    <div class="box a">Latest epoch solve success</div>
+    <div class="box b value">-</div>
+    <div class="box c">Total success rate</div>
+    <div class="box d value">-</div>
+    <div class="box e">Epoch</div>
+    <div class="box f value">-</div>
+  </div>
+  <h2>Hyper-parameters</h2>
+  <div class="wrapper">
+    <div class="box g">Move limit</div>
+    <div class="box h value">-</div>
+    <div class="box i">Total epochs</div>
+    <div class="box j value">-</div>
+    <div class="box k">Exploration rate</div>
+    <div class="box l value">-</div>
+  </div>
+  <h2>Brain.js parameters</h2>
+  <div class="wrapper wide">
+    <div class="box m">{}</div>
+  </div>
+  <div id="net-svg"></div>
 </div>
-<div id="svgContainer-timeline"></div>
-<h3 id="status"></h3>
-<h3 id="successRate"></h3>
-<div id="hyper"></div>
-<div id="net-svg"></div>
+<iframe class="iframe" src="3d-cube.html"></iframe>
 
 <script src="../brain-browser.js"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>

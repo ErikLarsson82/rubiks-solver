@@ -1,9 +1,9 @@
 const RENDER_NETWORK = false
-const AUTO_UPDATE = true
+const AUTO_UPDATE = false
 
 var margin = {top: 20, right: 20, bottom: 60, left: 40},
-    width = 600 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
+    width = 700 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
 
 var svgLineChart = d3.select("#svgContainer-timeline").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -78,9 +78,10 @@ function renderLineChart(_data) {
       .append("text")
         .attr("x", 0)
         .attr("y", 0)
-        .attr("dy", "3.2em")
-        .attr("dx", "24em")
-        .attr("fill", "black")
+        .attr("dy", "2.5em")
+        .attr("dx", "2em")
+        .attr("fill", "#e1167c")
+        .attr("font-size", "16px")
         .style("text-anchor", "start")
         .text(() => "Time")
 
@@ -90,10 +91,11 @@ function renderLineChart(_data) {
       .append("text")
         .attr("x", 0)
         .attr("y", 0)
-        .attr("dy", "-3.8em")
-        .attr("dx", "-10em")
+        .attr("dy", "-2em")
+        .attr("dx", "-20em")
         .attr("transform", "rotate(-90)" )
-        .attr("fill", "black")
+        .attr("fill", "#e1167c")
+        .attr("font-size", "16px")
         .style("text-anchor", "start")
         .text(() => "Fitness")
 
@@ -106,25 +108,37 @@ function renderLineChart(_data) {
     const failures = total - successes
     const successRate = data.length > 0 ? 100 / (total / successes) : 0.0
     const finalEpoch = data.length > 0 ? (100 * (data[data.length-1].fitness.filter(isSuccess).length / _data['max-fitness'])) : 0.0
-    document.getElementById("successRate").innerHTML = 
+    /*document.getElementById("successRate").innerHTML = 
 `Lastest epoch solve success: ${finalEpoch === 100 ? 100 : finalEpoch.toFixed(1)}%<br>
 Total success rate: ${successRate.toFixed(2)}%<br><br>
 Epochs: ${_data['epochs']}<br>
 Iterations: ${_data['iterations']}<br>
-Binary snapshots: ${_data['binary-snapshots'].length}`
+Binary snapshots: ${_data['binary-snapshots'].length}`*/
 
     let b = []
     const config = _data["hyper-parameters"]["BRAIN_CONFIG"]
     for (var p in config) {
-      b.push(`&nbsp;&nbsp;&nbsp;${p}: ${config[p]}`)
+      b.push(`${p}: ${config[p]}`)
     }
-    document.getElementById("hyper").innerHTML =
+
+  setText('b', `${finalEpoch === 100 ? 100 : finalEpoch.toFixed(1)}%`)
+  setText('d', `${successRate.toFixed(2)}%`)
+  setText('f', _data['epochs'])
+  setText('h', _data["hyper-parameters"].MOVES)
+  setText('j', _data["hyper-parameters"].EPOCHS)
+  setText('l', _data["hyper-parameters"]["EXPLORATION_RATE"])
+  setText('m', b.join('<br>'))
+    /*document.getElementById("hyper").innerHTML =
 `<strong>Hyper-parameters:</strong><br>
 Move limit: ${_data["hyper-parameters"].MOVES}<br>
 Epochs: ${_data["hyper-parameters"].EPOCHS}<br>
 Exploration rate: ${_data["hyper-parameters"]["EXPLORATION_RATE"]}<br>
 Brain.js parameters: <br>${b.join('<br>')}<br><br>
-` + scrambleLog(data)
+` + scrambleLog(data)*/
+}
+
+function setText(id, value) {
+  return document.getElementsByClassName(id)[0].innerHTML = value
 }
 
 function pair(x, i) {
