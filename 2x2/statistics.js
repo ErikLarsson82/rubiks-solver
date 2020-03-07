@@ -108,13 +108,7 @@ function renderLineChart(_data) {
     const failures = total - successes
     const successRate = data.length > 0 ? 100 / (total / successes) : 0.0
     const finalEpoch = data.length > 0 ? (100 * (data[data.length-1].fitness.filter(isSuccess).length / _data['max-fitness'])) : 0.0
-    /*document.getElementById("successRate").innerHTML = 
-`Lastest epoch solve success: ${finalEpoch === 100 ? 100 : finalEpoch.toFixed(1)}%<br>
-Total success rate: ${successRate.toFixed(2)}%<br><br>
-Epochs: ${_data['epochs']}<br>
-Iterations: ${_data['iterations']}<br>
-Binary snapshots: ${_data['binary-snapshots'].length}`*/
-
+    
     let b = []
     const config = _data["hyper-parameters"]["BRAIN_CONFIG"]
     for (var p in config) {
@@ -129,13 +123,6 @@ Binary snapshots: ${_data['binary-snapshots'].length}`*/
   setText('l', _data["hyper-parameters"]["EXPLORATION_RATE"])
   setText('m', b.join('<br>'))
   setText('n', scrambleLog(data))
-    /*document.getElementById("hyper").innerHTML =
-`<strong>Hyper-parameters:</strong><br>
-Move limit: ${_data["hyper-parameters"].MOVES}<br>
-Epochs: ${_data["hyper-parameters"].EPOCHS}<br>
-Exploration rate: ${_data["hyper-parameters"]["EXPLORATION_RATE"]}<br>
-Brain.js parameters: <br>${b.join('<br>')}<br><br>
-` + scrambleLog(data)*/
 }
 
 function setText(id, value) {
