@@ -282,6 +282,8 @@ function animate(time) {
 
     autoPlay()
 
+    cubeContainer.rotation.y += 0.001
+
 	if (rotate[0]) {
         cubeContainer.rotation.x += rotate[0];
     }
@@ -294,10 +296,15 @@ function animate(time) {
 function autoPlay() {
 	if (!AUTOPLAY_SOLVES || isAnimating) return
 
+	if (state === 'READY') {
+		animateReady()
+		return
+	}
 	if (state === 'SCRAMBLE') {
 		animateScramble()
 		return
-	} else if (state === 'SOLVING') {
+	}
+	if (state === 'SOLVING') {
 		animateSolving()
 		return
 	}
@@ -312,7 +319,7 @@ function setState(s) {
 	if (s === 'SCRAMBLE') {
 		cube = createCube()
 		document.getElementById('help-text').innerHTML = "Scrambling"
-    	document.getElementById('help-text').className = "label scrambling"
+    	document.getElementById('help-text').className = "label-text scrambling"
     	queue = [...scrambles[nextScrambleSequence]]
     	nextScrambleSequence++
 		if (nextScrambleSequence >= scrambles.length) nextScrambleSequence = 0
@@ -320,17 +327,22 @@ function setState(s) {
 	if (s === 'SOLVING') {
 		attempts = 0
 		document.getElementById('help-text').innerHTML = "Solving"
-    	document.getElementById('help-text').className = "label solving"
+    	document.getElementById('help-text').className = "label-text solving"
 	}
 	if (s === 'FINISHED') {
 		timer = 120
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} successful`
-    	document.getElementById('help-text').className = "label success"
+    	document.getElementById('help-text').className = "label-text success"
 	}
 	if (s === 'FAILED') {
 		timer = 120
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} failed...`
-    	document.getElementById('help-text').className = "label failed"
+    	document.getElementById('help-text').className = "label-text failed"
+	}
+	if (s === 'READY') {
+		timer = 200
+		document.getElementById('help-text').innerHTML = `Ready to solve ${nextScrambleSequence}`
+    	document.getElementById('help-text').className = "label-text ready"
 	}
 }
 
@@ -349,12 +361,12 @@ function animateSolving() {
 
 function animateScramble() {
 	if (queue.length === 0) {
-		setState('SOLVING')
+		setState('READY')
 		return
 	}
 
 	const move = queue.shift()
-	rotateSide(move, 1)
+	rotateSide(move, 70)
 }
 
 function animateEnd() {
@@ -362,6 +374,14 @@ function animateEnd() {
 
 	if (timer < 0) {
 		setState('SCRAMBLE')
+	}
+}
+
+function animateReady() {
+	timer--
+
+	if (timer < 0) {
+		setState('SOLVING')
 	}
 }
 

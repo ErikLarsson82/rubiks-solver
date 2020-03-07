@@ -15,13 +15,19 @@
 
 			.label {
 				top: 27%;
-				background-color: rgba(0,0,0,0.3);
-				text-align: center;
 				width: 100%;
 				position: absolute;
-				font-family: 'Roboto Mono';
 				z-index: 100;
+				display: flex;
+    			justify-content: center;
+			}
+
+			.label-text {
+				font-family: 'Roboto Mono';
 				font-size: 20px;
+				background-color: rgba(0,0,0,0.3);
+				width: 350px;
+				text-align: center;
 			}
 
 			.solving {
@@ -34,6 +40,10 @@
 
 			.success {
 				color: #10ff00;
+			}
+
+			.ready {
+				color: white;
 			}
 
 			.failed {
@@ -56,7 +66,7 @@
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
 	</head>
 	<body>
-		<div id="help-text"></div>
+		<div class="label"><div id="help-text"></div></div>
 		<img id="logo" src="images/hiq-logo-negative.png">
 		<script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>
 		<script src="../node_modules/three/build/three.min.js"></script>
