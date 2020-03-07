@@ -354,7 +354,7 @@ function animateScramble() {
 	}
 
 	const move = queue.shift()
-	rotateSide(move, 300)
+	rotateSide(move, 1)
 }
 
 function animateEnd() {
