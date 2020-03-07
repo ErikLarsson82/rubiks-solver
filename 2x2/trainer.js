@@ -34,7 +34,8 @@ const R = require('ramda')
 const dir = 'training-data'
 
 const startDate = new Date()
-const LOGGING = false
+const LOGGING = true
+const DEBUG_LOGGING = false
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
@@ -43,22 +44,22 @@ if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 const HYPER = {
 	"EPOCHS": 10000,
 	"MOVES": 5,
-	"EXPLORATION_RATE": 0.3,
+	"EXPLORATION_RATE": 0.5,
 	"NETS": 1,
-	"SUCCESS_RATE": 0.1,
-	//"OTHER_RATE": 0.01,
-	//"FAIL_RATE": -0.1,
+	"SUCCESS_RATE": 1,
+	"OTHER_RATE": 0.01,
+	"FAIL_RATE": -0.1,
 	"TRAINING_OPTIONS": {
-		iterations: 1000,
-		errorThresh: 0.1,
-		timeout: 10000,
+		iterations: 2000,
+		//errorThresh: 0.02,
+		timeout: 60000,
 	  	log: true,
 	  	logPeriod: 1
 	},
 	"BRAIN_CONFIG": {
 		hiddenLayers: [480],
 		//learningRate: 0.5,
-		//binaryThresh: 0.5
+		binaryThresh: 0.5
 	}
 }
 
@@ -152,49 +153,27 @@ function trainEpoch() {
 	const data = scrambles.map(scramble => solveCube(scramble, true, true))
 
 	const rewardedPolicyBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
-		return binarySnapshots.map(snap => {
-			if (success === -1) {
-				return {
-					input: snap.binaryData,
-					output: {
-						...{
-							'U': HYPER["OTHER_RATE"],
-							'D': HYPER["OTHER_RATE"],
-							'F': HYPER["OTHER_RATE"],
-							'B': HYPER["OTHER_RATE"],
-							'L': HYPER["OTHER_RATE"],
-							'R': HYPER["OTHER_RATE"],
-						},
-						[snap.policy]: HYPER["FAIL_RATE"]
-					}
-				}
-			}
-			return {
-				input: snap.binaryData,
-				output: {
-					...{
-						'U': HYPER["OTHER_RATE"],
-						'D': HYPER["OTHER_RATE"],
-						'F': HYPER["OTHER_RATE"],
-						'B': HYPER["OTHER_RATE"],
-						'L': HYPER["OTHER_RATE"],
-						'R': HYPER["OTHER_RATE"],
-					},
-					[snap.policy]: HYPER["SUCCESS_RATE"]
-				}
-			}
-		})
-	})
-	log('Prepared data:', rewardedPolicyBinarySnapshots.length)
-	rewardedPolicyBinarySnapshots.forEach(data => {
-		log(`Snapshot:\n${data.input.join('')}\nReward:`)
-		log(data.output)
+		return binarySnapshots.map(x => brainJsFormat(success, x))
 	})
 
-	binarySnapshotsAggregate.push(rewardedPolicyBinarySnapshots)
+	const onlySuccessBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
+		return success !== -1 ? binarySnapshots.map(x => brainJsFormat(success, x)) : []
+	})
+
+	rewardedPolicyBinarySnapshots.forEach(data => {
+		debugLog(`Snapshot:\n${data.input.join('')}\nReward:`)
+		debugLog(data.output)
+	})
 
 	log(`\n\n\nRunning brain.js train API`)
-	return net.train(rewardedPolicyBinarySnapshots, HYPER["TRAINING_OPTIONS"])
+	const trainingResult = net.train(rewardedPolicyBinarySnapshots.concat(binarySnapshotsAggregate), HYPER["TRAINING_OPTIONS"])
+	
+	binarySnapshotsAggregate = binarySnapshotsAggregate.concat(onlySuccessBinarySnapshots)
+
+	log('Binary aggregate', binarySnapshotsAggregate.length)
+	log(binarySnapshotsAggregate)
+
+	return trainingResult
 }
 
 function solveCube(scramble, collectMoveData, exploreEnabled) {
@@ -204,9 +183,7 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 	persist(cube)
 
 	cube = scrambleCube(cube, scramble)
-
-	log('For scramble', scramble)
-
+	
 	let exploration = false
 
 	new Array(HYPER.MOVES).fill().forEach((x, i) => {
@@ -224,7 +201,7 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 			policy = brain.likely(binaryCube, net)
 		}
 
-		log( 'Policy selected: [[ -> ', policy, ' <- ]]', selectRandom ? 'IM SO RANDOM' : '', '\nNet total policy', net.run(binaryCube) )
+		debugLog( 'Policy selected: [[ -> ', policy, ' <- ]]', selectRandom ? 'IM SO RANDOM' : '', '\nNet total policy', net.run(binaryCube) )
 		solution.push(policy)
 
 		cube = moveFuncs[policy](cube)
@@ -252,6 +229,8 @@ function isSuccess(x) {
 function logEpoch(epoch) {
 	if (epoch % LOG_INTERVAL === 0) {
 		const epochFitness = scrambles.map(x => solveCube(x, false, false))
+
+		epochFitness.forEach(x => log(x.success !== -1 ? "✓" : "X", x.scramble.join(" "), " -> ", x.solution.join(" ")))
 
 		fitnessSnapshots.push({ fitness: epochFitness, date: new Date().toISOString() })
 		if (WRITE_FILES) {
@@ -289,6 +268,39 @@ function createTrainingFile() {
 	}))
 }
 
+function brainJsFormat(success, snap) {
+	if (success === -1) {
+		return {
+			input: snap.binaryData,
+			output: {
+				...{
+					'U': HYPER["OTHER_RATE"],
+					'D': HYPER["OTHER_RATE"],
+					'F': HYPER["OTHER_RATE"],
+					'B': HYPER["OTHER_RATE"],
+					'L': HYPER["OTHER_RATE"],
+					'R': HYPER["OTHER_RATE"],
+				},
+				[snap.policy]: HYPER["FAIL_RATE"]
+			}
+		}
+	}
+	return {
+		input: snap.binaryData,
+		output: {
+			...{
+				'U': HYPER["OTHER_RATE"],
+				'D': HYPER["OTHER_RATE"],
+				'F': HYPER["OTHER_RATE"],
+				'B': HYPER["OTHER_RATE"],
+				'L': HYPER["OTHER_RATE"],
+				'R': HYPER["OTHER_RATE"],
+			},
+			[snap.policy]: HYPER["SUCCESS_RATE"]
+		}
+	}
+}
+
 function formatDate(date) {
   return `${date.getFullYear()}-${leftPad("00", date.getMonth().toString())}-${leftPad("00", date.getDate().toString())}-${leftPad("00", date.getHours().toString())}-${leftPad("00", date.getMinutes().toString())}-${leftPad("00", date.getSeconds().toString())}`
 }
@@ -301,6 +313,11 @@ function leftPad(template, str) {
 function log() {
 	if (!LOGGING) return
 	return console.log(...arguments)
+}
+
+function debugLog() {
+	if (!DEBUG_LOGGING) return
+	return log(...arguments)
 }
 
 function logObj(obj) {
