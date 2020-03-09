@@ -42,28 +42,28 @@ const LOG_INTERVAL = 1
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 const HYPER = {
-	"EPOCHS": 10000,
-	"MOVES": 5,
-	"EXPLORATION_RATE": 0.5,
+	"EPOCHS": 30,
+	"MOVES": 8,
+	"EXPLORATION_RATE": 0.3,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
 	"OTHER_RATE": 0.01,
 	"FAIL_RATE": -0.1,
 	"TRAINING_OPTIONS": {
-		iterations: 2000,
-		//errorThresh: 0.02,
+		iterations: 4000,
+		errorThresh: 0.04,
 		timeout: 60000,
 	  	log: true,
-	  	logPeriod: 1
+	  	logPeriod: 100
 	},
 	"BRAIN_CONFIG": {
-		hiddenLayers: [480],
-		//learningRate: 0.5,
+		hiddenLayers: [6],
+		learningRate: 0.85,
 		binaryThresh: 0.5
 	}
 }
 
-let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate
+let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate, file
 
 function initTrainer() {
 	fitnessSnapshots = []
@@ -74,7 +74,7 @@ function initTrainer() {
 	log('Hyper-parameters', HYPER)
 	log('\n--- [ SETUP ] ---')
 
-	let rawFile, file
+	let rawFile
 	try {
 		rawFile = fs.readFileSync(`${dir}/training.json`)
 		file = JSON.parse(rawFile)
@@ -95,11 +95,13 @@ function setup() {
 	cube = createCube()
 
 	if (newNetworkNeeded) {
-		net = new brain.NeuralNetworkGPU(HYPER["BRAIN_CONFIG"])
+		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
 		log(net.train({ input: binary(cube), output: { F: 0.5, B: 0.5, L: 0.5, R: 0.5, U: 0.5, D: 0.5 } }, { iterations: 1 }))
 	} else {
-		console.error('Cannot load from file - not implemented')
-		process.exit()
+		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJSON(file.net)
+		log('Loading network from file')
+		//console.error('Cannot load from file - not implemented')
+		//process.exit()
 	}
 
 	createTrainingFile()
@@ -167,7 +169,7 @@ function trainEpoch() {
 
 	log(`\n\n\nRunning brain.js train API`)
 	const trainingResult = net.train(rewardedPolicyBinarySnapshots.concat(binarySnapshotsAggregate), HYPER["TRAINING_OPTIONS"])
-	
+
 	binarySnapshotsAggregate = binarySnapshotsAggregate.concat(onlySuccessBinarySnapshots)
 
 	log('Binary aggregate', binarySnapshotsAggregate.length)
@@ -183,7 +185,7 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 	persist(cube)
 
 	cube = scrambleCube(cube, scramble)
-	
+
 	let exploration = false
 
 	new Array(HYPER.MOVES).fill().forEach((x, i) => {

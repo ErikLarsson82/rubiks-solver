@@ -1,5 +1,5 @@
 const RENDER_NETWORK = false
-const AUTO_UPDATE = false
+const AUTO_UPDATE = true
 
 var margin = {top: 20, right: 20, bottom: 60, left: 40},
     width = 700 - margin.left - margin.right,
@@ -108,7 +108,7 @@ function renderLineChart(_data) {
     const failures = total - successes
     const successRate = data.length > 0 ? 100 / (total / successes) : 0.0
     const finalEpoch = data.length > 0 ? (100 * (data[data.length-1].fitness.filter(isSuccess).length / _data['max-fitness'])) : 0.0
-    
+
     let b = []
     const config = _data["hyper-parameters"]["BRAIN_CONFIG"]
     for (var p in config) {
