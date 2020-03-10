@@ -37,6 +37,7 @@ const positions = {
 	"F": [2,3,7,6],
 	"F'": [2,3,7,6].reverse(),
 	"B": [1,0,4,5],
+	"B'": [1,0,4,5].reverse(),
 	"U": [0,1,3,2],
 	"D": [4,6,7,5]
 }
@@ -48,7 +49,8 @@ const moveFuncs = {
 	"R": right,
 	"F": front,
 	"F'": frontPrim,
-	"B": back
+	"B": back,
+	"B'": backPrim
 }
 
 function right(cube) {
@@ -159,6 +161,29 @@ function back(cube) {
 		newCorner.right = corner.down
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions['B'], corner.position)
+
+		return newCorner
+	})
+
+	return [ ...unaffected, ...affected ]
+}
+
+function backPrim(cube) {
+	let unaffected = cube.filter(cubit => !positions["B'"].includes(cubit.position))
+
+	let affected = cube.filter(cubit => positions["B'"].includes(cubit.position))
+
+	affected = affected.map(corner => {
+		const newCorner = {}
+		newCorner.front = corner.front
+		newCorner.back = corner.back
+
+		newCorner.down = corner.right
+		newCorner.up = corner.left
+		newCorner.left = corner.down
+		newCorner.right = corner.up
+		newCorner.id = corner.id
+		newCorner.position = cycle(positions["B'"], corner.position)
 
 		return newCorner
 	})
@@ -378,6 +403,7 @@ if (typeof module !== "undefined" && module.exports) {
 		front,
 		frontPrim,
 		back,
+		backPrim,
 		persist,
 		compare,
 		binary,
