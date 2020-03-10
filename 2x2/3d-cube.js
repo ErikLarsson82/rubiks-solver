@@ -197,7 +197,7 @@ function rotateSide(move, speed = 700) {
 		cubits.filter(cubit => positions[move].includes(getPosition(cubit)))
 			.forEach(cubit => rotater.attach(cubit))
 
-		const direction = ["F", "R", "U", "B'", "L'"].includes(move) ? -1 : 1
+		const direction = ["F", "R", "U", "B'", "L'", "D'"].includes(move) ? -1 : 1
 		const rotation = { value: 0 }
 		const tween = new TWEEN.Tween(rotation)
 			.to({ value: Math.PI / 2 * direction }, speed)
@@ -208,7 +208,7 @@ function rotateSide(move, speed = 700) {
 				if (["F", "F'", "B", "B'"].includes(move)) {
 					rotater.rotation.z = rotation.value
 				}
-				if (["U", "D"].includes(move)) {
+				if (["U", "D", "D'"].includes(move)) {
 					rotater.rotation.y = rotation.value
 				}
 	        })
@@ -258,8 +258,11 @@ function keydown(e) {
     if (e.keyCode === 66 && e.shiftKey) {
     	rotateSide("B'")
     }
-    if (e.keyCode === 68) {
-    	rotateSide('D')
+    if (e.keyCode === 68 && !e.shiftKey) {
+    	rotateSide("D")
+    }
+    if (e.keyCode === 68 && e.shiftKey) {
+    	rotateSide("D'")
     }
     if (e.keyCode === 85) {
     	rotateSide('U')
