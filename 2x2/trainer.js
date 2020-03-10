@@ -43,7 +43,7 @@ if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 const HYPER = {
 	"EPOCHS": 1000,
-	"REINIT_NET_EVERY_EPOCH": false,
+	"REINIT_NET_EVERY_EPOCH": true,
 	"MOVES": 2,
 	"EXPLORATION_RATE": 1,
 	"NETS": 1,
@@ -59,9 +59,9 @@ const HYPER = {
 	},
 	"BRAIN_CONFIG": {
 		hiddenLayers: [12],
-		//momentum: 0.0000001
-		//learningRate: 0.85,
-		//binaryThresh: 0.5
+		momentum: 0.000000000000000000001,
+		learningRate: 0.999999,
+		binaryThresh: 0.5
 	}
 }
 
