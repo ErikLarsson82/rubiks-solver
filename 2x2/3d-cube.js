@@ -1,9 +1,11 @@
 
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
-const AUTOPLAY_SOLVES = true
+const AUTOPLAY_SOLVES = false
 const ATTEMPT_THRESHOLD = 4
 const HIQ_COLORS = true
+const ROTATION_ENABLED = false
+
 
 var loader = new THREE.GLTFLoader();
 
@@ -182,7 +184,7 @@ function createFace({ dir, color }, x, y, z) {
 	return face
 }
 
-function rotateSide(move, speed = 2000) {
+function rotateSide(move, speed = 700) {
 	if (!ANIMATIONS_ENABLED) {
 		cube = moveFuncs[move](cube)
 	} else {
@@ -203,7 +205,7 @@ function rotateSide(move, speed = 2000) {
 				if (['R', 'L'].includes(move)) {
 					rotater.rotation.x = rotation.value
 				}
-				if (['F', 'B'].includes(move)) {
+				if (["F", "F'", "B"].includes(move)) {
 					rotater.rotation.z = rotation.value
 				}
 				if (['U', 'D'].includes(move)) {
@@ -238,8 +240,11 @@ function keydown(e) {
     if (e.keyCode === 76) {
     	rotateSide('L')
     }
-    if (e.keyCode === 70) {
+    if (e.keyCode === 70 && !e.shiftKey) {
     	rotateSide('F')
+    }
+    if (e.keyCode === 70 && e.shiftKey) {
+    	rotateSide("F'")
     }
     if (e.keyCode === 66) {
     	rotateSide('B')
@@ -251,10 +256,10 @@ function keydown(e) {
     	rotateSide('U')
     }
     if (e.keyCode === 80) {
-    	persist(cube)
+    	console.log(persist(cube))
     }
     if (e.keyCode === 67) {
-    	compare(cube)
+    	console.log(compare(cube))
     }
     if (e.keyCode === 49) { // 1
     	binaryStr(cube)
@@ -282,7 +287,7 @@ function animate(time) {
 
     autoPlay()
 
-    cubeContainer.rotation.y += 0.001
+    if (ROTATION_ENABLED) cubeContainer.rotation.y += 0.001
 
 	if (rotate[0]) {
         cubeContainer.rotation.x += rotate[0];

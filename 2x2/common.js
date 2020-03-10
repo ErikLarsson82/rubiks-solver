@@ -10,6 +10,7 @@
 	45
 	67
 
+	Using one-hot-encoding for position and rotation for each cubit, the two lines below is probably deprecated
 	24 rotations per cubit - 8 cubits = 192
 	00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - [000] */
 
@@ -31,21 +32,23 @@ function createCube() {
 }
 
 const positions = {
-	'R': [3,1,5,7],
-	'L': [0,2,6,4],
-	'F': [2,3,7,6],
-	'B': [1,0,4,5],
-	'U': [0,1,3,2],
-	'D': [4,6,7,5]
+	"R": [3,1,5,7],
+	"L": [0,2,6,4],
+	"F": [2,3,7,6],
+	"F'": [2,3,7,6].reverse(),
+	"B": [1,0,4,5],
+	"U": [0,1,3,2],
+	"D": [4,6,7,5]
 }
 
 const moveFuncs = {
-	'U': up,
-	'D': down,
-	'L': left,
-	'R': right,
-	'F': front,
-	'B': back
+	"U": up,
+	"D": down,
+	"L": left,
+	"R": right,
+	"F": front,
+	"F'": frontPrim,
+	"B": back
 }
 
 function right(cube) {
@@ -110,6 +113,29 @@ function front(cube) {
 		newCorner.right = corner.up
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions['F'], corner.position)
+
+		return newCorner
+	})
+
+	return [ ...unaffected, ...affected ]
+}
+
+function frontPrim(cube) {
+	let unaffected = cube.filter(cubit => !positions["F'"].includes(cubit.position))
+
+	let affected = cube.filter(cubit => positions["F'"].includes(cubit.position))
+
+	affected = affected.map(corner => {
+		const newCorner = {}
+		newCorner.front = corner.front
+		newCorner.back = corner.back
+
+		newCorner.up = corner.right
+		newCorner.left = corner.up
+		newCorner.down = corner.left
+		newCorner.right = corner.down
+		newCorner.id = corner.id
+		newCorner.position = cycle(positions["F'"], corner.position)
 
 		return newCorner
 	})
@@ -221,14 +247,6 @@ function convert(x) {
 	return paddedStr.split('').map(x => parseInt(x))
 }
 
-/*
-6 * 2
-000000 000000
-
-4 * 6
-1 - 24
-*/
-
 function rotationToOnehot(obj) {
 	let first, second
 	if (obj.up === "white" || obj.down === "yellow") {
@@ -268,7 +286,6 @@ function rotationToOnehot(obj) {
 	if (obj.right === "green" || obj.left === "blue") {
 		second = onehotStr(6)(5)
 	}
-	//console.log(first, second)
 	return [ first, second ].flatMap(x => x.split("")).map(x => parseInt(x))
 }
 
@@ -335,6 +352,7 @@ function scrambleCube(cube, scramble) {
 
 function persist(cube) {
 	persistedBinaryStr = binaryStr(cube)
+	return "Current cube configuration persisted"
 }
 
 function compare(cube) {
@@ -347,18 +365,7 @@ function binaryStr(cube) {
 }
 
 function binary(cube) {
-	const o = cube.map(x=>x).sort(sorterPosition)
-
-	const o2 = o.flatMap(cornerToBinary)
-
-	//console.log(o2)
-	//console.log(o)
-	/*var i,j,temparray,chunk = 12;
-	for (i=0,j=o2.length; i<j; i+=chunk) {
-	    temparray = o2.slice(i,i+chunk);
-	    console.log(temparray.join(""))
-	}*/
-	return o2
+	return cube.map(x=>x).sort(sorterPosition).flatMap(cornerToBinary)
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -369,6 +376,7 @@ if (typeof module !== "undefined" && module.exports) {
 		up,
 		down,
 		front,
+		frontPrim,
 		back,
 		persist,
 		compare,

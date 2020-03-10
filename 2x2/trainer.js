@@ -9,7 +9,7 @@
 
 	Fiddle with hyper parameters to find an optimal policy-finding policy (meta puns are tight)
 
-	Use any program to serve the folder as HTTP-server (like 'serve' in npmjs) and visit 'statistics-graph-2x2.html'
+	Use any program to serve the folder as HTTP-server (like 'serve' in npmjs) and visit 'statistics.html'
 	to view live graph visualizations as the network trains
 */
 
@@ -100,8 +100,6 @@ function setup() {
 	} else {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJSON(file.net)
 		log('Loading network from file')
-		//console.error('Cannot load from file - not implemented')
-		//process.exit()
 	}
 
 	createTrainingFile()
@@ -254,10 +252,13 @@ function writeLogFile(file, epochs, isTraining) {
 		"iterations": resultAggregate.filter(x=>x!==null).map(x => x.trainingStats.iterations).reduce((acc, curr) => acc + curr, 0),
 		net: net.toJSON()
 	})
-	fs.writeFileSync(`${dir}/${file}.json`, jsonStr)
+	const path = `${dir}/${file}.json`
+	log('Writing file', path)
+	fs.writeFileSync(path, jsonStr)
 }
 
 function createTrainingFile() {
+	log('Create new training.json file')
 	fs.writeFileSync(`${dir}/training.json`, JSON.stringify({
 		training: true,
 		"max-fitness": "-",
