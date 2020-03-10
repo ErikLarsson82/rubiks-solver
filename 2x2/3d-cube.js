@@ -18,7 +18,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
 
-let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles
+let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles, selectedIndex
 
 const rotate = [0,0]
 const speed = 0.04
@@ -50,7 +50,9 @@ const visualBlueprint = [
 function init() {
 	queue = []
 
-	animationScrambles = []
+	animationScrambles = new Array(scrambles.length).fill('empty')
+
+	selectedIndex = null
 
 	isAnimating = false
 
@@ -224,10 +226,10 @@ function rotateSide(move, speed = 700) {
 }
 
 function keydown(e) {
-	if (e.keyCode === 37) {
+	if (e.keyCode === 37 && !e.shiftKey) { //left
         rotate[1] = -speed
     }
-    if (e.keyCode === 39) {
+    if (e.keyCode === 39 && !e.shiftKey) { //right
         rotate[1] = speed
     }
     if (e.keyCode === 38) {
@@ -283,6 +285,31 @@ function keydown(e) {
     }
     if (e.keyCode === 50) { // 2
     	binary(cube)
+    }
+    if (e.keyCode === 37 && e.shiftKey) { // left
+    	if (selectedIndex < 0) {
+    		selectedIndex = scrambles.length
+    	} else if (selectedIndex === null) {
+    		selectedIndex = nextScrambleSequence--
+    	} else {
+    		selectedIndex--
+    	}	
+    	renderIcons()
+    }
+    if (e.keyCode === 39 && e.shiftKey) { // right
+    	if (selectedIndex > scrambles.length) {
+    		selectedIndex = 0
+    	} else if (selectedIndex === null) {
+    		selectedIndex = nextScrambleSequence++
+    	} else {
+    		selectedIndex++
+    	}
+    	renderIcons()
+    }
+    if (e.keyCode === 13) {
+    	nextScrambleSequence = selectedIndex
+    	selectedIndex = null
+    	setState('SCRAMBLE')
     }
 }
 
@@ -340,14 +367,14 @@ function renderIcons() {
 	let str = ""
 	
 	for (var i = 0; i < animationScrambles.length; i++) {
-		str += `<img src='images/${ animationScrambles[i] === 'success' ? 'check' : 'cross' }.png' width='14' height='14'>`
-	}
-	
-	for (var i = animationScrambles.length; i < scrambles.length; i++) {
-		str += `<img src='images/empty.png' width='14' height='14'>`
+		if (i === selectedIndex) {
+			str += `<img src='images/selected.png' width='14' height='14'>`
+		} else {
+			str += `<img src='images/${ animationScrambles[i] }.png' width='14' height='14'>`
+		}
 	}
 
-	return str
+	document.getElementById('label-dots').innerHTML = str
 }
 
 function setState(s) {
@@ -367,13 +394,13 @@ function setState(s) {
 	}
 	if (s === 'FINISHED') {
 		timer = 120
-		animationScrambles.push('success')
+		animationScrambles[nextScrambleSequence] = 'check'
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} successful`
     	document.getElementById('help-text').className = "label-text success"
 	}
 	if (s === 'FAILED') {
 		timer = 120
-		animationScrambles.push('fail')
+		animationScrambles[nextScrambleSequence] = 'cross'
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} failed...`
     	document.getElementById('help-text').className = "label-text failed"
 	}
@@ -382,7 +409,7 @@ function setState(s) {
 		document.getElementById('help-text').innerHTML = `Ready to solve ${nextScrambleSequence}`
     	document.getElementById('help-text').className = "label-text ready"
 	}
-	document.getElementById('label-dots').innerHTML = renderIcons()
+	renderIcons()
 }
 
 function animateSolving() {

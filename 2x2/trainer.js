@@ -48,7 +48,7 @@ const HYPER = {
 	"FAIL_RETRY_MULTIPLIER": 10,
 	"AGGREGATE_TESTDATA": false,
 	"MOVES": 4,
-	"EXPLORATION_RATE": 1,
+	"EXPLORATION_RATE": 0.5,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
 	//"OTHER_RATE": 0.5,
@@ -63,6 +63,8 @@ const HYPER = {
 	"BRAIN_CONFIG": {
 		hiddenLayers: [12],
 		//momentum: 0.000000000000000000001,
+		//momentum: 0.9999999999,
+		//decay: 0.5,
 		//learningRate: 0.2,
 		//learningRate: 0.999999,
 		//binaryThresh: 0.5
@@ -166,16 +168,17 @@ function train() {
 function trainEpoch() {
 	cube = createCube()
 
-	const conditional = HYPER["ONLY_TRY_FAILED"] && lastEpochResults ? (x,i) => lastEpochResults[i].success === -1 : x=>x
-
-	const data = scrambles.filter(conditional).map(scramble => solveCube(scramble, true, true))
+	//const conditional = HYPER["ONLY_TRY_FAILED"] && lastEpochResults ? (x,i) => lastEpochResults[i].success === -1 : x=>x
+	// filter(conditional)
+	const data = scrambles.map(scramble => solveCube(scramble, true, true))
 
 	const rewardedPolicyBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
 		return binarySnapshots.map(x => brainJsFormat(success, x))
 	})
 
-	const onlySuccessBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
-		return success !== -1 ? binarySnapshots.map(x => brainJsFormat(success, x)) : []
+	const onlySuccessBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i, list) => {
+		const falloff = i / list.length
+		return success !== -1 ? binarySnapshots.map(x => brainJsFormat(success, x, falloff)) : []
 	})
 
 	rewardedPolicyBinarySnapshots.forEach(data => {
@@ -210,7 +213,8 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 			return
 		}
 		const binaryCube = binary(cube)
-		const selectRandom = exploreEnabled && Math.random() < HYPER.EXPLORATION_RATE
+		const random = Math.random() < HYPER.EXPLORATION_RATE
+		const selectRandom = exploreEnabled && random
 		let policy
 		if (selectRandom) {
 			policy = randomAgent()
@@ -218,7 +222,7 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 		} else {
 			policy = brain.likely(binaryCube, net)
 		}
-
+		
 		debugLog( 'Policy selected: [[ -> ', policy, ' <- ]]', selectRandom ? 'IM SO RANDOM' : '', '\nNet total policy', net.run(binaryCube) )
 		solution.push(policy)
 
@@ -289,7 +293,7 @@ function createTrainingFile() {
 	}))
 }
 
-function brainJsFormat(success, snap) {
+function brainJsFormat(success, snap, falloff) {
 	if (success === -1) {
 		return {
 			input: snap.binaryData,
@@ -329,7 +333,7 @@ function brainJsFormat(success, snap) {
 				"L'": HYPER["OTHER_RATE"],
 				"R'": HYPER["OTHER_RATE"],
 			},
-			[snap.policy]: HYPER["SUCCESS_RATE"]
+			[snap.policy]: HYPER["SUCCESS_RATE"] * falloff
 		}
 	}
 }
