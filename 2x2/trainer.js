@@ -43,16 +43,17 @@ if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 const HYPER = {
 	"EPOCHS": 1000,
-	"REINIT_NET_EVERY_EPOCH": true,
-	"ONLY_TRY_FAILED": true,
+	"INCREMENT_SCRAMBLES_START": 1,
+	"REINIT_NET_EVERY_EPOCH": false,
+	"ONLY_TRY_FAILED": false,
 	"FAIL_RETRY_MULTIPLIER": 10,
-	"AGGREGATE_TESTDATA": false,
+	"AGGREGATE_TESTDATA": true,
 	"MOVES": 4,
-	"EXPLORATION_RATE": 0.5,
+	"EXPLORATION_RATE": 1.0,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
-	//"OTHER_RATE": 0.5,
-	//"FAIL_RATE": -0.5,
+	//"OTHER_RATE": 0.0001,
+	//"FAIL_RATE": -0.0001,
 	"TRAINING_OPTIONS": {
 		iterations: 100,
 		errorThresh: 0.02,
@@ -64,19 +65,21 @@ const HYPER = {
 		hiddenLayers: [12],
 		//momentum: 0.000000000000000000001,
 		//momentum: 0.9999999999,
-		//decay: 0.5,
+		//decay: 0.77777,
+		//decay: 0.0001,
 		//learningRate: 0.2,
 		//learningRate: 0.999999,
 		//binaryThresh: 0.5
 	}
 }
 
-let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate, file, lastEpochResults
+let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate, file, lastEpochResults, incrementScambles
 
 function initTrainer() {
 	fitnessSnapshots = []
 	resultAggregate = []
 	binarySnapshotsAggregate = []
+	incrementScambles = HYPER["INCREMENT_SCRAMBLES_START"]
 
 	log('\n\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
@@ -134,9 +137,16 @@ function train() {
 		log('\n=== <<<<<<<<<<<<<<<<<< SOLVING >>>>>>>>>>>>>>>>>> ===')
 		const solveStats = logEpoch(i)
 
-		if (solveStats.filter(x => isSuccess(x) && x.exploration === false).length === scrambles.length) {
-			isDone = true
-			breakpoint = i
+		//  && x.exploration === false
+		//console.log('solveStats', solveStats)
+		//console.log('compare', solveStats.filter(isSuccess).length, scrambles.slice(0, incrementScambles).length)
+		if (solveStats.filter(isSuccess).length === scrambles.slice(0, incrementScambles).length) {
+			if (incrementScambles > scrambles.length) {
+				isDone = true
+				breakpoint = i
+			} else {
+				incrementScambles++
+			}
 		}
 
 		log('trainingStats', i, trainingStats)
@@ -170,7 +180,7 @@ function trainEpoch() {
 
 	//const conditional = HYPER["ONLY_TRY_FAILED"] && lastEpochResults ? (x,i) => lastEpochResults[i].success === -1 : x=>x
 	// filter(conditional)
-	const data = scrambles.map(scramble => solveCube(scramble, true, true))
+	const data = scrambles.slice(0, incrementScambles).map(scramble => solveCube(scramble, true, true))
 
 	const rewardedPolicyBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
 		return binarySnapshots.map(x => brainJsFormat(success, x))
@@ -187,7 +197,8 @@ function trainEpoch() {
 	})
 
 	log(`\n\n\nRunning brain.js train API`)
-	const trainingResult = net.train(rewardedPolicyBinarySnapshots.concat(binarySnapshotsAggregate), HYPER["TRAINING_OPTIONS"])
+	//console.log('onlySuccessBinarySnapshots', onlySuccessBinarySnapshots.length)
+	const trainingResult = net.train(rewardedPolicyBinarySnapshots, HYPER["TRAINING_OPTIONS"]) //.concat(binarySnapshotsAggregate)
 
 	binarySnapshotsAggregate = binarySnapshotsAggregate.concat(onlySuccessBinarySnapshots)
 
@@ -222,6 +233,10 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 		} else {
 			policy = brain.likely(binaryCube, net)
 		}
+
+		if (policy === "L" && i === 0) {
+			//console.log("\n\n\n\n\n IM RIGHT HERE")
+		}
 		
 		debugLog( 'Policy selected: [[ -> ', policy, ' <- ]]', selectRandom ? 'IM SO RANDOM' : '', '\nNet total policy', net.run(binaryCube) )
 		solution.push(policy)
@@ -235,13 +250,15 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 			})
 	})
 
-	return {
+	const output = {
 		scramble: scramble,
 		solution: solution,
 		binarySnapshots: collectMoveData ? binarySnapshots : null,
 		success: compare(cube) ? solution.length : -1,
 		exploration: exploration
 	}
+	//console.log(output)
+	return output
 }
 
 function isSuccess(x) {
@@ -250,7 +267,7 @@ function isSuccess(x) {
 
 function logEpoch(epoch) {
 	if (epoch % LOG_INTERVAL === 0) {
-		const epochFitness = scrambles.map(x => solveCube(x, false, false))
+		const epochFitness = scrambles.slice(0, incrementScambles).map(x => solveCube(x, false, false))
 
 		epochFitness.forEach(x => log(x.success !== -1 ? "✓" : "X", x.scramble.join(" "), " -> ", x.solution.join(" ")))
 
