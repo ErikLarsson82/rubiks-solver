@@ -62,12 +62,55 @@
 				text-transform: uppercase;
 			}
 
+			.logo {
+				width: 120px;
+				height: 120px;
+			}
+
+			.logo-container {
+				position: absolute;
+				bottom: 40px;
+				right: 40px;
+			}
+
+			.record {
+				position: absolute;
+				bottom: 40px;
+				left: 20px;
+				z-index: 100;
+				color: white;
+				font-size: 80px;
+				padding: 0;
+				margin: 0;
+		    font-family: 'Roboto Slab', serif;
+			}
+
+			.record > h2 {
+				padding: 0;
+				margin: 0;
+			}
+
+			.label-record {
+				font-size: 40px;
+				padding: 0;
+				margin: 0;
+			}
+
 		</style>
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap" rel="stylesheet">
 	</head>
 	<body>
 		<div class="label"><div id="help-text"></div></div>
 		<img id="logo" src="images/hiq-logo-negative.png">
+		<div class="record"><span class="label-record">Current record with 100%:</span><h2>42 solves</h2></div>
+		<div class="logo-container">
+			<img class="logo" src="../logos/js.png">
+			<img class="logo" src="../logos/brain.png">
+			<img class="logo" src="../logos/es6.png">
+			<img class="logo" src="../logos/node.png">
+			<img class="logo" src="../logos/d3.png">
+		</div>
 		<script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>
 		<script src="../node_modules/three/build/three.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>

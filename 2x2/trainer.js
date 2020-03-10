@@ -28,13 +28,13 @@ const {
 	binary
 } = require('./common')
 const scrambles = require('./scrambles')
-const brain = require('../brain-browser.js')
+let brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
 const dir = 'training-data'
 
 const startDate = new Date()
-const LOGGING = true
+const LOGGING = false
 const DEBUG_LOGGING = false
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
@@ -44,28 +44,32 @@ if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 const HYPER = {
 	"EPOCHS": 1000,
 	"REINIT_NET_EVERY_EPOCH": true,
-	"MOVES": 2,
+	"ONLY_TRY_FAILED": true,
+	"FAIL_RETRY_MULTIPLIER": 10,
+	"AGGREGATE_TESTDATA": false,
+	"MOVES": 4,
 	"EXPLORATION_RATE": 1,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
-	//"OTHER_RATE": 0.01,
-	//"FAIL_RATE": -0.1,
+	//"OTHER_RATE": 0.5,
+	//"FAIL_RATE": -0.5,
 	"TRAINING_OPTIONS": {
-		iterations: 8000,
+		iterations: 100,
 		errorThresh: 0.02,
 		timeout: 60000,
 	  	log: true,
-	  	logPeriod: 100
+	  	logPeriod: 1
 	},
 	"BRAIN_CONFIG": {
 		hiddenLayers: [12],
-		momentum: 0.000000000000000000001,
-		learningRate: 0.999999,
-		binaryThresh: 0.5
+		//momentum: 0.000000000000000000001,
+		//learningRate: 0.2,
+		//learningRate: 0.999999,
+		//binaryThresh: 0.5
 	}
 }
 
-let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate, file
+let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate, file, lastEpochResults
 
 function initTrainer() {
 	fitnessSnapshots = []
@@ -118,6 +122,8 @@ function train() {
 
 		if (HYPER["REINIT_NET_EVERY_EPOCH"]) {
 			const tmpJson = net.toJSON()
+			net = null
+			brain = require('../brain-browser.js')
 			net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJSON(tmpJson)
 			log("Re-initialize net so delta is reset")
 		}
@@ -133,13 +139,15 @@ function train() {
 
 		log('trainingStats', i, trainingStats)
 
+		lastEpochResults = solveStats
+
 		return {
 			trainingStats: trainingStats,
 			solveStats: solveStats
 		}
 	})
 
-	resultAggregate = results
+	if (HYPER["AGGREGATE_TESTDATA"]) resultAggregate = results
 
 	if (WRITE_FILES) {
 		writeLogFile('training', breakpoint, false)
@@ -158,7 +166,9 @@ function train() {
 function trainEpoch() {
 	cube = createCube()
 
-	const data = scrambles.map(scramble => solveCube(scramble, true, true))
+	const conditional = HYPER["ONLY_TRY_FAILED"] && lastEpochResults ? (x,i) => lastEpochResults[i].success === -1 : x=>x
+
+	const data = scrambles.filter(conditional).map(scramble => solveCube(scramble, true, true))
 
 	const rewardedPolicyBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
 		return binarySnapshots.map(x => brainJsFormat(success, x))

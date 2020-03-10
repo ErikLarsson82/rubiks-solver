@@ -1,10 +1,10 @@
 
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
-const AUTOPLAY_SOLVES = false
+const AUTOPLAY_SOLVES = true
 const ATTEMPT_THRESHOLD = 4
 const HIQ_COLORS = true
-const ROTATION_ENABLED = false
+const ROTATION_ENABLED = true
 
 
 var loader = new THREE.GLTFLoader();
