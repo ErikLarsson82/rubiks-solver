@@ -42,22 +42,24 @@ const LOG_INTERVAL = 1
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 const HYPER = {
-	"EPOCHS": 30,
-	"MOVES": 8,
+	"EPOCHS": 1000,
+	"REINIT_NET_EVERY_EPOCH": false,
+	"MOVES": 2,
 	"EXPLORATION_RATE": 1,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
 	//"OTHER_RATE": 0.01,
 	//"FAIL_RATE": -0.1,
 	"TRAINING_OPTIONS": {
-		iterations: 4000,
-		errorThresh: 0.04,
+		iterations: 8000,
+		errorThresh: 0.02,
 		timeout: 60000,
 	  	log: true,
 	  	logPeriod: 100
 	},
 	"BRAIN_CONFIG": {
-		hiddenLayers: [6],
+		hiddenLayers: [12],
+		//momentum: 0.0000001
 		//learningRate: 0.85,
 		//binaryThresh: 0.5
 	}
@@ -113,6 +115,12 @@ function train() {
 
 	const results = new Array(HYPER.EPOCHS).fill().map((x, i) => {
 		if (isDone) return null
+
+		if (HYPER["REINIT_NET_EVERY_EPOCH"]) {
+			const tmpJson = net.toJSON()
+			net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJSON(tmpJson)
+			log("Re-initialize net so delta is reset")
+		}
 		log('\n\n\n\n!!! <<<<<<<<<<<<<<<<<< TRAINING >>>>>>>>>>>>>>>>>> !!!')
 		const trainingStats = trainEpoch()
 		log('\n=== <<<<<<<<<<<<<<<<<< SOLVING >>>>>>>>>>>>>>>>>> ===')

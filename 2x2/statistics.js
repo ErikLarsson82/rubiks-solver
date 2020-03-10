@@ -115,6 +115,12 @@ function renderLineChart(_data) {
       b.push(`${p}: ${config[p]}`)
     }
 
+    let c = []
+    const config2 = _data["hyper-parameters"]
+    for (var p in config2) {
+      if (!["TRAINING_OPTIONS", "BRAIN_CONFIG"].includes(p)) c.push(`${p}: ${config2[p]}`)
+    }
+
   setText('b', `${finalEpoch === 100 ? 100 : finalEpoch.toFixed(1)}%`)
   setText('d', `${successRate.toFixed(2)}%`)
   setText('f', _data['epochs'])
@@ -122,7 +128,8 @@ function renderLineChart(_data) {
   setText('j', _data["hyper-parameters"].EPOCHS)
   setText('l', _data["hyper-parameters"]["EXPLORATION_RATE"])
   setText('m', b.join('<br>'))
-  setText('n', scrambleLog(data))
+  setText('n', c.join('<br>'))
+  setText('o', scrambleLog(data))
 }
 
 function setText(id, value) {

@@ -25,6 +25,11 @@
     margin-bottom: 0px;
   }
 
+  h3 {
+    padding: 0;
+    margin: 0;
+  }
+
   hr {
     border: 2px solid #52072d;
     width: 100%;
@@ -87,6 +92,7 @@
     color: #444;
     margin: 20px;
     margin-left: 0px;
+    overflow: auto;
   }
 
   .wide {
@@ -105,7 +111,7 @@
   }
 
   .big-text > div {
-    font-size: 25px;
+    font-size: 17px;
   }
 
   .value {
@@ -133,6 +139,10 @@
 
   .graph-divider {
     display: flex;
+  }
+
+  .tiny {
+    font-size: 10px;
   }
 
 	</style>
@@ -172,11 +182,15 @@
       <div class="wrapper wide">
         <div class="box m">{}</div>
       </div>
+      <h2>Hyper parameters</h2>
+      <div class="wrapper wide">
+        <div class="box n tiny">{}</div>
+      </div>
     </div>
     <div>
       <h2>Solution space</h2>
       <div class="wrapper narrow">
-        <div class="box n">{}</div>
+        <div class="box o">{}</div>
       </div>
     </div>
   </div>
