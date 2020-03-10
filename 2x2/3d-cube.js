@@ -18,7 +18,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
 
-let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer
+let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles
 
 const rotate = [0,0]
 const speed = 0.04
@@ -49,6 +49,8 @@ const visualBlueprint = [
 
 function init() {
 	queue = []
+
+	animationScrambles = []
 
 	isAnimating = false
 
@@ -334,6 +336,20 @@ function autoPlay() {
 	}
 }
 
+function renderIcons() {
+	let str = ""
+	
+	for (var i = 0; i < animationScrambles.length; i++) {
+		str += `<img src='images/${ animationScrambles[i] === 'success' ? 'check' : 'cross' }.png' width='14' height='14'>`
+	}
+	
+	for (var i = animationScrambles.length; i < scrambles.length; i++) {
+		str += `<img src='images/empty.png' width='14' height='14'>`
+	}
+
+	return str
+}
+
 function setState(s) {
 	state = s
 	if (s === 'SCRAMBLE') {
@@ -351,11 +367,13 @@ function setState(s) {
 	}
 	if (s === 'FINISHED') {
 		timer = 120
+		animationScrambles.push('success')
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} successful`
     	document.getElementById('help-text').className = "label-text success"
 	}
 	if (s === 'FAILED') {
 		timer = 120
+		animationScrambles.push('fail')
 		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} failed...`
     	document.getElementById('help-text').className = "label-text failed"
 	}
@@ -364,6 +382,7 @@ function setState(s) {
 		document.getElementById('help-text').innerHTML = `Ready to solve ${nextScrambleSequence}`
     	document.getElementById('help-text').className = "label-text ready"
 	}
+	document.getElementById('label-dots').innerHTML = renderIcons()
 }
 
 function animateSolving() {
