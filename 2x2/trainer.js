@@ -44,11 +44,11 @@ if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 const HYPER = {
 	"EPOCHS": 30,
 	"MOVES": 8,
-	"EXPLORATION_RATE": 0.3,
+	"EXPLORATION_RATE": 1,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
-	"OTHER_RATE": 0.01,
-	"FAIL_RATE": -0.1,
+	//"OTHER_RATE": 0.01,
+	//"FAIL_RATE": -0.1,
 	"TRAINING_OPTIONS": {
 		iterations: 4000,
 		errorThresh: 0.04,
@@ -58,8 +58,8 @@ const HYPER = {
 	},
 	"BRAIN_CONFIG": {
 		hiddenLayers: [6],
-		learningRate: 0.85,
-		binaryThresh: 0.5
+		//learningRate: 0.85,
+		//binaryThresh: 0.5
 	}
 }
 
@@ -96,7 +96,7 @@ function setup() {
 
 	if (newNetworkNeeded) {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
-		log(net.train({ input: binary(cube), output: { F: 0.5, B: 0.5, L: 0.5, R: 0.5, U: 0.5, D: 0.5 } }, { iterations: 1 }))
+		log(net.train({ input: binary(cube), output: { "F": 0.5, "B": 0.5, "L": 0.5, "R": 0.5, "U": 0.5, "D": 0.5, "F'": 0.5, "B'": 0.5, "L'": 0.5, "R'": 0.5, "U'": 0.5, "D'": 0.5 } }, { iterations: 1 }))
 	} else {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJSON(file.net)
 		log('Loading network from file')
@@ -277,12 +277,18 @@ function brainJsFormat(success, snap) {
 			input: snap.binaryData,
 			output: {
 				...{
-					'U': HYPER["OTHER_RATE"],
-					'D': HYPER["OTHER_RATE"],
-					'F': HYPER["OTHER_RATE"],
-					'B': HYPER["OTHER_RATE"],
-					'L': HYPER["OTHER_RATE"],
-					'R': HYPER["OTHER_RATE"],
+					"U": HYPER["OTHER_RATE"],
+					"D": HYPER["OTHER_RATE"],
+					"F": HYPER["OTHER_RATE"],
+					"B": HYPER["OTHER_RATE"],
+					"L": HYPER["OTHER_RATE"],
+					"R": HYPER["OTHER_RATE"],
+					"U'": HYPER["OTHER_RATE"],
+					"D'": HYPER["OTHER_RATE"],
+					"F'": HYPER["OTHER_RATE"],
+					"B'": HYPER["OTHER_RATE"],
+					"L'": HYPER["OTHER_RATE"],
+					"R'": HYPER["OTHER_RATE"],
 				},
 				[snap.policy]: HYPER["FAIL_RATE"]
 			}
@@ -292,12 +298,18 @@ function brainJsFormat(success, snap) {
 		input: snap.binaryData,
 		output: {
 			...{
-				'U': HYPER["OTHER_RATE"],
-				'D': HYPER["OTHER_RATE"],
-				'F': HYPER["OTHER_RATE"],
-				'B': HYPER["OTHER_RATE"],
-				'L': HYPER["OTHER_RATE"],
-				'R': HYPER["OTHER_RATE"],
+				"U": HYPER["OTHER_RATE"],
+				"D": HYPER["OTHER_RATE"],
+				"F": HYPER["OTHER_RATE"],
+				"B": HYPER["OTHER_RATE"],
+				"L": HYPER["OTHER_RATE"],
+				"R": HYPER["OTHER_RATE"],
+				"U'": HYPER["OTHER_RATE"],
+				"D'": HYPER["OTHER_RATE"],
+				"F'": HYPER["OTHER_RATE"],
+				"B'": HYPER["OTHER_RATE"],
+				"L'": HYPER["OTHER_RATE"],
+				"R'": HYPER["OTHER_RATE"],
 			},
 			[snap.policy]: HYPER["SUCCESS_RATE"]
 		}
@@ -331,7 +343,7 @@ function logObj(obj) {
 }
 
 function randomAgent() {
-	return ['L', 'R', 'F', 'B', 'U', 'D'][Math.floor(Math.random() * 6)]
+	return ["L", "R", "F", "B", "U", "D", "L'", "R'", "F'", "B'", "U'", "D'"][Math.floor(Math.random() * 12)]
 }
 
 initTrainer()

@@ -41,12 +41,14 @@ const positions = {
 	"B": [1,0,4,5],
 	"B'": [1,0,4,5].reverse(),
 	"U": [0,1,3,2],
+	"U'": [0,1,3,2].reverse(),
 	"D": [4,6,7,5],
 	"D'": [4,6,7,5].reverse()
 }
 
 const moveFuncs = {
 	"U": up,
+	"U'": upPrim,
 	"D": down,
 	"D'": downPrim,
 	"L": left,
@@ -244,9 +246,9 @@ function backPrim(cube) {
 }
 
 function up(cube) {
-	let unaffected = cube.filter(cubit => !positions['U'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions["U"].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['U'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions["U"].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -258,7 +260,30 @@ function up(cube) {
 		newCorner.back = corner.left
 		newCorner.left = corner.front
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['U'], corner.position)
+		newCorner.position = cycle(positions["U"], corner.position)
+
+		return newCorner
+	})
+
+	return [ ...unaffected, ...affected ]
+}
+
+function upPrim(cube) {
+	let unaffected = cube.filter(cubit => !positions["U'"].includes(cubit.position))
+
+	let affected = cube.filter(cubit => positions["U'"].includes(cubit.position))
+
+	affected = affected.map(corner => {
+		const newCorner = {}
+		newCorner.up = corner.up
+		newCorner.down = corner.down
+
+		newCorner.front = corner.left
+		newCorner.right = corner.front
+		newCorner.back = corner.right
+		newCorner.left = corner.back
+		newCorner.id = corner.id
+		newCorner.position = cycle(positions["U'"], corner.position)
 
 		return newCorner
 	})
@@ -477,6 +502,7 @@ if (typeof module !== "undefined" && module.exports) {
 		left,
 		leftPrim,
 		up,
+		upPrim,
 		down,
 		downPrim,
 		front,

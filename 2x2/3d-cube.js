@@ -208,7 +208,7 @@ function rotateSide(move, speed = 700) {
 				if (["F", "F'", "B", "B'"].includes(move)) {
 					rotater.rotation.z = rotation.value
 				}
-				if (["U", "D", "D'"].includes(move)) {
+				if (["U", "U'", "D", "D'"].includes(move)) {
 					rotater.rotation.y = rotation.value
 				}
 	        })
@@ -264,8 +264,11 @@ function keydown(e) {
     if (e.keyCode === 68 && e.shiftKey) {
     	rotateSide("D'")
     }
-    if (e.keyCode === 85) {
-    	rotateSide('U')
+    if (e.keyCode === 85 && !e.shiftKey) {
+    	rotateSide("U")
+    }
+    if (e.keyCode === 85 && e.shiftKey) {
+    	rotateSide("U'")
     }
     if (e.keyCode === 80) {
     	console.log(persist(cube))
