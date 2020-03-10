@@ -202,7 +202,7 @@ function rotateSide(move, speed = 700) {
 		const tween = new TWEEN.Tween(rotation)
 			.to({ value: Math.PI / 2 * direction }, speed)
 			.onUpdate(() => {
-				if (["R", "L"].includes(move)) {
+				if (["R", "R'", "L"].includes(move)) {
 					rotater.rotation.x = rotation.value
 				}
 				if (["F", "F'", "B", "B'"].includes(move)) {
@@ -234,8 +234,11 @@ function keydown(e) {
     if (e.keyCode === 40) {
         rotate[0] = speed
     }
-    if (e.keyCode === 82) {
-    	rotateSide('R')
+    if (e.keyCode === 82 && !e.shiftKey) {
+    	rotateSide("R")
+    }
+    if (e.keyCode === 82 && e.shiftKey) {
+    	rotateSide("R'")
     }
     if (e.keyCode === 76) {
     	rotateSide('L')
