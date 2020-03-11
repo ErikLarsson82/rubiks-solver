@@ -16,7 +16,6 @@
 
 
 let persistedBinaryStr
-let originalCubeBinaryString
 
 function createCube() {
 	return [
@@ -469,7 +468,8 @@ function orderly({ up, front, back, left, right, down, id, position }) {
 	}
 }
 
-function scrambleCube(cube, scramble) {
+function scrambleCube(scramble) {
+	let cube = createCube()
 	scramble.forEach(move => {
 		cube = moveFuncs[move](cube)
 	})
