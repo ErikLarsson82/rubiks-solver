@@ -3,9 +3,9 @@ const SCRAMBLE_SELECTION = 3
 const moves = ["U", "U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
 
 const scrambles0 = [
-	["L"],
 	["R"],
-	["R'"],
+	["L"],
+	//["R'"],
 ]
 
 const scrambles1 = [

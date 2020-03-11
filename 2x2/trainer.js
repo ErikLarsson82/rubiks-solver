@@ -42,12 +42,12 @@ const LOG_INTERVAL = 1
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 const HYPER = {
-	"EPOCHS": 1000,
+	"EPOCHS": 100,
 	"INCREMENT_SCRAMBLES_START": 1,
 	"REINIT_NET_EVERY_EPOCH": false,
-	"ONLY_TRY_FAILED": false,
+	"ONLY_TRY_FAILED": true,
 	"FAIL_RETRY_MULTIPLIER": 10,
-	"AGGREGATE_TESTDATA": true,
+	"AGGREGATE_TESTDATA": false,
 	"MOVES": 4,
 	"EXPLORATION_RATE": 1.0,
 	"NETS": 1,
@@ -139,9 +139,9 @@ function train() {
 
 		//  && x.exploration === false
 		//console.log('solveStats', solveStats)
-		//console.log('compare', solveStats.filter(isSuccess).length, scrambles.slice(0, incrementScambles).length)
+		
 		if (solveStats.filter(isSuccess).length === scrambles.slice(0, incrementScambles).length) {
-			if (incrementScambles > scrambles.length) {
+			if (incrementScambles >= scrambles.length) {
 				isDone = true
 				breakpoint = i
 			} else {
@@ -178,18 +178,23 @@ function train() {
 function trainEpoch() {
 	cube = createCube()
 
-	//const conditional = HYPER["ONLY_TRY_FAILED"] && lastEpochResults ? (x,i) => lastEpochResults[i].success === -1 : x=>x
-	// filter(conditional)
-	const data = scrambles.slice(0, incrementScambles).map(scramble => solveCube(scramble, true, true))
+	//console.log('i will do this', scrambles.slice(0, incrementScambles), lastEpochResults)
 
-	const rewardedPolicyBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i) => {
-		return binarySnapshots.map(x => brainJsFormat(success, x))
+	const conditional = HYPER["ONLY_TRY_FAILED"] && lastEpochResults ? (x,i) => lastEpochResults[i] === undefined || lastEpochResults[i].success === -1 : x=>x
+	
+	const data = scrambles.slice(0, incrementScambles).filter(conditional).map(scramble => solveCube(scramble, true, true))
+
+	const rewardedPolicyBinarySnapshots = data.flatMap(({ binarySnapshots, success }) => {
+		return binarySnapshots.map((snap, i, list) => {
+			const falloff = Math.max((i+1) / list.length, 1 / HYPER["MOVES"])
+			log('for i:', (i+1), falloff, list.length, 1 / HYPER["MOVES"])
+			return brainJsFormat(success, snap, falloff)
+		})
 	})
 
-	const onlySuccessBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i, list) => {
-		const falloff = i / list.length
+	/*const onlySuccessBinarySnapshots = data.flatMap(({ binarySnapshots, success }, i, list) => {
 		return success !== -1 ? binarySnapshots.map(x => brainJsFormat(success, x, falloff)) : []
-	})
+	})*/
 
 	rewardedPolicyBinarySnapshots.forEach(data => {
 		debugLog(`Snapshot:\n${data.input.join('')}\nReward:`)
@@ -197,13 +202,13 @@ function trainEpoch() {
 	})
 
 	log(`\n\n\nRunning brain.js train API`)
-	//console.log('onlySuccessBinarySnapshots', onlySuccessBinarySnapshots.length)
+	////console.log('onlySuccessBinarySnapshots', onlySuccessBinarySnapshots.length)
 	const trainingResult = net.train(rewardedPolicyBinarySnapshots, HYPER["TRAINING_OPTIONS"]) //.concat(binarySnapshotsAggregate)
 
-	binarySnapshotsAggregate = binarySnapshotsAggregate.concat(onlySuccessBinarySnapshots)
+	//binarySnapshotsAggregate = binarySnapshotsAggregate.concat(onlySuccessBinarySnapshots)
 
-	log('Binary aggregate', binarySnapshotsAggregate.length)
-	log(binarySnapshotsAggregate)
+	//log('Binary aggregate', binarySnapshotsAggregate.length)
+	//log(binarySnapshotsAggregate)
 
 	return trainingResult
 }
@@ -234,10 +239,6 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 			policy = brain.likely(binaryCube, net)
 		}
 
-		if (policy === "L" && i === 0) {
-			//console.log("\n\n\n\n\n IM RIGHT HERE")
-		}
-		
 		debugLog( 'Policy selected: [[ -> ', policy, ' <- ]]', selectRandom ? 'IM SO RANDOM' : '', '\nNet total policy', net.run(binaryCube) )
 		solution.push(policy)
 
@@ -257,7 +258,7 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 		success: compare(cube) ? solution.length : -1,
 		exploration: exploration
 	}
-	//console.log(output)
+	////console.log(output)
 	return output
 }
 
@@ -333,6 +334,7 @@ function brainJsFormat(success, snap, falloff) {
 			}
 		}
 	}
+	//console.log('convert to binary', snap.policy, HYPER["SUCCESS_RATE"], falloff, HYPER["SUCCESS_RATE"] * falloff)
 	return {
 		input: snap.binaryData,
 		output: {
