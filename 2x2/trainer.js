@@ -33,6 +33,7 @@ const scrambles = require('./scrambles')
 const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
+const colors = require('colors')
 const dir = 'training-data'
 
 const startDate = new Date()
@@ -170,7 +171,7 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 			policy = brain.likely(binaryCube, net)
 		}
 		
-		debugLog(scramble, 'Policy [[ -> ', policy, ' <- ]]', exploration ? 'EXPLORATION' : '', !newNetworkNeeded && formatPolicyObj(net.run(binaryCube)) )
+		debugLog(scramble, 'Policy [[ -> ', policy, ' <- ]]', firstEpochRandom ? "no net" : formatPolicyObj(net.run(binaryCube), 4), exploration ? 'EXPLORATION' : '')
 		
 		solution.push(policy)
 
@@ -208,8 +209,8 @@ function assignRewards({ binarySnapshots, success }) {
 
 function logResults() {
 	log('\n--- [ FINAL RESULT BY PLAYING TEST-DATA ] ---')
-	log(lastEpochResults)
 	log(`\nTraining Stats: ${lastEpochResults.trainingStats.error}`)
+	log("Last epoch fitness:")
 	lastEpochResults.epochFitness.forEach(x => log(x))
 	log(`Success rate: ${ ((lastEpochResults.epochFitness.filter(isSuccess).length / lastEpochResults.epochFitness.length ) * 100).toFixed(1)}%`)
 }
@@ -223,38 +224,48 @@ function logEpochToFile(epoch, trainingStats, epochFitness) {
 }
 
 function positiveReward(obj) {
-	return obj["F"] > 0 ||
-		obj["F'"] > 0 ||
-		obj["B"] > 0 ||
-		obj["B'"] > 0 ||
-		obj["L"] > 0 ||
-		obj["L'"] > 0 ||
-		obj["R"] > 0 ||
-		obj["R'"] > 0 ||
-		obj["U"] > 0 ||
-		obj["U'"] > 0 ||
-		obj["B"] > 0 ||
-		obj["B'"] > 0
+	const target = obj.output
+	return target["F"] > 0 ||
+		target["F'"] > 0 ||
+		target["B"] > 0 ||
+		target["B'"] > 0 ||
+		target["L"] > 0 ||
+		target["L'"] > 0 ||
+		target["R"] > 0 ||
+		target["R'"] > 0 ||
+		target["U"] > 0 ||
+		target["U'"] > 0 ||
+		target["B"] > 0 ||
+		target["B'"] > 0
 }
 
 function prettySnap(snap) {
-	return snap.input.join("") + "\n" + formatPolicyObj(snap.output)
+	return snap.input.join("") + "\n" + formatPolicyObj(snap.output, 2) + "\n"
 }
 
-function formatPolicyObj(obj) {
-	return "todo" /*
-		obj["F"] + " "
-		obj["F'"] + " "
-		obj["B"] + " "
-		obj["B'"] + " "
-		obj["L"] + " "
-		obj["L'"] + " "
-		obj["R"] + " "
-		obj["R'"] + " "
-		obj["U"] + " "
-		obj["U'"] + " "
-		obj["B"] + " "
-		obj["B'"]*/
+function colorObject(obj, decimals) {
+
+	let highest = "U"
+
+	const list = ["U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
+
+	list.forEach(move => {
+		if (obj[move] !== null && obj[move] > obj[highest]) {
+			highest = move
+		}
+	})
+	return value => {
+		if (obj[value] === null) return colors.gray("null")
+
+		if (value === highest) return colors.green(obj[value].toFixed(decimals))
+
+		return colors.yellow(obj[value].toFixed(decimals))
+	}
+}
+
+function formatPolicyObj(obj, decimals) {
+	const c = colorObject(obj, decimals)
+	return `F: ${ c("F") } F': ${ c("F'") } B: ${ c("B") } B': ${ c("B'") } L: ${ c("L") } L': ${ c("L'") } R: ${ c("R") } R': ${ c("R'") } U: ${ c("U") } U': ${ c("U'") } D: ${ c("D") } D': ${ c("D'") }`
 }
 
 function isSuccess(x) {
@@ -277,7 +288,7 @@ function writeLogFile(file, epochs, isTraining) {
 	if (!WRITE_FILES) return
 
 	const path = `${dir}/${file}.json`
-	log('Writing file', path)
+	log(`Writing file ${path} epoch ${epochs} - training: ${isTraining}`)
 
 	const json = {
 		training: isTraining,

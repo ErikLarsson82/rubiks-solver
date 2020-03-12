@@ -338,7 +338,7 @@ function downPrim(cube) {
 	return [ ...unaffected, ...affected ]
 }
 
-const colors = [
+const COLORS = [
 	"EMPTY",
 	"WHITE",
 	"GREEN",
@@ -416,12 +416,12 @@ function rotationToOnehot(obj) {
 
 function cornerToBinary(obj) {
 	return [
-		onehot(8)(obj.up && colors.findIndex(x => x === obj.up.toUpperCase()) || 0),
-		onehot(8)(obj.down && colors.findIndex(x => x === obj.down.toUpperCase()) || 0),
-		onehot(8)(obj.front && colors.findIndex(x => x === obj.front.toUpperCase()) || 0),
-		onehot(8)(obj.back && colors.findIndex(x => x === obj.back.toUpperCase()) || 0),
-		onehot(8)(obj.left && colors.findIndex(x => x === obj.left.toUpperCase()) || 0),
-		onehot(8)(obj.right && colors.findIndex(x => x === obj.right.toUpperCase()) || 0),
+		onehot(8)(obj.up && COLORS.findIndex(x => x === obj.up.toUpperCase()) || 0),
+		onehot(8)(obj.down && COLORS.findIndex(x => x === obj.down.toUpperCase()) || 0),
+		onehot(8)(obj.front && COLORS.findIndex(x => x === obj.front.toUpperCase()) || 0),
+		onehot(8)(obj.back && COLORS.findIndex(x => x === obj.back.toUpperCase()) || 0),
+		onehot(8)(obj.left && COLORS.findIndex(x => x === obj.left.toUpperCase()) || 0),
+		onehot(8)(obj.right && COLORS.findIndex(x => x === obj.right.toUpperCase()) || 0),
 		rotationToOnehot(obj)
 	].flatMap(x=>x)
 }
