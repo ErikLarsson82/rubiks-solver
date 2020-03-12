@@ -43,20 +43,22 @@ const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
 const HYPER = {
-	"EPOCHS": 2,
-	"AGGREGATE_TESTDATA": false,
-	"MOVES": 1,
-	"EXPLORATION_RATE": 0.5,
+	"EPOCHS": 1000,
+	"AGGREGATE_TESTDATA": true,
+	"MOVES": 2,
+	"EXPLORATION_RATE": 1,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
 	"OTHER_RATE": null,
 	"FAIL_RATE": null,
 	"TRAINING_OPTIONS": {
 		iterations: 50,
-		errorThresh: 0.02,
+		errorThresh: 0.3,
 		timeout: 60000,
 	  	log: true,
-	  	logPeriod: 1
+	  	logPeriod: 1,
+	  	learingRate: 0.01,
+	  	decayRate: 0.2,
 	},
 	"BRAIN_CONFIG": {
 		hiddenLayers: [12],
@@ -199,8 +201,9 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 function aggregateRewards(snaps) {
 	binarySnapshotsAggregate = binarySnapshotsAggregate.concat(snaps)
 
-	log('Binary aggregate', `${snaps.filter(positiveReward).length} / ${binarySnapshotsAggregate.length}`)
-	binarySnapshotsAggregate.map(prettySnap).forEach(x => log(x))
+	log('Reward percentage', `${snaps.filter(positiveReward).length} / ${snaps.length}`)
+	log('Binary aggregate', `${binarySnapshotsAggregate.filter(positiveReward).length} / ${binarySnapshotsAggregate.length}`)
+	snaps.map(prettySnap).forEach(x => log(x))
 }
 
 function assignRewards({ binarySnapshots, success }) {
