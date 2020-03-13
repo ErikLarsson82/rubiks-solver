@@ -18,7 +18,10 @@ const {
 	back,
 	scrambleCube,
 	moveFuncs,
-	binary
+	binary,
+	invertMove,
+	invertSequence,
+	randomAgent
 } = require('./common')
 
 const brain = require('../brain-browser.js')
@@ -29,8 +32,8 @@ const dir = 'training-data'
 const filename = 'data-collection.json'
 const filepath = `${dir}/${filename}`
 
-const ITERATIONS = 1
-const MOVES = 1
+const ITERATIONS = 100
+const MOVES = 2
 
 function initCollector() {
 	console.log('Init collector')
@@ -58,11 +61,14 @@ function solve() {
 	let cube = createCube()
 	
 	for (var i = 0; i < MOVES; i++) {
-		cube = front(cube)
+
+		const scrambleMove = randomAgent()
+		console.log("Scrambling move:", scrambleMove)
+		cube = moveFuncs[scrambleMove](cube)
 
 		const snap = {
 			input: binary(cube),
-			output: { ["F'"]: 1 }
+			output: { [invertMove(scrambleMove)]: 1 }
 		}
 
 		snapshots.push(snap)

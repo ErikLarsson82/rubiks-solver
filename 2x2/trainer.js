@@ -13,7 +13,7 @@
 	to view live graph visualizations as the network trains
 */
 
-let cube, net, trainer, file, dataCollection, lastEpochResults
+let cube, net, trainer, file, dataCollection, lastEpochResults, scrambles
 
 const {
 	createCube,
@@ -27,9 +27,9 @@ const {
 	back,
 	scrambleCube,
 	moveFuncs,
-	binary
+	binary,
+	randomAgent
 } = require('./common')
-const scrambles = require('./scrambles')
 const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
@@ -44,9 +44,11 @@ const LOG_INTERVAL = 1
 
 const HYPER = {
 	"EPOCHS": 1,
-	"MOVES": 1,
+	"MOVES": 2,
 	"NETS": 1,
+	"SCRAMBLE_SIZE": 100,
 	"TRAINING_OPTIONS": {
+		iterations: 50,
 		log: true,
 	  	logPeriod: 1,
 	},
@@ -55,6 +57,8 @@ const HYPER = {
 
 function initTrainer() {
 	
+	scrambles = new Array(HYPER["SCRAMBLE_SIZE"]).fill().map(() => [randomAgent(), randomAgent()])
+
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 	log('\n\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
@@ -92,7 +96,7 @@ function train() {
 			epochFitness: epochFitness
 		}
 
-		if (epochFitness.filter(x => x !== -1).length === scrambles.length) break;
+		if (epochFitness.filter(isSuccess).length === scrambles.length) break;
 	}
 
 	logResults()
@@ -183,7 +187,7 @@ function formatPolicyObj(obj, decimals) {
 }
 
 function isSuccess(x) {
-	return x.success !== -1
+	return x !== -1
 }
 
 function determineFitness() {
@@ -192,7 +196,7 @@ function determineFitness() {
 		return solveCube(scramble)
 	})
 
-	epochFitness.forEach(x => log(x !== -1 ? "✓" : "X"))
+	epochFitness.forEach((x,i) => log(isSuccess(x) ? "✓" : "X", scrambles[i]))
 
 	return epochFitness
 }
@@ -306,10 +310,6 @@ function logObj(obj) {
 	for (var i in obj) {
 		log(`${i}: ${obj[i]}`)
 	}
-}
-
-function randomAgent() {
-	return ["L", "R", "F", "B", "U", "D", "L'", "R'", "F'", "B'", "U'", "D'"][Math.floor(Math.random() * 12)]
 }
 
 initTrainer()

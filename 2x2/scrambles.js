@@ -9,7 +9,7 @@ const scrambles0 = [
 ]
 
 const scrambles1 = [
-	["F"],
+	["D'", "B"],
 ]
 
 const scrambles2 = [

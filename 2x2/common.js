@@ -494,6 +494,31 @@ function binary(cube) {
 	return cube.map(x=>x).sort(sorterPosition).flatMap(cornerToBinary)
 }
 
+function invertMove(move) {
+	return ({
+		"F'": "F",
+		"F": "F'",
+		"B'": "B",
+		"B": "B'",
+		"L'": "L",
+		"L": "L'",
+		"R'": "R",
+		"R": "R'",
+		"U'": "U",
+		"U": "U'",
+		"D'": "D",
+		"D": "D'",
+	})[move]
+}
+
+function invertSequence(seq) {
+	return seq.map(invertMove).reverse()
+}
+
+function randomAgent() {
+	return ["L", "R", "F", "B", "U", "D", "L'", "R'", "F'", "B'", "U'", "D'"][Math.floor(Math.random() * 12)]
+}
+
 if (typeof module !== "undefined" && module.exports) {
 	module.exports = {
 		createCube,
@@ -513,6 +538,9 @@ if (typeof module !== "undefined" && module.exports) {
 		compare,
 		binary,
 		scrambleCube,
-		moveFuncs
+		moveFuncs,
+		invertMove,
+		invertSequence,
+		randomAgent
 	}
 }
