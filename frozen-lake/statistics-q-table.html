@@ -6,16 +6,32 @@
 
   body {
     font-family: monospace;
+    background: #1b1919;
+    color: white;
+  }
+
+  h1 {
+    text-transform: uppercase;
+    color: #e1167c;
+  }
+
+  svg {
+    color: white;
+  }
+
+  text {
+    color: white;
   }
 
 	.axis {
 	  font: 10px sans-serif;
+    fill: white;
 	}
 
 	.axis path,
 	.axis line {
 	  fill: none;
-	  stroke: #000;
+	  stroke: white;
 	  shape-rendering: crispEdges;
 	}
 
@@ -23,10 +39,11 @@
 </head>
 
 <body>
-
-<h1>Frozen lake - solved with Q-Table</h1>
+<div style="display: flex; align-items: center;">
+    <img src="images/screenshot.png" style="padding: 10px; width: 80px;">
+    <h1>Frozen lake - solved with Q-Table</h1>
+  </div>
 <div id="svgContainer"></div>
-<img src="images/screenshot.png" style="position: absolute; left: 525px;">
 <h3 id="successRate"></h3>
 <div id="hyper"></div>
 
@@ -34,7 +51,7 @@
 
 <script>
 
-var margin = {top: 20, right: 20, bottom: 20, left: 40},
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
     width = 600 - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
 
@@ -100,16 +117,20 @@ if (jsonFilePath === null) {
         .call(xAxis)
       .selectAll("text")
         .style("text-anchor", "center")
-        .attr("dy", "2em")
+        .attr("fill", "#e1167c")
+        .attr("font-size", "15px")
+        .attr("dy", "1em")
 
     svg.append("g")
         .attr("class", "y axis")
         .call(yAxis)
       .append("text")
         .attr("y", 6)
-        .attr("dy", "-3.8em")
-        .attr("dx", "-10em")
+        .attr("dy", "-2.8em")
+        .attr("dx", "-15em")
         .style("text-anchor", "start")
+        .attr("fill", "#e1167c")
+        .attr("font-size", "13px")
         .text("Amount")
         .attr("transform", "rotate(-90)" );
 
@@ -117,7 +138,7 @@ if (jsonFilePath === null) {
     svg.selectAll("bar")
         .data(dataAggregate)
       .enter().append("rect")
-        .style("fill", "steelblue")
+        .style("fill", "#42e116")
         .attr("x", ({ type }) => x(type))
         .attr("width", x.rangeBand())
         .attr("y", ({ amount}) => y(amount))

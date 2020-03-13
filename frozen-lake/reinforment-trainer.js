@@ -36,22 +36,13 @@ HFFG
 const HYPER = {
 	"ITERATIONS": 100000,
 	"MOVES": 7,
-	"EXPLORATION_RATE": 0.01,
+	"EXPLORATION_RATE": 0.4,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
-	"NEUTRAL_RATE": -0.001,
-	"FAIL_RATE": -0.01,
-	"TRAINING_OPTIONS": {
-		errorThresh: 0.005,
-	    learningRate: 0.01,
-	    momentum: 0.1,
-	    callback: null,
-	    callbackPeriod: 10,
-	    timeout: 60000,
-	},
-	"BRAIN_CONFIG": {
-		binaryThresh: 0.5,
-	}
+	"NEUTRAL_RATE": null,
+	"FAIL_RATE": null,
+	"TRAINING_OPTIONS": {},
+	"BRAIN_CONFIG": {}
 }
 
 let agentIndex, net, trainer
@@ -105,7 +96,7 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 
 			if (fitnessThisRound.filter(isSuccess).length === startLocations.length) {
 				k = Infinity
-				console.log('Breaking prematurely because all starting points where solved')
+				log('Breaking prematurely because all starting points where solved')
 			}
 			renderHelptext(netTrainStats)
 
@@ -114,7 +105,7 @@ for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 
 }
 
-console.log(`Results logged to file: ${filename}`)
+log(`Results logged to file: ${filename}`)
 const jsonStr = JSON.stringify({ training: false, "max-fitness": startLocations.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() })
 fs.writeFileSync(trainingfile, jsonStr)
 fs.writeFileSync(filename, JSON.stringify({ training: false, "max-fitness": startLocations.length, filename: filename, fitnessSnapshots: fitnessSnapshots, "hyper-parameters": HYPER, net: net.toJSON() }))
@@ -139,7 +130,7 @@ function trainIteration() {
 		const result = resolveMove(move)
 
 		if (result.reward === 1) {
-			moveSet = moveSet.map((x, i) => ({ ...x, reward: 1 })) // halflife(i, moveSet.length)
+			moveSet = moveSet.map((x, i) => ({ ...x, reward: 1 }))
 		}
 
 		moveSet.push({ ...result, move: move, agentIndex: agentIdxBeforeMove, startIdx: startIdx })
@@ -164,9 +155,8 @@ function renderHelptext(result) {
 	const failures = fitnessSnapshots.flatMap(x => x.fitness).filter(isFailure).length
 	const total = fitnessSnapshots.flatMap(x => x.fitness).length
 	const successRate = 100 / (total / successes)
-	renderPrediction()
-
-	console.log(`
+	
+	log(`
 
 --- [ ITERATION COMPLETE ] ---
 Net training result: ${printResult(result)}
@@ -178,6 +168,8 @@ Successes: ${successes}
 Failures: ${failures}
 Success rate: ${successRate.toFixed(2)}%
 	`)
+
+	renderPrediction()
 
 }
 
@@ -282,7 +274,7 @@ function renderPrediction() {
 			o += startLocations.includes(target) ? brain.likely(agentIndexToBinary(row + j), net).substr(0, 1) + " " : "- "
 		}
 		o += "\n"
-		console.log(o)	
+		log(o)	
 	}
 }
 
