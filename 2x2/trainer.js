@@ -13,7 +13,7 @@
 	to view live graph visualizations as the network trains
 */
 
-let cube, net, trainer, file, dataCollection, lastEpochResults, scrambles
+let cube, net, trainer, file, dataCollection, lastEpochResults, scrambles, trainDuration, testDuration
 
 const {
 	createCube,
@@ -46,24 +46,25 @@ const HYPER = {
 	"EPOCHS": 1,
 	"MOVES": 2,
 	"NETS": 1,
-	"SCRAMBLE_SIZE": 100,
+	"SCRAMBLE_SIZE": 1000,
 	"TRAINING_OPTIONS": {
-		iterations: 50,
+		iterations: 100,
+		errorThresh: 0.005,
 		log: true,
-	  	logPeriod: 1,
+	  	logPeriod: 10,
 	},
 	"BRAIN_CONFIG": {}
 }
 
 function initTrainer() {
 	
-	scrambles = new Array(HYPER["SCRAMBLE_SIZE"]).fill().map(() => [randomAgent(), randomAgent()])
+	scrambles = R.uniq( new Array(HYPER["SCRAMBLE_SIZE"]).fill().map(() => [randomAgent(), randomAgent()]) )
 
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
-	log('\n\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
+	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
-	log('\n--- [ SETUP ] ---')
+	log('\n\n--- [ SETUP ] ---')
 
 	try {
 		const rawFile = fs.readFileSync(`${dir}/data-collection.json`)
@@ -73,6 +74,7 @@ function initTrainer() {
 		return
 	}
 
+	log('Creating new neural network')
 	net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
 
 	persist(createCube())
@@ -86,10 +88,16 @@ function train() {
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
 
-		log(`\n\n\nRunning brain.js train API`)
+		log(`Running brain.js train API`)
+		let start = new Date()
 		const trainingStats = net.train(dataCollection, HYPER["TRAINING_OPTIONS"])
+		trainDuration = seconds(new Date(), start)
 
+		log('\n\n--- [ TESTING SCRAMBLES ] ---')
+		start = new Date()
 		const epochFitness = determineFitness()
+		testDuration = seconds(new Date(), start)
+		log(`${ scrambles.length} tested`)
 		
 		lastEpochResults = {
 			trainingStats: trainingStats,
@@ -127,10 +135,17 @@ function assignRewards({ binarySnapshots, success }) {
 
 function logResults() {
 	log('\n--- [ FINAL RESULT BY PLAYING TEST-DATA ] ---')
-	log(`\nTraining Stats: ${lastEpochResults.trainingStats.error}`)
-	log("Last epoch fitness:")
-	lastEpochResults.epochFitness.forEach(x => log(x))
-	log(`Success rate: ${ ((lastEpochResults.epochFitness.filter(isSuccess).length / lastEpochResults.epochFitness.length ) * 100).toFixed(1)}%`)
+	log('Start date:', startDate)
+	log('Completion date:', new Date())
+	log('\nTraining duration:', trainDuration)
+	log('Testing duration:', testDuration)
+	log(`Network error: ${lastEpochResults.trainingStats.error}`)
+	const rate = ((lastEpochResults.epochFitness.filter(isSuccess).length / lastEpochResults.epochFitness.length ) * 100).toFixed(1)
+	log(`\nSuccess rate: ${ colors.bold(colors.cyan(rate)) }%`)
+}
+
+function seconds(dateA, dateB) {
+	return `${ Math.round((dateA.getTime() - dateB.getTime()) / 1000) } seconds`
 }
 
 function logEpochToFile(epoch, trainingStats, epochFitness) {
@@ -196,7 +211,7 @@ function determineFitness() {
 		return solveCube(scramble)
 	})
 
-	epochFitness.forEach((x,i) => log(isSuccess(x) ? "✓" : "X", scrambles[i]))
+	//epochFitness.forEach((x,i) => log(isSuccess(x) ? "✓" : "X", scrambles[i]))
 
 	return epochFitness
 }

@@ -32,7 +32,7 @@ const dir = 'training-data'
 const filename = 'data-collection.json'
 const filepath = `${dir}/${filename}`
 
-const ITERATIONS = 100
+const ITERATIONS = 1000
 const MOVES = 2
 
 function initCollector() {
@@ -63,7 +63,6 @@ function solve() {
 	for (var i = 0; i < MOVES; i++) {
 
 		const scrambleMove = randomAgent()
-		console.log("Scrambling move:", scrambleMove)
 		cube = moveFuncs[scrambleMove](cube)
 
 		const snap = {
