@@ -23,9 +23,6 @@ FFFH
 HFFG
 */
 
-
-//initiate hyper-parameters - random or arguments?
-
 for (var qTableTraining = 0; qTableTraining < HYPER.TABLES; qTableTraining++) {
 	resetGame()
 

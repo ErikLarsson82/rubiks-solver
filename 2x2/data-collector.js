@@ -32,8 +32,8 @@ const dir = 'training-data'
 const filename = 'data-collection.json'
 const filepath = `${dir}/${filename}`
 
-const ITERATIONS = 100
-const MOVES = 2
+const ITERATIONS = 20000
+const MOVES = 6
 
 function initCollector() {
 	const start = new Date()

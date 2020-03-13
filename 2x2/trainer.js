@@ -45,14 +45,14 @@ const LOG_INTERVAL = 1
 
 const HYPER = {
 	"EPOCHS": 1,
-	"MOVES": 2,
+	"MOVES": 6,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 1, //1000,
-		errorThresh: 0.3, //0.005,
+		iterations: 2000,
+		errorThresh: 0.005,
 		log: true,
-	  	logPeriod: 1,
-	  	timeout: 1000, //480000,
+	  	logPeriod: 200,
+	  	timeout: 900000,
 	},
 	"BRAIN_CONFIG": {}
 }

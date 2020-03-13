@@ -3,9 +3,8 @@
 
 	The tool outputs data into a folder it creates called 'training-data'
 
-	Run the tool with # node fr-neural-net-brainjs.js reset
-	The reset flag creates a brand new net for training
-
+	Run the tool with # node fr-neural-net-brainjs.js
+	
 	Fiddle with hyper parameters to find an optimal policy-finding policy (meta puns are tight)
 
 	Use any program to serve the folder as HTTP-server (like 'serve' in npmjs) and visit 'statistics-graph-deep-rl.html'
@@ -43,28 +42,15 @@ const HYPER = {
 	"NEUTRAL_RATE": -0.001,
 	"FAIL_RATE": -0.01,
 	"TRAINING_OPTIONS": {
-		//iterations: 10000, // the maximum times to iterate the training data --> number greater than 0
-	    errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
-	    //log: true, // true to use console.log, when a function is supplied it is used --> Either true or a function
-	    //logPeriod: 10000, // iterations between logging out --> number greater than 0
-	    learningRate: 0.01, // scales with delta to effect training rate --> number between 0 and 1
-	    momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
-	    callback: null, // a periodic call back that can be triggered while training --> null or function
-	    callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
-	    timeout: 60000, // the max number of milliseconds to train for --> number greater than 0
+		errorThresh: 0.005,
+	    learningRate: 0.01,
+	    momentum: 0.1,
+	    callback: null,
+	    callbackPeriod: 10,
+	    timeout: 60000,
 	},
 	"BRAIN_CONFIG": {
-		//inputSize: 20,
-		//inputRange: 20,
-		//hiddenLayers: [4],
-		//outputSize: 20,
-		//learningRate: 0.05,
-		//decayRate: 0.999,
-		//reinforce: true, // not used since not FeedForward
 		binaryThresh: 0.5,
-  		//hiddenLayers: [10, 4], // array of ints for the sizes of the hidden layers in the network
-  		//activation: 'relu', // supported activation types: ['sigmoid', 'relu', 'leaky-relu', 'tanh'],
-  		//leakyReluAlpha: 0.01, // supported for activation type 'leaky-relu'
 	}
 }
 
@@ -89,23 +75,18 @@ log(newNetworkNeeded ? '\n\nNew network created' : '\n\nReading file net.json')
 for (var deepNetTraining = 0; deepNetTraining < HYPER.NETS; deepNetTraining++) {
 	resetGame()
 
-	if (newNetworkNeeded) {
-		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
-		net.train([
-			{ 
-				input: agentIndexToBinary(0),
-				output: {
-					UP: 0.5,
-					DOWN: 0.5,
-					LEFT: 0.5,
-					RIGHT: 0.5
-				}
+	net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
+	net.train([
+		{ 
+			input: agentIndexToBinary(0),
+			output: {
+				UP: 0.5,
+				DOWN: 0.5,
+				LEFT: 0.5,
+				RIGHT: 0.5
 			}
-		], HYPER["TRAINING_OPTIONS"])
-	} else {
-		console.error('Reimplement this plz')
-		//net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJS(file.net)
-	}
+		}
+	], HYPER["TRAINING_OPTIONS"])
 
 	for (var k = 0; k < HYPER.ITERATIONS; k++) {
 		const netTrainStats = trainIteration()
