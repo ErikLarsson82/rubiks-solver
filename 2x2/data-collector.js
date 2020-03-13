@@ -32,10 +32,11 @@ const dir = 'training-data'
 const filename = 'data-collection.json'
 const filepath = `${dir}/${filename}`
 
-const ITERATIONS = 1000
-const MOVES = 3
+const ITERATIONS = 100
+const MOVES = 2
 
 function initCollector() {
+	const start = new Date()
 	console.log('Init collector')
 	snapshots = []
 
@@ -45,6 +46,8 @@ function initCollector() {
 
 	persistFile()
 
+	console.log('MOVES', MOVES)
+	console.log(`Duration ${ seconds(new Date(), start) }`) 
 	console.log('Collection complete', snapshots.length)
 }
 
@@ -79,6 +82,10 @@ function persistFile() {
 	const json = snapshots
 
 	fs.writeFileSync(filepath, JSON.stringify(json))
+}
+
+function seconds(dateA, dateB) {
+	return `${ Math.round((dateA.getTime() - dateB.getTime()) / 1000) } seconds`
 }
 
 initCollector()

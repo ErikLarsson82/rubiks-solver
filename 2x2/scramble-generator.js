@@ -1,7 +1,15 @@
 const fs = require('fs')
+const R = require('ramda')
+const { moves } = require('./common')
 
-const random = () => ["L", "R", "F", "B", "U", "D", "L'", "R'", "F'", "B'", "U'", "D'"][Math.floor(Math.random()*12)]
+const MOVES = process.argv[2] || 2;
 
-const newScramble = () => new Array(1+Math.floor(Math.random() * 2)).fill().map(random)
+const permutations = R.compose(R.sequence(R.of), R.flip(R.repeat));
 
-fs.writeFileSync('test.json', JSON.stringify(new Array(80).fill().map(newScramble)))
+console.log(`Creating non-distinct scramble set of maximum ${MOVES} moves`)
+
+const perms = permutations(MOVES, moves)
+
+const file = `training-data/moveset-${MOVES}.json`
+fs.writeFileSync(file, JSON.stringify(perms))
+console.log(`Saved ${perms.length} permutations to file training-data/moveset-${MOVES}.json`)

@@ -30,6 +30,8 @@ function createCube() {
 	]
 }
 
+const moves = ["U","U'","D","D'","L","L'","R","R'","F","F'","B","B'"]
+
 const positions = {
 	"R": [3,1,5,7],
 	"R'": [3,1,5,7].reverse(),
@@ -516,7 +518,7 @@ function invertSequence(seq) {
 }
 
 function randomAgent() {
-	return ["L", "R", "F", "B", "U", "D", "L'", "R'", "F'", "B'", "U'", "D'"][Math.floor(Math.random() * 12)]
+	return moves[Math.floor(Math.random() * 12)]
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -541,6 +543,7 @@ if (typeof module !== "undefined" && module.exports) {
 		moveFuncs,
 		invertMove,
 		invertSequence,
-		randomAgent
+		randomAgent,
+		moves
 	}
 }

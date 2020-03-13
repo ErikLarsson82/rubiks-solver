@@ -28,7 +28,8 @@ const {
 	scrambleCube,
 	moveFuncs,
 	binary,
-	randomAgent
+	randomAgent,
+	moves
 } = require('./common')
 const brain = require('../brain-browser.js')
 const fs = require('fs')
@@ -44,15 +45,14 @@ const LOG_INTERVAL = 1
 
 const HYPER = {
 	"EPOCHS": 1,
-	"MOVES": 3,
+	"MOVES": 2,
 	"NETS": 1,
-	"SCRAMBLE_SIZE": 100000,
 	"TRAINING_OPTIONS": {
-		iterations: 1000,
-		errorThresh: 0.005,
+		iterations: 1, //1000,
+		errorThresh: 0.3, //0.005,
 		log: true,
-	  	logPeriod: 10,
-	  	timeout: 480000,
+	  	logPeriod: 1,
+	  	timeout: 1000, //480000,
 	},
 	"BRAIN_CONFIG": {}
 }
@@ -64,9 +64,10 @@ function initTrainer() {
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
-	log(`Creating non-duplicate scramble set with max ${ HYPER.MOVES } moves`)
-	scrambles = R.uniq( new Array(HYPER["SCRAMBLE_SIZE"]).fill().map(() => new Array(HYPER.MOVES).fill().map(randomAgent)) )
-	log(`Done\n`)
+	log(`Loading non-distinct permutation set of scrambles using ${ HYPER.MOVES } moves`)
+	scrambles = loadScrambles(HYPER["MOVES"])
+	if (!scrambles) return
+	log(`${scrambles.length} scrambles loaded from file`)
 
 	try {
 		const rawFile = fs.readFileSync(`${dir}/data-collection.json`)
@@ -124,6 +125,16 @@ function solveCube(scramble) {
 	return compare(cube) ? i : -1
 }
 
+function loadScrambles() {
+	const file = `training-data/moveset-${HYPER.MOVES}.json`
+	try {
+		const rawFile = fs.readFileSync(file)
+		return JSON.parse(rawFile)
+	} catch(e) {
+		console.error(`Error loading file ${file}`, e)
+	}
+}
+
 function aggregateRewards(snaps) {
 	binarySnapshotsAggregate = binarySnapshotsAggregate.concat(snaps)
 
@@ -174,6 +185,8 @@ function positiveReward(obj) {
 		target["B"] > 0 ||
 		target["B'"] > 0
 }
+
+const permutations = R.compose(R.sequence(R.of), R.flip(R.repeat));
 
 function prettySnap(snap) {
 	return snap.input.join("") + "\n" + formatPolicyObj(snap.output, 2) + "\n"
