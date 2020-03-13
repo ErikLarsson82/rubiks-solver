@@ -44,31 +44,34 @@ const LOG_INTERVAL = 1
 
 const HYPER = {
 	"EPOCHS": 1,
-	"MOVES": 2,
+	"MOVES": 3,
 	"NETS": 1,
-	"SCRAMBLE_SIZE": 1000,
+	"SCRAMBLE_SIZE": 100000,
 	"TRAINING_OPTIONS": {
-		iterations: 100,
+		iterations: 1000,
 		errorThresh: 0.005,
 		log: true,
 	  	logPeriod: 10,
+	  	timeout: 480000,
 	},
 	"BRAIN_CONFIG": {}
 }
 
 function initTrainer() {
 	
-	scrambles = R.uniq( new Array(HYPER["SCRAMBLE_SIZE"]).fill().map(() => [randomAgent(), randomAgent()]) )
-
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
+	log(`Creating non-duplicate scramble set with max ${ HYPER.MOVES } moves`)
+	scrambles = R.uniq( new Array(HYPER["SCRAMBLE_SIZE"]).fill().map(() => new Array(HYPER.MOVES).fill().map(randomAgent)) )
+	log(`Done\n`)
 
 	try {
 		const rawFile = fs.readFileSync(`${dir}/data-collection.json`)
 		dataCollection = JSON.parse(rawFile)
+		log(`File data-collection read - binary samples:`, dataCollection.length)
 	} catch(e) {
 		console.error('Cannot read file data-collection.json')
 		return
