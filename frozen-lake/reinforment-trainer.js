@@ -17,7 +17,7 @@ const namespace = ['UP', 'DOWN', 'LEFT', 'RIGHT']
 const dir = 'training-data'
 
 const startDate = new Date()
-const LOGGING = false
+const LOGGING = true
 const LOG_INTERVAL = 1
 
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)

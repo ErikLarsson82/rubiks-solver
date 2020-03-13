@@ -1,7 +1,5 @@
 const SCRAMBLE_SELECTION = 1
 
-const moves = ["U", "U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
-
 const scrambles0 = [
 	["L"],
 	["R"],

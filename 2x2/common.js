@@ -29,8 +29,7 @@ function createCube() {
 		defs({ id: 7, position: 7, down: 'yellow', front: 'green', right: 'red' }),
 	]
 }
-
-const moves = ["U","U'","D","D'","L","L'","R","R'","F","F'","B","B'"]
+const moves = ["U", "U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
 
 const positions = {
 	"R": [3,1,5,7],
