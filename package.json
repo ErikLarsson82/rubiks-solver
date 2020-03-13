@@ -13,6 +13,7 @@
     "@tensorflow/tfjs-node": "^1.5.2",
     "@tweenjs/tween.js": "^18.5.0",
     "brain.js": "^2.0.0-alpha.12",
+    "colors": "^1.4.0",
     "convnetjs": "^0.3.0",
     "ramda": "^0.27.0",
     "synaptic": "^1.1.4",

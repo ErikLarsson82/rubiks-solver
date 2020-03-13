@@ -13,7 +13,7 @@
 	to view live graph visualizations as the network trains
 */
 
-let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate, file, lastEpochResults, firstEpochRandom
+let cube, net, trainer, newNetworkNeeded, fitnessSnapshots, resultAggregate, binarySnapshotsAggregate, file, lastEpochResults, explorationIndex
 
 const {
 	createCube,
@@ -37,31 +37,29 @@ const colors = require('colors')
 const dir = 'training-data'
 
 const startDate = new Date()
-const LOGGING = true
-const DEBUG_LOGGING = true
+const LOGGING = false
+const DEBUG_LOGGING = false
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
 const HYPER = {
-	"EPOCHS": 1000,
+	"EXPLORATION": 1000,
+	"EPOCHS": 0,
 	"AGGREGATE_TESTDATA": true,
-	"MOVES": 2,
-	"EXPLORATION_RATE": 1,
+	"MOVES": 20,
+	"EXPLORATION_RATE": 0.1,
 	"NETS": 1,
 	"SUCCESS_RATE": 1,
 	"OTHER_RATE": null,
 	"FAIL_RATE": null,
 	"TRAINING_OPTIONS": {
-		iterations: 50,
-		errorThresh: 0.3,
-		timeout: 60000,
-	  	log: true,
-	  	logPeriod: 1,
-	  	learingRate: 0.01,
-	  	decayRate: 0.2,
+		iterations: 100000,
+		errorThresh: 0.0002,
+		log: true,
+	  	logPeriod: 1000,
 	},
 	"BRAIN_CONFIG": {
-		hiddenLayers: [12],
+		hiddenLayers: [12]
 	}
 }
 
@@ -90,7 +88,6 @@ function initTrainer() {
 	if (newNetworkNeeded) {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
 		createTrainingFile()
-		firstEpochRandom = true
 	} else {
 		net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"]).fromJSON(file.net)
 		log('Loading network from file')
@@ -103,9 +100,26 @@ function initTrainer() {
 
 function train() {
 	
-	log('\n\n--- [ BEGIN TRAINING ] ---')
+	log('\n\n--- [ GATHERING EXPLORATION DATA ] ---')
 	
-	for (var i = 0; i < HYPER.EPOCHS; i++) {
+	for (var i = 0; i < HYPER.EXPLORATION; i++) {
+		console.log('Exploring', i)
+		explore()
+	}
+
+	console.log('Binary aggregate', `${binarySnapshotsAggregate.filter(positiveReward).length} / ${binarySnapshotsAggregate.length}`)
+
+	log('\n\n--- [ FIRST TRAINING CHUNK ] ---')
+	net.train(binarySnapshotsAggregate.filter(positiveReward), HYPER["TRAINING_OPTIONS"])
+
+	const epochFitness = determineFitness()
+	logEpochToFile(0, [], epochFitness)		
+
+	if (HYPER.EPOCHS === 0) return
+
+	log('\n\n--- [ BEGIN TRAINING ] ---')
+
+	for (var j = 0; j < HYPER.EPOCHS; j++) {
 
 		const trainingStats = trainEpoch()
 		const epochFitness = determineFitness()
@@ -121,19 +135,33 @@ function train() {
 			resultAggregate.push(epochResult)
 		}
 
-		if (firstEpochRandom && i === 0) {
-			firstEpochRandom = false
+		if (explorationIndex && j === 0) {
+			explorationIndex = false
 		}
 
 		if (epochFitness.filter(x => isSuccess(x)).length === scrambles.length) break;
 
-		logEpochToFile(i, trainingStats, epochFitness)		
+		logEpochToFile(j, trainingStats, epochFitness)		
 	}
 
-	writeLogFile('training', i, false)
-	writeLogFile(`${formatDate(new Date())}`, i, false)
+
+	writeLogFile('training', j, false)
+	writeLogFile(`${formatDate(new Date())}`, j, false)
 
 	logResults()
+}
+
+function explore() {
+	cube = createCube()
+
+	const experience = scrambles.map(scramble => {
+		cube = scrambleCube(scramble)
+		return solveCube(scramble, true, () => true)
+	})
+
+	const rewardedPolicyBinarySnapshots = experience.flatMap(assignRewards)
+	
+	aggregateRewards(rewardedPolicyBinarySnapshots)
 }
 
 function trainEpoch() {
@@ -143,7 +171,7 @@ function trainEpoch() {
 
 	const experience = scrambles.map(scramble => {
 		cube = scrambleCube(scramble)
-		return solveCube(scramble, true, true)
+		return solveCube(scramble, true, () => Math.random() < HYPER.EXPLORATION_RATE)
 	})
 
 	const rewardedPolicyBinarySnapshots = experience.flatMap(assignRewards)
@@ -152,10 +180,10 @@ function trainEpoch() {
 	
 	log(`\n\n\nRunning brain.js train API`)
 
-	return net.train(rewardedPolicyBinarySnapshots, HYPER["TRAINING_OPTIONS"])
+	return net.train(binarySnapshotsAggregate, HYPER["TRAINING_OPTIONS"])
 }
 
-function solveCube(scramble, collectMoveData, exploreEnabled) {
+function solveCube(scramble, collectMoveData, exploreFunc) {
 	const solution = []
 	const binarySnapshots = []
 	
@@ -163,17 +191,15 @@ function solveCube(scramble, collectMoveData, exploreEnabled) {
 
 	for (var i = 0; i < HYPER.MOVES; i++) {
 		const binaryCube = binary(cube)
-		const random = Math.random() < HYPER.EXPLORATION_RATE
-		const selectRandom = exploreEnabled && random
-		let policy, randomSelected
-		if (selectRandom || firstEpochRandom) {
+		let policy
+		if (exploreFunc()) {
 			policy = randomAgent()
 			exploration = true
 		} else {
 			policy = brain.likely(binaryCube, net)
 		}
 		
-		debugLog(scramble, 'Policy [[ -> ', policy, ' <- ]]', firstEpochRandom ? "no net" : formatPolicyObj(net.run(binaryCube), 4), exploration ? 'EXPLORATION' : '')
+		debugLog(scramble, 'Policy [[ -> ', policy, ' <- ]]', exploration ? 'EXPLORATION' : '') //formatPolicyObj(net.run(binaryCube), 4)
 		
 		solution.push(policy)
 
@@ -219,7 +245,7 @@ function logResults() {
 }
 
 function logEpochToFile(epoch, trainingStats, epochFitness) {
-	log('trainingStats', epoch, trainingStats, epochFitness)
+	console.log('trainingStats', epoch, trainingStats, epochFitness)
 
 	if (epoch % LOG_INTERVAL === 0) {
 		writeLogFile('training', epoch, true)
@@ -278,7 +304,7 @@ function isSuccess(x) {
 function determineFitness() {
 	const epochFitness = scrambles.map(scramble => {
 		cube = scrambleCube(scramble)
-		return solveCube(scramble, false, false)
+		return solveCube(scramble, false, () => false)
 	})
 
 	epochFitness.forEach(x => log(x.success !== -1 ? "✓" : "X", x.scramble.join(" "), " -> ", x.solution.join(" ")))
