@@ -6,8 +6,8 @@ const map = "SFFFFHFHFFFHHFFG".split('')
 
 const HYPER = {
 	"MOVES": 6,
-	"ITERATIONS": 500,
-	"TABLES": 10,
+	"ITERATIONS": 2000,
+	"TABLES": 1,
 	"EXPLORATION_RATE": 0.01,
 	"EXPLORATION_DROPOFF": 0,
 }
@@ -59,6 +59,9 @@ for (var qTableTraining = 0; qTableTraining < HYPER.TABLES; qTableTraining++) {
 		console.log(`Training net ${qTableTraining} - result: ${result}`)
 	
 	results.push({ moves: result, qTable: qTable })
+
+	console.log(qTable)
+	renderPrediction()
 }
 
 const dir = 'training-data'
@@ -109,6 +112,25 @@ function render() {
 	for (var i = 0; i < 4; i++) {
 		const row = 4 * i
 		console.log(`${playerOrTile(row + 0)}${playerOrTile(row + 1)}${playerOrTile(row + 2)}${playerOrTile(row + 3)}`)
+	}
+}
+
+function renderPrediction() {
+	for (var i = 0; i < 4; i++) {
+		const row = 4 * i
+		let o = ""
+		for (var j = 0; j < 4; j++) {
+			const target = row + j
+
+			const rows = R.splitEvery(4, qTable)
+			const options = rows[target]
+
+			const maxIdx = options.indexOf(Math.max(...options));
+
+			o += namespace[maxIdx] + " "
+		}
+		o += "\n"
+		console.log(o)	
 	}
 }
 
