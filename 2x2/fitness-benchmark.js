@@ -17,11 +17,14 @@ const {
 const fs = require('fs')
 const brain = require('../brain-browser.js')
 const colors = require('colors')
+const ProgressBar = require('progress')
+
 const MOVES = 200
 
-let testDuration, scrambles, net
+let testDuration, scrambles, net, bar
 
 function initFitness() {
+
 	console.log('\n\n--- [ LOADING NET ] ---')
 	net = new brain.NeuralNetwork().fromJSON(loadNet())
 	console.log('Done')
@@ -33,6 +36,8 @@ function initFitness() {
 		return
 	}
 	console.log(`${scrambles.length} scrambles loaded from file`)
+	
+	bar = new ProgressBar('Fitness [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 20 });
 
 	console.log('\n\n--- [ TESTING SCRAMBLES ] ---')
 	const start = new Date()
@@ -72,9 +77,13 @@ function logResults(fitness) {
 }
 
 function determineFitness() {
-	const fitness = scrambles.map(scramble => {
+	let success = 0
+	const fitness = scrambles.map((scramble, idx) => {
 		cube = scrambleCube(scramble)
-		return solveCube(scramble)
+		let r = solveCube(scramble)
+		if (r !== -1) success += 1
+		bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
+		return r
 	})
 
 	return fitness

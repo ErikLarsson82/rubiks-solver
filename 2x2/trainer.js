@@ -13,7 +13,7 @@
 	to view live graph visualizations as the network trains
 */
 
-let cube, net, trainer, file, experience, lastEpochResults, trainDuration, testDuration
+let cube, net, trainer, file, experience, lastEpochResults, trainDuration, testDuration, bar
 
 const {
 	createCube,
@@ -36,6 +36,7 @@ const fs = require('fs')
 const R = require('ramda')
 const colors = require('colors')
 const dir = 'training-data'
+const ProgressBar = require('progress')
 
 const startDate = new Date()
 const LOGGING = true
@@ -47,17 +48,23 @@ const HYPER = {
 	"EPOCHS": 1,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 10,
+		iterations: 200000,
 		errorThresh: 0.005,
-		log: true,
-	  	logPeriod: 1,
-	  	timeout: 1000 * 20,
+		timeout: 1000 * 60 * 60 * 2,
+		callback: callback,
+		callbackPeriod: 1,
+		learningRate: 0.4
 	},
 	"BRAIN_CONFIG": {}
 }
 
+function callback({ error }) {
+	bar.tick({'token1': error });
+}
+
 function initTrainer() {
-	
+	bar = new ProgressBar('Training network [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40 });
+
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
@@ -91,10 +98,10 @@ function train() {
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
 		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
-		console.log(`Training stats`, trainingStats)
+		console.log(`\n\nTraining stats`, trainingStats)
 	}
 	trainDuration = seconds(new Date(), start)
-	log(`Training complete in ${ trainDuration} seconds`)
+	log(`Training complete in ${trainDuration}`)
 
 	writeLogFile('training', j, false)
 }
