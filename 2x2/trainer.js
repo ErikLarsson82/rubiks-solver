@@ -49,11 +49,11 @@ const HYPER = {
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
 		iterations: 200000,
-		errorThresh: 0.005,
+		errorThresh: 0.0005,
 		timeout: 1000 * 60 * 60 * 2,
 		callback: callback,
 		callbackPeriod: 1,
-		learningRate: 0.4
+		learningRate: 0.05
 	},
 	"BRAIN_CONFIG": {}
 }
@@ -91,7 +91,7 @@ function initTrainer() {
 }
 
 function train() {
-	
+
 	log('\n\n--- [ BEGIN TRAINING ] ---')
 	log(`Running brain.js train API`)
 	let start = new Date()
