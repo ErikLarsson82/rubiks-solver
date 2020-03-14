@@ -13,7 +13,7 @@
 	to view live graph visualizations as the network trains
 */
 
-let cube, net, trainer, file, dataCollection, lastEpochResults, scrambles, trainDuration, testDuration
+let cube, net, trainer, file, experience, lastEpochResults, trainDuration, testDuration
 
 const {
 	createCube,
@@ -45,14 +45,13 @@ const LOG_INTERVAL = 1
 
 const HYPER = {
 	"EPOCHS": 1,
-	"MOVES": 6,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 2000,
+		iterations: 10,
 		errorThresh: 0.005,
 		log: true,
-	  	logPeriod: 200,
-	  	timeout: 900000,
+	  	logPeriod: 1,
+	  	timeout: 1000 * 20,
 	},
 	"BRAIN_CONFIG": {}
 }
@@ -64,17 +63,15 @@ function initTrainer() {
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
-	log(`Loading non-distinct permutation set of scrambles using ${ HYPER.MOVES } moves`)
-	scrambles = loadScrambles(HYPER["MOVES"])
-	if (!scrambles) return
-	log(`${scrambles.length} scrambles loaded from file`)
 
 	try {
-		const rawFile = fs.readFileSync(`${dir}/data-collection.json`)
-		dataCollection = JSON.parse(rawFile)
-		log(`File data-collection read - binary samples:`, dataCollection.length)
+		const rawFile = fs.readFileSync(`experience-data/experience-collection.json`)
+		const parsed = JSON.parse(rawFile)
+		experience = parsed.snapshots
+
+		log(`File experience-collection read - binary samples ${experience.length} - parameters`, parsed["experience-parameters"])
 	} catch(e) {
-		console.error('Cannot read file data-collection.json')
+		console.error('Cannot read file experience-collection.json')
 		return
 	}
 
@@ -89,50 +86,17 @@ function initTrainer() {
 function train() {
 	
 	log('\n\n--- [ BEGIN TRAINING ] ---')
+	log(`Running brain.js train API`)
+	let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
-
-		log(`Running brain.js train API`)
-		let start = new Date()
-		const trainingStats = net.train(dataCollection, HYPER["TRAINING_OPTIONS"])
-		trainDuration = seconds(new Date(), start)
-
-		log('\n\n--- [ TESTING SCRAMBLES ] ---')
-		start = new Date()
-		const epochFitness = determineFitness()
-		testDuration = seconds(new Date(), start)
-		log(`${ scrambles.length} tested`)
-		
-		lastEpochResults = {
-			trainingStats: trainingStats,
-			epochFitness: epochFitness
-		}
-
-		if (epochFitness.filter(isSuccess).length === scrambles.length) break;
+		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
+		console.log(`Training stats`, trainingStats)
 	}
+	trainDuration = seconds(new Date(), start)
+	log(`Training complete in ${ trainDuration} seconds`)
 
-	logResults()
-}
-
-function solveCube(scramble) {
-	for (var i = 0; i < HYPER.MOVES; i++) {
-		const binaryCube = binary(cube)
-		policy = brain.likely(binaryCube, net)
-		cube = moveFuncs[policy](cube)
-		if (compare(cube)) break;
-	}
-
-	return compare(cube) ? i : -1
-}
-
-function loadScrambles() {
-	const file = `training-data/moveset-${HYPER.MOVES}.json`
-	try {
-		const rawFile = fs.readFileSync(file)
-		return JSON.parse(rawFile)
-	} catch(e) {
-		console.error(`Error loading file ${file}`, e)
-	}
+	writeLogFile('training', j, false)
 }
 
 function aggregateRewards(snaps) {
@@ -145,17 +109,6 @@ function aggregateRewards(snaps) {
 
 function assignRewards({ binarySnapshots, success }) {
 	return binarySnapshots.map(x => brainJsFormat(success, x, 1))
-}
-
-function logResults() {
-	log('\n--- [ FINAL RESULT BY PLAYING TEST-DATA ] ---')
-	log('Start date:', startDate)
-	log('Completion date:', new Date())
-	log('\nTraining duration:', trainDuration)
-	log('Testing duration:', testDuration)
-	log(`Network error: ${lastEpochResults.trainingStats.error}`)
-	const rate = ((lastEpochResults.epochFitness.filter(isSuccess).length / lastEpochResults.epochFitness.length ) * 100).toFixed(1)
-	log(`\nSuccess rate: ${ colors.bold(colors.cyan(rate)) }%`)
 }
 
 function seconds(dateA, dateB) {
@@ -221,17 +174,6 @@ function isSuccess(x) {
 	return x !== -1
 }
 
-function determineFitness() {
-	const epochFitness = scrambles.map(scramble => {
-		cube = scrambleCube(scramble)
-		return solveCube(scramble)
-	})
-
-	//epochFitness.forEach((x,i) => log(isSuccess(x) ? "✓" : "X", scrambles[i]))
-
-	return epochFitness
-}
-
 function writeLogFile(file, epochs, isTraining) {
 	if (!WRITE_FILES) return
 
@@ -239,15 +181,11 @@ function writeLogFile(file, epochs, isTraining) {
 	log(`Writing file ${path} epoch ${epochs} - training: ${isTraining}`)
 
 	const json = {
-		training: isTraining,
-		"max-fitness": scrambles.length,
+		"training": isTraining,
 		"epochs": epochs,
-		file: file,
-		"fitness-snapshots": fitnessSnapshots,
-		"binary-snapshots": binarySnapshotsAggregate.flatMap(x=>x),
+		"file": file,
 		"hyper-parameters": HYPER,
-		"iterations": resultAggregate.filter(x=>x!==null).map(x => x.trainingStats.iterations).reduce((acc, curr) => acc + curr, 0),
-		net: net.toJSON()
+		"net": net.toJSON()
 	}
 
 	fs.writeFileSync(path, JSON.stringify(json))

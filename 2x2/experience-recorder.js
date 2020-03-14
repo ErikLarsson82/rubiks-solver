@@ -28,12 +28,17 @@ const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
 const colors = require('colors')
-const dir = 'training-data'
-const filename = 'data-collection.json'
-const filepath = `${dir}/${filename}`
+const dir = 'experience-data'
+const filename = process.argv[2] || 'experience-collection' 
+const filepath = `${dir}/${filename}.json`
 
-const ITERATIONS = 20000
-const MOVES = 6
+const MILLION = 1000000
+const THOUSAND = 1000
+
+const EXPERIENCE_PARAMETERS = {
+	6: 2, //3 * MILLION,
+	12: 2, //500 * THOUSAND
+}
 
 function initCollector() {
 	const start = new Date()
@@ -46,28 +51,32 @@ function initCollector() {
 
 	persistFile()
 
-	console.log('MOVES', MOVES)
 	console.log(`Duration ${ seconds(new Date(), start) }`) 
 	console.log('Collection complete', snapshots.length)
 }
 
 function collectData() {
 	console.log('Collect data')
-	for (var i = 0; i < ITERATIONS; i++) {
-		solve()
+	for (var key in EXPERIENCE_PARAMETERS) {
+		console.log(`Collecting ${EXPERIENCE_PARAMETERS[key]} iterations with ${key} depth`)
+		for (var i = 0; i < EXPERIENCE_PARAMETERS[key]; i++) {
+			solve(key)
+		}
 	}
 }
 
-function solve() {
+function solve(moves) {
 	let snaps = []
 
 	let cube = createCube()
 	
-	for (var i = 0; i < MOVES; i++) {
+	for (var i = 0; i < moves; i++) {
 
 		const scrambleMove = randomAgent()
 		cube = moveFuncs[scrambleMove](cube)
 
+		// TODO implement falloff function!
+		
 		const snap = {
 			input: binary(cube),
 			output: { [invertMove(scrambleMove)]: 1 }
@@ -79,7 +88,10 @@ function solve() {
 
 function persistFile() {
 	console.log('Persist file')
-	const json = snapshots
+	const json = {
+		"experience-parameters": EXPERIENCE_PARAMETERS,
+		"snapshots": snapshots
+	}
 
 	fs.writeFileSync(filepath, JSON.stringify(json))
 }
