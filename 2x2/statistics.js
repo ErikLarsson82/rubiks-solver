@@ -31,10 +31,26 @@ const jsonLineFilePath = 'training.json'
 const jsonFullPath = `training-data/${jsonLineFilePath}`
 d3.json(jsonFullPath).then(renderLineChart).catch(error)
 if (AUTO_UPDATE) {
-  setInterval(() => d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart).catch(timeout), 500)
+  const connection = new WebSocket('ws://localhost:8080')
+   
+  connection.onopen = () => {
+    connection.send('Message From Client - Initialized') 
+  }
+   
+  connection.onerror = (error) => {
+    console.log(`WebSocket error: ${error}`)
+  }
+   
+  connection.onmessage = (e) => {
+    console.log('Ping from server triggering new fetch')
+    d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart).catch(timeout)
+  }
 }
 
 function renderLineChart(_data) {
+
+  console.log(_data)
+  return
 
   if (RENDER_NETWORK) document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net, svgOptions)
 

@@ -37,6 +37,7 @@ const R = require('ramda')
 const colors = require('colors')
 const dir = 'training-data'
 const ProgressBar = require('progress')
+const fetch = require('node-fetch')
 
 const startDate = new Date()
 const LOGGING = true
@@ -44,16 +45,17 @@ const DEBUG_LOGGING = true
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
+const MINUTE = 1000 * 60
+
 const HYPER = {
-	"EPOCHS": 1,
+	"EPOCHS": 3,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 200000,
+		iterations: 2000,
 		errorThresh: 0.0005,
-		timeout: 1000 * 60 * 60 * 2,
+		timeout: MINUTE * 0.2,
 		callback: callback,
-		callbackPeriod: 1,
-		learningRate: 0.05
+		callbackPeriod: 1
 	},
 	"BRAIN_CONFIG": {}
 }
@@ -63,8 +65,16 @@ function callback({ error }) {
 }
 
 function initTrainer() {
-	bar = new ProgressBar('Training network [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40 });
+	
+	setInterval(() => {
+		fetch('http://localhost:8080/ping')
+		  .then(data => {
+		    console.log(data)
+		  })
+		  .catch(err => console.log(err))
+	}, 2000)
 
+	return
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
@@ -97,13 +107,19 @@ function train() {
 	let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
+		bar = new ProgressBar('Training network [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40 });
+		
 		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
-		console.log(`\n\nTraining stats`, trainingStats)
+		console.log(`Training stats`, trainingStats)
+		if (j !== HYPER.EPOCHS-1) writeLogFile('training', j, true)
+
+		log('')
 	}
 	trainDuration = seconds(new Date(), start)
-	log(`Training complete in ${trainDuration}`)
+	log(`Training complete in ${trainDuration}\n`)
 
 	writeLogFile('training', j, false)
+	writeLogFile(`${formatDate(new Date())}`, j, false)
 }
 
 function aggregateRewards(snaps) {

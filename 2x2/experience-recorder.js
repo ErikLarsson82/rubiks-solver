@@ -4,7 +4,7 @@
 	This data is written to a file and is ready for the neural network training process.
 */
 
-let file, snapshopts, bar
+let file, snapshopts, bar, scrambles
 
 const {
 	createCube,
@@ -33,24 +33,16 @@ const filename = process.argv[2] || 'experience-collection'
 const filepath = `${dir}/${filename}.json`
 const ProgressBar = require('progress')
 
-const MILLION = 1000000
-const THOUSAND = 1000
-
-const EXPERIENCE_PARAMETERS = {
-	6: 5 * THOUSAND,
-	12: 6 * THOUSAND
-}
+require('dotenv').config()
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || process.argv[2] || 12;
 
 function initCollector() {
-	let total = 0
-	for (var key in EXPERIENCE_PARAMETERS) {
-		total += EXPERIENCE_PARAMETERS[key]
-	}
-	bar = new ProgressBar('Experiences [:bar] :percent of :total :etas', { total: total, width: 20 });
-
 	const start = new Date()
 	console.log('Init collector')
 	snapshots = []
+	scrambles = loadScrambles()
+	
+	bar = new ProgressBar('Experiences [:bar] :percent of :total :etas', { total: scrambles.length, width: 40 });
 
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
@@ -62,27 +54,33 @@ function initCollector() {
 	console.log('Collection complete', snapshots.length)
 }
 
-function collectData() {
-	console.log('Collect data')
-	for (var key in EXPERIENCE_PARAMETERS) {
-		console.log(`Collecting ${EXPERIENCE_PARAMETERS[key]} iterations with ${key} depth`)
-	}
-	for (var key in EXPERIENCE_PARAMETERS) {
-		for (var i = 0; i < EXPERIENCE_PARAMETERS[key]; i++) {
-			solve(key)
-			bar.tick(1);
-		}
+
+function loadScrambles() {
+	const file = `scrambles/training-scrambles.json`
+	try {
+		const rawFile = fs.readFileSync(file)
+		return JSON.parse(rawFile)
+	} catch(e) {
+		console.error(`Error loading file ${file}`, e)
 	}
 }
 
-function solve(moves) {
+function collectData() {
+	console.log('Collect data')
+	scrambles.forEach(scramble => {
+		solve(scramble)
+		bar.tick(1)
+	})
+}
+
+function solve(scramble) {
 	let snaps = []
 
 	let cube = createCube()
 	
-	for (var i = 0; i < moves; i++) {
+	for (var i = 0; i < MOVES; i++) {
 
-		const scrambleMove = randomAgent()
+		const scrambleMove = scramble[i]
 		cube = moveFuncs[scrambleMove](cube)
 
 		const snap = {
@@ -102,7 +100,6 @@ function falloff(x) {
 function persistFile() {
 	console.log('Persist file')
 	const json = {
-		"experience-parameters": EXPERIENCE_PARAMETERS,
 		"snapshots": snapshots
 	}
 
