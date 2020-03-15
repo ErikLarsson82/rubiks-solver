@@ -20,15 +20,15 @@ const svgOptions = {
 }
 
 function isSuccess(x) {
-  return x.success !== -1
+  return x !== -1
 }
 
 function isFailure(x) {
   return !isSuccess(x)
 }
 
-const jsonLineFilePath = 'training.json'
-const jsonFullPath = `training-data/${jsonLineFilePath}`
+const jsonLineFilePath = 'fitness.json'
+const jsonFullPath = `fitness-logs/${jsonLineFilePath}`
 d3.json(jsonFullPath).then(renderLineChart).catch(error)
 if (AUTO_UPDATE) {
   const connection = new WebSocket('ws://localhost:8080')
@@ -43,20 +43,19 @@ if (AUTO_UPDATE) {
    
   connection.onmessage = (e) => {
     console.log('Ping from server triggering new fetch')
-    d3.json(`training-data/${jsonLineFilePath}`).then(renderLineChart).catch(timeout)
+    d3.json(jsonFullPath).then(renderLineChart).catch(timeout)
   }
 }
 
 function renderLineChart(_data) {
 
   console.log(_data)
-  return
 
   if (RENDER_NETWORK) document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net, svgOptions)
 
   svgLineChart.select(".chartGroup").remove()
 
-  const data = _data['fitness-snapshots'].map(x => ({ ...x, date: new Date(x.date)}))
+  const data = _data.dataset.map(x => ({ ...x, date: new Date(x.date)}))
 
   minDate = d3.min(data, d => d.date)
   maxDate = d3.max(data, d => d.date)
@@ -66,7 +65,7 @@ function renderLineChart(_data) {
       .range([0, width])
 
   var yScale = d3.scaleLinear()
-      .domain([0, _data['max-fitness']])
+      .domain([0, _data.dataset[0].fitness.length])
       .range([height, 0])
 
   var line = d3.line()
@@ -118,6 +117,8 @@ function renderLineChart(_data) {
     document.getElementById("status").innerHTML = `Status: ${_data.training ? `Training network${new Array(Math.floor(Math.random()*4)).fill(".").join("")}` : 'Training complete'}`
     document.getElementById("status").className = _data.training ? 'blink' : 'green'
 
+    return
+    
     const flatFitness = data.flatMap(x => x.fitness)
     const successes = flatFitness.filter(isSuccess).length
     const total = flatFitness.length

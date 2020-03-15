@@ -31,6 +31,7 @@ const {
 	randomAgent,
 	moves
 } = require('./common')
+const { logFitness } = require('./fitness-benchmark.js')
 const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
@@ -48,12 +49,12 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 3,
+	"EPOCHS": 10,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 2000,
-		errorThresh: 0.0005,
-		timeout: MINUTE * 0.2,
+		iterations: 1,
+		errorThresh: 0.005,
+		timeout: 1000 * 30,
 		callback: callback,
 		callbackPeriod: 1
 	},
@@ -66,15 +67,6 @@ function callback({ error }) {
 
 function initTrainer() {
 	
-	setInterval(() => {
-		fetch('http://localhost:8080/ping')
-		  .then(data => {
-		    console.log(data)
-		  })
-		  .catch(err => console.log(err))
-	}, 2000)
-
-	return
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
@@ -100,21 +92,31 @@ function initTrainer() {
 	train()
 }
 
-function train() {
+async function train() {
 
 	log('\n\n--- [ BEGIN TRAINING ] ---')
 	log(`Running brain.js train API`)
 	let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
-		bar = new ProgressBar('Training network [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40 });
-		
-		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
-		console.log(`Training stats`, trainingStats)
-		if (j !== HYPER.EPOCHS-1) writeLogFile('training', j, true)
+		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40 });
+		bar.tick({ token1: 'N/A'})
 
-		log('')
+		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
+		console.log(`\nTraining stats`, trainingStats)
+		
+		writeLogFile('training', j, true)
+
+		logFitness(j, true)
+		
+		log('Websocket ping')
+		await fetch('http://localhost:5000/ping')
+
+		log('\n')
 	}
+
+	logFitness(null, false)
+
 	trainDuration = seconds(new Date(), start)
 	log(`Training complete in ${trainDuration}\n`)
 
@@ -201,7 +203,7 @@ function writeLogFile(file, epochs, isTraining) {
 	if (!WRITE_FILES) return
 
 	const path = `${dir}/${file}.json`
-	log(`Writing file ${path} epoch ${epochs} - training: ${isTraining}`)
+	log(`Writing file ${path} epoch ${epochs} - training: ${isTraining}\n`)
 
 	const json = {
 		"training": isTraining,

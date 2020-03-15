@@ -20,11 +20,45 @@ const colors = require('colors')
 const ProgressBar = require('progress')
 
 require('dotenv').config()
-const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || process.argv[2] || 12;
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
 
 let testDuration, scrambles, net, bar
 
+let fitness = {
+	training: false,
+	dataset: []
+}
 let printFirst = true
+
+function logFitness(iteration, running) {
+	console.log('\n\nRunning fitness benchmark')
+	if (iteration !== null) {
+		
+		net = new brain.NeuralNetwork().fromJSON(loadNet())
+		
+		scrambles = loadScrambles('training-scrambles')
+
+		bar = new ProgressBar('Fitness              [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40 });
+
+		const f = determineFitness()
+
+		const rate = ((f.filter(isSuccess).length / f.length ) * 100).toFixed(1)
+		console.log(`\nSuccess rate: ${ colors.bold(colors.cyan(rate)) }%`)
+
+		const data = {
+			fitness: f,
+			iteration: iteration,
+			date: new Date()
+		}
+		fitness.dataset.push(data)
+	}
+	fitness.training = running
+
+	if (!fs.existsSync('fitness-logs')) fs.mkdirSync('fitness-logs')
+	const path = `fitness-logs/fitness.json`
+	console.log('Writing file', path, fitness.training)
+	fs.writeFileSync( path, JSON.stringify(fitness) )
+}
 
 function initFitness() {
 	console.log(`\n\n--- [ DETERMINE FITNESS ] ---`)
@@ -106,7 +140,7 @@ function determineFitness() {
 function seconds(dateA, dateB) {
 	return `${ Math.round((dateA.getTime() - dateB.getTime()) / 1000) } seconds`
 }
- 
+
 function solveCube(scramble) {
 	let solution = []
 	for (var i = 0; i < MOVES; i++) {
@@ -117,11 +151,13 @@ function solveCube(scramble) {
 		if (compare(cube)) break;
 	}
 
+	/*
 	if (printFirst && compare(cube)) {
 		printFirst = false
 		console.log('Scramble', scramble.map(primPrint))
 		console.log('Solution', solution.map(primPrint))
 	}
+	*/
 
 	return compare(cube) ? i : -1
 }
@@ -142,5 +178,13 @@ function isSuccess(x) {
 	return x !== -1
 }
 
+if (process.argv[2] === "run") {
+	initFitness()
+}
 
-initFitness()
+
+if (typeof module !== "undefined" && module.exports) {
+	module.exports = {
+		logFitness
+	}
+}

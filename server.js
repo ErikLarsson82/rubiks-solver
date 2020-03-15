@@ -25,6 +25,7 @@ wss.on('connection', ws => {
   ws.send('Hello! Message From Server!!')
 
   pinger = (req, res) => {
+    console.log('Ping API called - notifying all websocket connections')
     ws.send('Ping')
     return res.send('Received a POST HTTP method');
   }
