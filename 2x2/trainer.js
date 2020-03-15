@@ -49,10 +49,10 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 10,
+	"EPOCHS": 100,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 1,
+		iterations: 100,
 		errorThresh: 0.005,
 		timeout: 1000 * 30,
 		callback: callback,
@@ -94,13 +94,21 @@ function initTrainer() {
 
 async function train() {
 
+	// move this init
+	const path = `fitness-logs/fitness.json`
+	console.log('Writing file on startup', path)
+	fs.writeFileSync( path, JSON.stringify({ training: true, dataset: [] }) )
+
+	log('Websocket ping')
+	await fetch('http://localhost:5000/ping')
+
 	log('\n\n--- [ BEGIN TRAINING ] ---')
 	log(`Running brain.js train API`)
 	let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
 		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40 });
-		bar.tick({ token1: 'N/A'})
+		bar.tick({ token1: "N/A" })
 
 		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
 		console.log(`\nTraining stats`, trainingStats)

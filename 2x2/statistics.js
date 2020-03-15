@@ -65,12 +65,17 @@ function renderLineChart(_data) {
       .range([0, width])
 
   var yScale = d3.scaleLinear()
-      .domain([0, _data.dataset[0].fitness.length])
+      .domain([0, _data.dataset[0]["fitness-training-data"].length])
       .range([height, 0])
 
-  var line = d3.line()
+  var lineA = d3.line()
       .x(d => xScale(d.date))
-      .y(d => yScale(d.fitness.filter(isSuccess).length))
+      .y(d => yScale(d["fitness-training-data"].filter(isSuccess).length))
+      .curve(d3.curveMonotoneX)
+
+  var lineB = d3.line()
+      .x(d => xScale(d.date))
+      .y(d => yScale(d["fitness-novel-data"].filter(isSuccess).length))
       .curve(d3.curveMonotoneX)
 
   var xAxis = d3.axisBottom()
@@ -83,8 +88,12 @@ function renderLineChart(_data) {
     var chartGroup = svgLineChart.append("g").attr("class","chartGroup").attr("transform","translate("+xNudge+","+yNudge+")");
 
     chartGroup.append("path")
-      .attr("class","line")
-      .attr("d",function(d){ return line(data); })
+      .attr("class","line-novel")
+      .attr("d",function(d){ return lineA(data); })
+
+    chartGroup.append("path")
+      .attr("class","line-testdata")
+      .attr("d",function(d){ return lineB(data); })
 
     chartGroup.append("g")
       .attr("class","axis x")

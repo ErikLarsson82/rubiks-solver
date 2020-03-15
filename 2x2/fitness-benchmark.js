@@ -36,17 +36,29 @@ function logFitness(iteration, running) {
 		
 		net = new brain.NeuralNetwork().fromJSON(loadNet())
 		
+		// Training scrambles
 		scrambles = loadScrambles('training-scrambles')
 
-		bar = new ProgressBar('Fitness              [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40 });
+		bar = new ProgressBar('Fitness training     [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40 });
 
-		const f = determineFitness()
+		const fitA = determineFitness()
 
-		const rate = ((f.filter(isSuccess).length / f.length ) * 100).toFixed(1)
-		console.log(`\nSuccess rate: ${ colors.bold(colors.cyan(rate)) }%`)
+		const rateA = ((fitA.filter(isSuccess).length / fitA.length ) * 100).toFixed(1)
+		console.log(`Success rate: ${ colors.bold(colors.cyan(rateA)) }%\n`)
+
+		// Novel scrambles
+		scrambles = loadScrambles('novel-scrambles')
+
+		bar = new ProgressBar('Fitness novel        [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40 });
+
+		const fitB = determineFitness()
+
+		const rateB = ((fitB.filter(isSuccess).length / fitB.length ) * 100).toFixed(1)
+		console.log(`\nSuccess rate: ${ colors.bold(colors.cyan(rateB)) }%`)
 
 		const data = {
-			fitness: f,
+			"fitness-training-data": fitA,
+			"fitness-novel-data": fitB,
 			iteration: iteration,
 			date: new Date()
 		}
@@ -56,7 +68,7 @@ function logFitness(iteration, running) {
 
 	if (!fs.existsSync('fitness-logs')) fs.mkdirSync('fitness-logs')
 	const path = `fitness-logs/fitness.json`
-	console.log('Writing file', path, fitness.training)
+	console.log('\n\nWriting file', path, fitness.training)
 	fs.writeFileSync( path, JSON.stringify(fitness) )
 }
 
