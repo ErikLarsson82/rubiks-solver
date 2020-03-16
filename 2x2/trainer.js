@@ -52,9 +52,8 @@ const HYPER = {
 	"EPOCHS": 100,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 100,
-		errorThresh: 0.005,
-		timeout: 1000 * 30,
+		iterations: 20000,
+		errorThresh: 0.00005,
 		callback: callback,
 		callbackPeriod: 1
 	},
@@ -107,9 +106,11 @@ async function train() {
 	let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
-		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40 });
+		log(`Epoch ${j} of ${HYPER.EPOCHS}`)
+		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40, complete: '=', incomplete: ' ' });
 		bar.tick({ token1: "N/A" })
 
+		const ref = rand(experience.length/100)
 		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
 		console.log(`\nTraining stats`, trainingStats)
 		
@@ -130,6 +131,10 @@ async function train() {
 
 	writeLogFile('training', j, false)
 	writeLogFile(`${formatDate(new Date())}`, j, false)
+}
+
+function rand(input) {
+  return Math.floor(Math.random() * (input+1))
 }
 
 function aggregateRewards(snaps) {

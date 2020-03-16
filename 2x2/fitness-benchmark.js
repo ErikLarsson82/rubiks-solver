@@ -20,7 +20,9 @@ const colors = require('colors')
 const ProgressBar = require('progress')
 
 require('dotenv').config()
-const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
+const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 12;
+const FITNESS_TESTS = (process.env.FITNESS_TESTS && parseInt(process.env.FITNESS_TESTS));
+const NOVEL_TESTS = (process.env.NOVEL_TESTS && parseInt(process.env.NOVEL_TESTS));
 
 let testDuration, scrambles, net, bar
 
@@ -37,9 +39,9 @@ function logFitness(iteration, running) {
 		net = new brain.NeuralNetwork().fromJSON(loadNet())
 		
 		// Training scrambles
-		scrambles = loadScrambles('training-scrambles')
+		scrambles = loadScrambles('training-scrambles').slice(0, FITNESS_TESTS)
 
-		bar = new ProgressBar('Fitness training     [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40 });
+		bar = new ProgressBar('Fitness training     [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40, complete: '=', incomplete: ' ' });
 
 		const fitA = determineFitness()
 
@@ -47,14 +49,14 @@ function logFitness(iteration, running) {
 		console.log(`Success rate: ${ colors.bold(colors.cyan(rateA)) }%\n`)
 
 		// Novel scrambles
-		scrambles = loadScrambles('novel-scrambles')
+		scrambles = loadScrambles('novel-scrambles').slice(0, NOVEL_TESTS)
 
-		bar = new ProgressBar('Fitness novel        [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40 });
+		bar = new ProgressBar('Fitness novel        [:bar] :percent of :total :etas :token1', { total: scrambles.length, width: 40, complete: '=', incomplete: ' ' });
 
 		const fitB = determineFitness()
 
 		const rateB = ((fitB.filter(isSuccess).length / fitB.length ) * 100).toFixed(1)
-		console.log(`\nSuccess rate: ${ colors.bold(colors.cyan(rateB)) }%`)
+		console.log(`Success rate: ${ colors.bold(colors.cyan(rateB)) }%`)
 
 		const data = {
 			"fitness-training-data": fitA,
@@ -74,7 +76,7 @@ function logFitness(iteration, running) {
 
 function initFitness() {
 	console.log(`\n\n--- [ DETERMINE FITNESS ] ---`)
-	console.log('Moves', MOVES)
+	console.log('Attempts', ATTEMPTS)
 
 	persist(createCube())
 	console.log('\n\n--- [ LOADING NET ] ---')
@@ -155,7 +157,7 @@ function seconds(dateA, dateB) {
 
 function solveCube(scramble) {
 	let solution = []
-	for (var i = 0; i < MOVES; i++) {
+	for (var i = 0; i < ATTEMPTS; i++) {
 		const binaryCube = binary(cube)
 		policy = brain.likely(binaryCube, net)
 		solution.push(policy)
@@ -163,13 +165,11 @@ function solveCube(scramble) {
 		if (compare(cube)) break;
 	}
 
-	/*
 	if (printFirst && compare(cube)) {
 		printFirst = false
 		console.log('Scramble', scramble.map(primPrint))
 		console.log('Solution', solution.map(primPrint))
 	}
-	*/
 
 	return compare(cube) ? i : -1
 }

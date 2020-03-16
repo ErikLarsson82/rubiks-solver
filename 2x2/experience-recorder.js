@@ -42,7 +42,7 @@ function initCollector() {
 	snapshots = []
 	scrambles = loadScrambles()
 	
-	bar = new ProgressBar('Experiences [:bar] :percent of :total :etas', { total: scrambles.length, width: 40 });
+	bar = new ProgressBar('Experiences [:bar] :percent of :total :etas', { total: scrambles.length, width: 40, complete: '=', incomplete: ' ' });
 
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 
@@ -74,6 +74,7 @@ function collectData() {
 }
 
 function solve(scramble) {
+
 	let snaps = []
 
 	let cube = createCube()
