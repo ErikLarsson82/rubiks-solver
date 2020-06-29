@@ -49,7 +49,7 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 100,
+	"EPOCHS": 2,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
 		iterations: 20000,
@@ -67,6 +67,7 @@ function callback({ error }) {
 function initTrainer() {
 	
 	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
+	if (!fs.existsSync('fitness-logs')) fs.mkdirSync('fitness-logs')
 
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
@@ -99,7 +100,7 @@ async function train() {
 	fs.writeFileSync( path, JSON.stringify({ training: true, dataset: [] }) )
 
 	log('Websocket ping')
-	await fetch('http://localhost:5000/ping')
+	await fetch('http://localhost:8080/ping')
 
 	log('\n\n--- [ BEGIN TRAINING ] ---')
 	log(`Running brain.js train API`)
@@ -119,7 +120,7 @@ async function train() {
 		logFitness(j, true)
 		
 		log('Websocket ping')
-		await fetch('http://localhost:5000/ping')
+		await fetch('http://localhost:8080/ping')
 
 		log('\n')
 	}
