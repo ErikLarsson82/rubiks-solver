@@ -33,7 +33,7 @@ const filename = 'data-collection.json'
 const filepath = `${dir}/${filename}`
 
 const ITERATIONS = 20000
-const MOVES = 2
+const MOVES = 3
 
 function initCollector() {
 	const start = new Date()

@@ -16,3 +16,10 @@ Testing duration: 0 seconds
 Network error: 0.01227368968661159
 
 Success rate: 100.0%
+
+### Moves 3
+Training duration: 154 seconds
+Testing duration: 4 seconds
+Network error: 0.018221534235792786
+
+Success rate: 100.0%
