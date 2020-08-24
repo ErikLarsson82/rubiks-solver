@@ -45,10 +45,10 @@ const LOG_INTERVAL = 1
 
 const HYPER = {
 	"EPOCHS": 1,
-	"MOVES": 6,
+	"MOVES": 2,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 2000,
+		iterations: 1,
 		errorThresh: 0.005,
 		log: true,
 	  	logPeriod: 200,
