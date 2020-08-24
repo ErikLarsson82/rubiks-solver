@@ -23,3 +23,9 @@ Testing duration: 4 seconds
 Network error: 0.018221534235792786
 
 Success rate: 100.0%
+
+Extrapolate this linear data plz
+
+(16 - (m / 2)) = k 
+(16 - (-106)) = k 
+m = -212
