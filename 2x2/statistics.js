@@ -30,6 +30,7 @@ function isFailure(x) {
 const jsonLineFilePath = 'fitness.json'
 const jsonFullPath = `fitness-logs/${jsonLineFilePath}`
 d3.json(jsonFullPath).then(renderLineChart).catch(error)
+
 if (AUTO_UPDATE) {
   const connection = new WebSocket('ws://localhost:8080')
    
@@ -49,7 +50,7 @@ if (AUTO_UPDATE) {
 
 function renderLineChart(_data) {
 
-  console.log(_data)
+  if (_data.dataset.length === 0) return
 
   if (RENDER_NETWORK) document.getElementById('net-svg').innerHTML = brain.utilities.toSVG(_data.net, svgOptions)
 
