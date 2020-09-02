@@ -52,7 +52,7 @@ const HYPER = {
 	"EPOCHS": 10,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 100,
+		iterations: 10,
 		errorThresh: 0.00005,
 		callback: callback,
 		callbackPeriod: 1

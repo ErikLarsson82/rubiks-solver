@@ -6,7 +6,7 @@ const ProgressBar = require('progress')
 
 require('dotenv').config()
 const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || process.argv[2] || 12;
-const SCRAMBLES = (process.env.SCRAMBLES && parseInt(process.env.SCRAMBLES)) || process.argv[3] || 2;
+const SCRAMBLES = (process.env.SCRAMBLES && parseInt(process.env.SCRAMBLES)) || process.argv[3] || 1000;
 
 function generateScrambleSet() {
 	const bar = new ProgressBar('Scrambles [:bar] :percent of :total :etas', { total: SCRAMBLES, width: 40, complete: '=', incomplete: ' ' });
