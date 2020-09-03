@@ -55,10 +55,10 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 100,
+	"EPOCHS": 200,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 100,
+		iterations: 300,
 		errorThresh: 0.1,
 		callback: callback,
 		callbackPeriod: 1
