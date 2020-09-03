@@ -55,15 +55,17 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 200,
+	"EPOCHS": 5,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 300,
-		errorThresh: 0.1,
+		iterations: 1000,
+		errorThresh: 0.01,
 		callback: callback,
 		callbackPeriod: 1
 	},
-	"BRAIN_CONFIG": {}
+	"BRAIN_CONFIG": {
+		hiddenLayers: [400, 400]
+	}
 }
 
 function callback({ error }) {
