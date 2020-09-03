@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "train": "node 2x2/suite.js",
+    "start": "node server.js 12 run-trainer",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -1,3 +1,4 @@
+
 const {
 	createCube,
 	persist,
@@ -18,6 +19,7 @@ const fs = require('fs')
 const brain = require('../brain-browser.js')
 const colors = require('colors')
 const ProgressBar = require('progress')
+const rel = '2x2'
 
 require('dotenv').config()
 const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 12;
@@ -33,6 +35,8 @@ let fitness = {
 let printFirst = true
 
 function logFitness(iteration, running) {
+	console.log('\n\n ↪ --- \x1b[4m\x1b[32m2x2/\x1b[35mfitness-benchmark.js\x1b[0m ---')
+	
 	console.log('\n\nRunning fitness benchmark')
 	if (iteration !== null) {
 		
@@ -68,8 +72,8 @@ function logFitness(iteration, running) {
 	}
 	fitness.training = running
 
-	if (!fs.existsSync('fitness-logs')) fs.mkdirSync('fitness-logs')
-	const path = `fitness-logs/fitness.json`
+	if (!fs.existsSync(`${rel}/fitness-logs`)) fs.mkdirSync(`${rel}/fitness-logs`)
+	const path = `${rel}/fitness-logs/fitness.json`
 	console.log('\n\nWriting file', path, fitness.training)
 	fs.writeFileSync( path, JSON.stringify(fitness) )
 }
@@ -111,7 +115,7 @@ function testTarget(target) {
 }
 
 function loadNet() {
-	const file = `training-data/training.json`
+	const file = `${rel}/training-data/training.json`
 	try {
 		const rawFile = fs.readFileSync(file)
 		return JSON.parse(rawFile).net
@@ -121,7 +125,7 @@ function loadNet() {
 }
 
 function loadScrambles(target) {
-	const file = `scrambles/${target}.json`
+	const file = `${rel}/scrambles/${target}.json`
 	try {
 		const rawFile = fs.readFileSync(file)
 		return JSON.parse(rawFile)

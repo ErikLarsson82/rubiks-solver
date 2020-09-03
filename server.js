@@ -1,4 +1,7 @@
+console.log('\n\n --- \x1b[4m\x1b[35mserver.js\x1b[0m ---')
+
 require('dotenv').config()
+const ProgressBar = require('progress')
 const WS_PORT = (process.env.WS_PORT && parseInt(process.env.WS_PORT)) || 8080;
 const PORT = (process.env.PORT && parseInt(process.env.PORT)) || 5000;
 
@@ -31,10 +34,39 @@ wss.on('connection', ws => {
   }
 })
 
+app.get('/', function (req, res) {
+  res.redirect('./2x2/statistics.html')
+})
 
 app.use(express.static('./'))
 app.use('/2x2', express.static(path.join(__dirname, '2x2')))
 
 app.get('/ping', wrapper);
 
-app.listen(PORT, () => console.log(`Rubiks 2x2 server solution started at ${PORT}`))
+function callback() {
+  console.log(`Rubiks 2x2 server solution`)
+  console.log(`Websocket port  : ${WS_PORT}`)
+  console.log(`HTTP port       : ${PORT}`)
+
+  if (process.argv[3] === 'run-trainer') {
+    runTrainer()
+  } else {
+    console.log('No option to run training suite found - you need to run it manually')
+  }
+}
+
+app.listen(PORT, callback)
+
+function runTrainer() {
+  console.log('Running training suite')
+
+  // dirty hack to prevent progress bar rendering bug
+  /*var tty = require('tty').WriteStream.prototype;
+  Object.getOwnPropertyNames(tty).forEach(function (key) {
+    process.stderr[key] = tty[key];
+  })
+  process.stderr.columns = 80; // almost all terminals have at least 80 columns*/
+
+  // Start the suite
+  require('./2x2/suite.js')  
+}

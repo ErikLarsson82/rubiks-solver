@@ -1,4 +1,6 @@
 
+console.log('\n\n ↪ --- \x1b[4m\x1b[32m2x2/\x1b[35mtrainer.js\x1b[0m ---')
+
 /*
 	Training tool to solve a 2x2 Rubiks Cube - data model completely made up by me
 
@@ -36,7 +38,11 @@ const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
 const colors = require('colors')
-const dir = 'training-data'
+const rel = '2x2'
+const dir = `${rel}/`
+const dirData = `${rel}/training-data`
+const dirLogs = `${rel}/training-logs`
+const dirFitnessLogs = `${rel}/fitness-logs`
 const ProgressBar = require('progress')
 const fetch = require('node-fetch')
 
@@ -49,10 +55,10 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 10,
+	"EPOCHS": 1,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 10,
+		iterations: 1,
 		errorThresh: 0.00005,
 		callback: callback,
 		callbackPeriod: 1
@@ -66,15 +72,16 @@ function callback({ error }) {
 
 function initTrainer() {
 	
-	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
-	if (!fs.existsSync('fitness-logs')) fs.mkdirSync('fitness-logs')
+	if (!fs.existsSync(dirData)) fs.mkdirSync(dirData)
+	if (!fs.existsSync(dirLogs)) fs.mkdirSync(dirLogs)
+	if (!fs.existsSync(dirFitnessLogs)) fs.mkdirSync(dirFitnessLogs)
 
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
 
 	try {
-		const rawFile = fs.readFileSync(`experience-data/experience-collection.json`)
+		const rawFile = fs.readFileSync(`${rel}/experience-data/experience-collection.json`)
 		const parsed = JSON.parse(rawFile)
 		experience = parsed.snapshots
 
@@ -94,13 +101,12 @@ function initTrainer() {
 
 async function train() {
 
-	// move this init
-	const path = `fitness-logs/fitness.json`
-	console.log('Writing file on startup', path)
+	const path = `${dirFitnessLogs}/fitness.json`
+	console.log('Writing file on startup', path) // remove or replace with writeFile function?
 	fs.writeFileSync( path, JSON.stringify({ training: true, dataset: [] }) )
 
 	log('Websocket ping')
-	await fetch('http://localhost:8080/ping')
+	const result = await fetch('http://localhost:8080/ping')
 
 	log('\n\n--- [ BEGIN TRAINING ] ---')
 	log(`Running brain.js train API`)
@@ -115,7 +121,7 @@ async function train() {
 		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
 		console.log(`\nTraining stats`, trainingStats)
 		
-		writeLogFile('training', j, true)
+		writeFile(`${dirData}/training.json`, j, true)
 
 		logFitness(j, true)
 		
@@ -130,8 +136,38 @@ async function train() {
 	trainDuration = seconds(new Date(), start)
 	log(`Training complete in ${trainDuration}\n`)
 
-	writeLogFile('training', j, false)
-	writeLogFile(`${formatDate(new Date())}`, j, false)
+	writeFile(`${dirData}/training.json`, j, false)
+
+	writeFile(`${dirLogs}/${formatDate(new Date())}.json`, j, false)
+
+	killSwitch()
+}
+
+function killSwitch() {
+
+	console.log(' --- \x1b[32mDONE\x1b[0m --- ')
+	  	
+	const readline = require('readline');
+
+	// Allows us to listen for events from stdin
+	readline.emitKeypressEvents(process.stdin);
+
+	// Raw mode gets rid of standard keypress events and other
+	// functionality Node.js adds by default
+	process.stdin.setRawMode(true);
+
+	// Start the keypress listener for the process
+	process.stdin.on('keypress', (str, key) => {
+
+	    // "Raw" mode so we must do our own kill switch
+	    if(key.sequence === '\u0003') {
+	        process.exit();
+	    }
+
+	    console.log('Shutting down server...')
+	    process.exit(0)
+
+	});
 }
 
 function rand(input) {
@@ -158,7 +194,7 @@ function logEpochToFile(epoch, trainingStats, epochFitness) {
 	console.log('trainingStats', epoch, trainingStats, epochFitness)
 
 	if (epoch % LOG_INTERVAL === 0) {
-		writeLogFile('training', epoch, true)
+		writeFile(`${dirData}/training.json`, epoch, true)
 	}
 }
 
@@ -213,40 +249,20 @@ function isSuccess(x) {
 	return x !== -1
 }
 
-function writeLogFile(file, epochs, isTraining) {
+function writeFile(path, epochs, isTraining) {
 	if (!WRITE_FILES) return
 
-	const path = `${dir}/${file}.json`
 	log(`Writing file ${path} epoch ${epochs} - training: ${isTraining}\n`)
 
 	const json = {
 		"training": isTraining,
 		"epochs": epochs,
-		"file": file,
+		"file": path,
 		"hyper-parameters": HYPER,
 		"net": net.toJSON()
 	}
 
 	fs.writeFileSync(path, JSON.stringify(json))
-}
-
-function createTrainingFile() {
-	if (!WRITE_FILES) return
-
-	log('Create new training.json file')
-
-	const json = {
-		training: true,
-		"max-fitness": "-",
-		"epochs": "-",
-		"fitness-snapshots": [],
-		"binary-snapshots": [],
-		"hyper-parameters": HYPER,
-		"iterations": "-",
-		net: null
-	}
-
-	fs.writeFileSync(`${dir}/training.json`, JSON.stringify(json))
 }
 
 function brainJsFormat(success, snap, falloff) {

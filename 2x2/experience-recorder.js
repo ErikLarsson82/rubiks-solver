@@ -4,6 +4,9 @@
 	This data is written to a file and is ready for the neural network training process.
 */
 
+
+console.log('\n\n ↪ --- \x1b[4m\x1b[32m2x2/\x1b[35mexperience-recorder.js\x1b[0m ---')
+
 let file, snapshopts, bar, scrambles
 
 const {
@@ -28,13 +31,14 @@ const brain = require('../brain-browser.js')
 const fs = require('fs')
 const R = require('ramda')
 const colors = require('colors')
-const dir = 'experience-data'
-const filename = process.argv[2] || 'experience-collection' 
+const rel = '2x2' //remove to create relative paths
+const dir = `${rel}/experience-data`
+const filename = 'experience-collection' 
 const filepath = `${dir}/${filename}.json`
 const ProgressBar = require('progress')
 
 require('dotenv').config()
-const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || process.argv[2] || 12;
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
 
 function initCollector() {
 	const start = new Date()
@@ -56,7 +60,7 @@ function initCollector() {
 
 
 function loadScrambles() {
-	const file = `scrambles/training-scrambles.json`
+	const file = `${rel}/scrambles/training-scrambles.json`
 	try {
 		const rawFile = fs.readFileSync(file)
 		return JSON.parse(rawFile)
