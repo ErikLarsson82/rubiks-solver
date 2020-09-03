@@ -1,5 +1,5 @@
 
-console.log('\n\n ↪ --- \x1b[4m\x1b[32m2x2/\x1b[35mtrainer.js\x1b[0m ---')
+console.log('\n\n --- \x1b[4m\x1b[32m2x2/\x1b[35mtrainer.js\x1b[0m ---')
 
 /*
 	Training tool to solve a 2x2 Rubiks Cube - data model completely made up by me
@@ -55,11 +55,11 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 1,
+	"EPOCHS": 100,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 1,
-		errorThresh: 0.00005,
+		iterations: 100,
+		errorThresh: 0.1,
 		callback: callback,
 		callbackPeriod: 1
 	},
@@ -146,28 +146,7 @@ async function train() {
 function killSwitch() {
 
 	console.log(' --- \x1b[32mDONE\x1b[0m --- ')
-	  	
-	const readline = require('readline');
-
-	// Allows us to listen for events from stdin
-	readline.emitKeypressEvents(process.stdin);
-
-	// Raw mode gets rid of standard keypress events and other
-	// functionality Node.js adds by default
-	process.stdin.setRawMode(true);
-
-	// Start the keypress listener for the process
-	process.stdin.on('keypress', (str, key) => {
-
-	    // "Raw" mode so we must do our own kill switch
-	    if(key.sequence === '\u0003') {
-	        process.exit();
-	    }
-
-	    console.log('Shutting down server...')
-	    process.exit(0)
-
-	});
+	process.exit(0)
 }
 
 function rand(input) {

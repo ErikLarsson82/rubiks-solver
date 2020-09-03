@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "train": "node 2x2/suite.js",
+    "host": "node server.js",
     "start": "node server.js 12 run-trainer",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

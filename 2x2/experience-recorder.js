@@ -5,7 +5,7 @@
 */
 
 
-console.log('\n\n ↪ --- \x1b[4m\x1b[32m2x2/\x1b[35mexperience-recorder.js\x1b[0m ---')
+console.log('\n\n --- \x1b[4m\x1b[32m2x2/\x1b[35mexperience-recorder.js\x1b[0m ---')
 
 let file, snapshopts, bar, scrambles
 

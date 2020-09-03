@@ -1,4 +1,4 @@
-console.log('\n\n --- \x1b[4m\x1b[35mserver.js\x1b[0m ---')
+console.log('\n\n\x1b[4m\x1b[35mserver.js\x1b[0m')
 
 require('dotenv').config()
 const ProgressBar = require('progress')
@@ -61,11 +61,11 @@ function runTrainer() {
   console.log('Running training suite')
 
   // dirty hack to prevent progress bar rendering bug
-  /*var tty = require('tty').WriteStream.prototype;
+  var tty = require('tty').WriteStream.prototype;
   Object.getOwnPropertyNames(tty).forEach(function (key) {
     process.stderr[key] = tty[key];
   })
-  process.stderr.columns = 80; // almost all terminals have at least 80 columns*/
+  process.stderr.columns = 80; // almost all terminals have at least 80 columns
 
   // Start the suite
   require('./2x2/suite.js')  

@@ -35,7 +35,7 @@ let fitness = {
 let printFirst = true
 
 function logFitness(iteration, running) {
-	console.log('\n\n ↪ --- \x1b[4m\x1b[32m2x2/\x1b[35mfitness-benchmark.js\x1b[0m ---')
+	console.log('\n\n --- \x1b[4m\x1b[32m2x2/\x1b[35mfitness-benchmark.js\x1b[0m ---')
 	
 	console.log('\n\nRunning fitness benchmark')
 	if (iteration !== null) {

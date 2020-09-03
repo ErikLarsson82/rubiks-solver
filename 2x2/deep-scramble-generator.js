@@ -1,5 +1,5 @@
 
-console.log('\n\n ↪ --- \x1b[4m\x1b[32m2x2/\x1b[35mdeep-scramble-generator.js\x1b[0m ---')
+console.log('\n\n --- \x1b[4m\x1b[32m2x2/\x1b[35mdeep-scramble-generator.js\x1b[0m ---')
 
 const fs = require('fs')
 const R = require('ramda')
