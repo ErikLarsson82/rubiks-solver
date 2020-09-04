@@ -55,20 +55,20 @@ const LOG_INTERVAL = 1
 const MINUTE = 1000 * 60
 
 const HYPER = {
-	"EPOCHS": 5,
+	"EPOCHS": 1,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 1000,
-		errorThresh: 0.001,
+		iterations: 20000,
+		//errorThresh: 0.001,
 		callback: callback,
 		callbackPeriod: 1,
 
 	},
 	"BRAIN_CONFIG": {
-		hiddenLayers: [300, 200, 150, 100, 50, 30, 20, 20],
-		learningRate: 0.95,
-		momentum: 0.6,
-  		decayRate: 0.3,
+		hiddenLayers: [20],
+		//learningRate: 0.95,
+		//momentum: 0.6,
+  		//decayRate: 0.3,
 	}
 }
 
@@ -119,7 +119,7 @@ async function train() {
 	let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
-		log(`Epoch ${j} of ${HYPER.EPOCHS}`)
+		log(`Epoch ${j+1} of ${HYPER.EPOCHS}`)
 		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40, complete: '=', incomplete: ' ' });
 		bar.tick({ token1: "N/A" })
 

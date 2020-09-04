@@ -41,7 +41,7 @@ const filepath = `${dir}/${filename}.json`
 const ProgressBar = require('progress')
 
 require('dotenv').config()
-const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 3;
 
 function initCollector() {
 	const start = new Date()
@@ -103,7 +103,7 @@ function solve(scramble) {
 		const scrambleMove = scramble[i]
 		cube = moveFuncs[scrambleMove](cube)
 
-		if (stateAlreadySeen(cube)) {
+		/*if (stateAlreadySeen(cube)) {
 			
 			const snap = {
 				input: binary(cube),
@@ -131,20 +131,20 @@ function solve(scramble) {
 			cut++	
 
 			break;
-		} else {
+		} else {*/
 			//console.log('Looks clean boss, im adding it', scrambleMove, falloff(i))
 			
 			cubeStates.push([...cube])
 
 			const snap = {
 				input: binary(cube),
-				output: { [invertMove(scrambleMove)]: falloff(i) }
+				output: { [invertMove(scrambleMove)]: Math.random() }
 			}
 
 			snapshots.push(snap)	
 
 			full++
-		}		
+		//}		
 	}
 }
 
