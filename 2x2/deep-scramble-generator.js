@@ -8,7 +8,7 @@ const ProgressBar = require('progress')
 
 require('dotenv').config()
 const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
-const SCRAMBLES = (process.env.SCRAMBLES && parseInt(process.env.SCRAMBLES)) || 1000;
+const SCRAMBLES = (process.env.SCRAMBLES && parseInt(process.env.SCRAMBLES)) || 500;
 const rel = '2x2' //remove to create relative paths
 
 

@@ -22,7 +22,7 @@ const ProgressBar = require('progress')
 const rel = '2x2'
 
 require('dotenv').config()
-const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 100;
+const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 12;
 const FITNESS_TESTS = (process.env.FITNESS_TESTS && parseInt(process.env.FITNESS_TESTS));
 const NOVEL_TESTS = (process.env.NOVEL_TESTS && parseInt(process.env.NOVEL_TESTS));
 

@@ -7,7 +7,9 @@
 
 console.log('\n\n --- \x1b[4m\x1b[32m2x2/\x1b[35mexperience-recorder.js\x1b[0m ---')
 
-let file, snapshopts, bar, scrambles
+let file, snapshots, bar, scrambles
+
+let full = 0, cut = 0
 
 const {
 	createCube,
@@ -24,7 +26,8 @@ const {
 	binary,
 	invertMove,
 	invertSequence,
-	randomAgent
+	randomAgent,
+	isSame
 } = require('./common')
 
 const brain = require('../brain-browser.js')
@@ -75,25 +78,73 @@ function collectData() {
 		solve(scramble)
 		bar.tick(1)
 	})
+
+	console.log(`Full length: ${full} - Cut short: ${cut}`)
 }
 
+// @impure
 function solve(scramble) {
+	
+	const cubeStates = []
+
+	// @impure
+	function stateAlreadySeen(comparer) {
+		return cubeStates.filter(comparee => !isSame(comparer, comparee)).length < cubeStates.length
+	}
 
 	let snaps = []
 
 	let cube = createCube()
+
+	cubeStates.push(cube)
 	
 	for (var i = 0; i < MOVES; i++) {
 
 		const scrambleMove = scramble[i]
 		cube = moveFuncs[scrambleMove](cube)
 
-		const snap = {
-			input: binary(cube),
-			output: { [invertMove(scrambleMove)]: falloff(i) }
-		}
+		if (stateAlreadySeen(cube)) {
+			
+			const snap = {
+				input: binary(cube),
+				output: {
+					"U": 0.3 * falloff(i),
+					"U'": 0.3 * falloff(i),
+					"D": 0.3 * falloff(i),
+					"D'": 0.3 * falloff(i),
+					"L": 0.3 * falloff(i),
+					"L'": 0.3 * falloff(i),
+					"R": 0.3 * falloff(i),
+					"R'": 0.3 * falloff(i),
+					"F": 0.3 * falloff(i),
+					"F'": 0.3 * falloff(i),
+					"B": 0.3 * falloff(i),
+					"B'": 0.3 * falloff(i),
+					...{
+						[invertMove(scrambleMove)]: 0
+					}
+				}
+			}
 
-		snapshots.push(snap)
+			snapshots.push(snap)
+
+			cut++	
+
+			break;
+		} else {
+			//console.log('Looks clean boss, im adding it', scrambleMove, falloff(i))
+			
+			cubeStates.push([...cube])
+
+			const snap = {
+				input: binary(cube),
+				output: { [invertMove(scrambleMove)]: falloff(i) }
+			}
+
+			snapshots.push(snap)	
+
+			full++
+		}		
 	}
 }
 

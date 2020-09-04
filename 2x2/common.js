@@ -487,6 +487,10 @@ function compare(cube) {
 	return persistedBinaryStr === currentCube
 }
 
+function isSame(cubeA, cubeB) {
+	return binaryStr(cubeA) === binaryStr(cubeB)
+}
+
 function binaryStr(cube) {
 	return cube.map(x=>x).sort(sorterPosition).flatMap(cornerToBinary).join("")
 }
@@ -548,6 +552,7 @@ if (typeof module !== "undefined" && module.exports) {
 		invertSequence,
 		randomAgent,
 		moves,
-		scrambles
+		scrambles,
+		isSame
 	}
 }
