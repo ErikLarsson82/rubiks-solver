@@ -41,7 +41,7 @@ const filepath = `${dir}/${filename}.json`
 const ProgressBar = require('progress')
 
 require('dotenv').config()
-const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 3;
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 4;
 
 function initCollector() {
 	const start = new Date()
@@ -103,23 +103,23 @@ function solve(scramble) {
 		const scrambleMove = scramble[i]
 		cube = moveFuncs[scrambleMove](cube)
 
-		/*if (stateAlreadySeen(cube)) {
+		if (stateAlreadySeen(cube)) {
 			
 			const snap = {
 				input: binary(cube),
 				output: {
-					"U": 0.3 * falloff(i),
-					"U'": 0.3 * falloff(i),
-					"D": 0.3 * falloff(i),
-					"D'": 0.3 * falloff(i),
-					"L": 0.3 * falloff(i),
-					"L'": 0.3 * falloff(i),
-					"R": 0.3 * falloff(i),
-					"R'": 0.3 * falloff(i),
-					"F": 0.3 * falloff(i),
-					"F'": 0.3 * falloff(i),
-					"B": 0.3 * falloff(i),
-					"B'": 0.3 * falloff(i),
+					"U": falloff(i),
+					"U'": falloff(i),
+					"D": falloff(i),
+					"D'": falloff(i),
+					"L": falloff(i),
+					"L'": falloff(i),
+					"R": falloff(i),
+					"R'": falloff(i),
+					"F": falloff(i),
+					"F'": falloff(i),
+					"B": falloff(i),
+					"B'": falloff(i),
 					...{
 						[invertMove(scrambleMove)]: 0
 					}
@@ -131,20 +131,20 @@ function solve(scramble) {
 			cut++	
 
 			break;
-		} else {*/
+		} else {
 			//console.log('Looks clean boss, im adding it', scrambleMove, falloff(i))
 			
 			cubeStates.push([...cube])
 
 			const snap = {
 				input: binary(cube),
-				output: { [invertMove(scrambleMove)]: Math.random() }
+				output: { [invertMove(scrambleMove)]: falloff(i) }
 			}
 
 			snapshots.push(snap)	
 
 			full++
-		//}		
+		}		
 	}
 }
 
