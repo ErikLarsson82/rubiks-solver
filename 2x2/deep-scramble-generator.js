@@ -7,8 +7,8 @@ const { moves, randomAgent } = require('./common')
 const ProgressBar = require('progress')
 
 require('dotenv').config()
-const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 6;
-const SCRAMBLES = (process.env.SCRAMBLES && parseInt(process.env.SCRAMBLES)) || 5000;
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
+const SCRAMBLES = (process.env.SCRAMBLES && parseInt(process.env.SCRAMBLES)) || 10000;
 const rel = '2x2' //remove to create relative paths
 
 
