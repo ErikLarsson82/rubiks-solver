@@ -59,7 +59,7 @@ const HYPER = {
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
 		iterations: 20000,
-		//errorThresh: 0.001,
+		errorThresh: 0.0001,
 		callback: callback,
 		callbackPeriod: 1,
 
