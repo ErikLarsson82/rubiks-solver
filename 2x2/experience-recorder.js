@@ -41,7 +41,7 @@ const filepath = `${dir}/${filename}.json`
 const ProgressBar = require('progress')
 
 require('dotenv').config()
-const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 6;
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
 
 function initCollector() {
 	const start = new Date()
