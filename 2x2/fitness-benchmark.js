@@ -25,6 +25,8 @@ require('dotenv').config()
 const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 20;
 const FITNESS_TESTS = (process.env.FITNESS_TESTS && parseInt(process.env.FITNESS_TESTS));
 const NOVEL_TESTS = (process.env.NOVEL_TESTS && parseInt(process.env.NOVEL_TESTS));
+const PRINT_SOLUTION_LIST = true
+let printFirst = false
 
 let testDuration, scrambles, net, bar
 
@@ -32,7 +34,6 @@ let fitness = {
 	training: false,
 	dataset: []
 }
-let printFirst = true
 
 function logFitness(iteration, running) {
 	console.log('\n\n --- \x1b[4m\x1b[32m2x2/\x1b[35mfitness-benchmark.js\x1b[0m ---')
@@ -148,7 +149,8 @@ function determineFitness() {
 		cube = scrambleCube(scramble)
 		let r = solveCube(scramble)
 		if (r !== -1) success += 1
-		bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
+
+		!PRINT_SOLUTION_LIST && bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
 		return r
 	})
 
@@ -171,8 +173,13 @@ function solveCube(scramble) {
 
 	if (printFirst && compare(cube)) {
 		printFirst = false
+		console.log('First solution')
 		console.log('Scramble', scramble.map(primPrint))
-		console.log('Solution', solution.map(primPrint))
+		console.log('Solution', solution.map(primPrint), '\n')
+	}
+
+	if (PRINT_SOLUTION_LIST) {
+		console.log('Scramble', scramble.map(primPrint), 'Solution', solution.map(primPrint), compare(cube) ? '\x1b[42m\x1b[37mCORRECT\x1b[0m' : '\x1b[41m\x1b[37mINCORRECT\x1b[0m')	
 	}
 
 	return compare(cube) ? i : -1

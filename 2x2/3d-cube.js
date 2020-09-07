@@ -201,7 +201,7 @@ function rotateSide(move, speed = 700) {
 		cubits.filter(cubit => positions[move].includes(getPosition(cubit)))
 			.forEach(cubit => rotater.attach(cubit))
 
-		const direction = ["F", "R", "U", "B", "L'", "D"].includes(move) ? -1 : 1
+		const direction = ["F", "R", "U", "B'", "L'", "D'"].includes(move) ? -1 : 1
 		const rotation = { value: 0 }
 		const tween = new TWEEN.Tween(rotation)
 			.to({ value: Math.PI / 2 * direction }, speed)

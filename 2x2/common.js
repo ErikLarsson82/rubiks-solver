@@ -38,12 +38,12 @@ const positions = {
 	"L'": [0,2,6,4].reverse(),
 	"F": [2,3,7,6],
 	"F'": [2,3,7,6].reverse(),
-	"B": [1,0,4,5].reverse(),
-	"B'": [1,0,4,5],
+	"B": [1,0,4,5],
+	"B'": [1,0,4,5].reverse(),
 	"U": [0,1,3,2],
 	"U'": [0,1,3,2].reverse(),
-	"D": [4,6,7,5].reverse(),
-	"D'": [4,6,7,5]
+	"D": [4,6,7,5],
+	"D'": [4,6,7,5].reverse()
 }
 
 const moveFuncs = {
@@ -209,10 +209,10 @@ function back(cube) {
 		newCorner.front = corner.front
 		newCorner.back = corner.back
 
-		newCorner.down = corner.right
-		newCorner.up = corner.left
-		newCorner.left = corner.down
-		newCorner.right = corner.up
+		newCorner.down = corner.left
+		newCorner.up = corner.right
+		newCorner.left = corner.up
+		newCorner.right = corner.down
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions["B"], corner.position)
 
@@ -232,10 +232,10 @@ function backPrim(cube) {
 		newCorner.front = corner.front
 		newCorner.back = corner.back
 
-		newCorner.down = corner.left
-		newCorner.up = corner.right
-		newCorner.left = corner.up
-		newCorner.right = corner.down
+		newCorner.down = corner.right
+		newCorner.up = corner.left
+		newCorner.left = corner.down
+		newCorner.right = corner.up
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions["B'"], corner.position)
 
@@ -301,10 +301,10 @@ function down(cube) {
 		newCorner.up = corner.up
 		newCorner.down = corner.down
 
-		newCorner.front = corner.right
-		newCorner.left = corner.front
-		newCorner.back = corner.left
-		newCorner.right = corner.back
+		newCorner.front = corner.left
+		newCorner.left = corner.back
+		newCorner.back = corner.right
+		newCorner.right = corner.front
 
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions["D"], corner.position)
@@ -325,10 +325,10 @@ function downPrim(cube) {
 		newCorner.up = corner.up
 		newCorner.down = corner.down
 
-		newCorner.front = corner.left
-		newCorner.left = corner.back
-		newCorner.back = corner.right
-		newCorner.right = corner.front
+		newCorner.front = corner.right
+		newCorner.left = corner.front
+		newCorner.back = corner.left
+		newCorner.right = corner.back
 
 		newCorner.id = corner.id
 		newCorner.position = cycle(positions["D'"], corner.position)
