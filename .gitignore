@@ -6,3 +6,4 @@ fitness-logs
 scrambles
 old-data
 .env
+.DS_Store
