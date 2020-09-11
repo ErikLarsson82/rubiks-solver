@@ -105,6 +105,24 @@
 				margin: 0;
 			}
 
+			table {
+				color: white;
+			}
+
+			p {
+				color: white;
+				margin: 0;
+				padding: 0;
+			}
+
+			#scramble-info-box {
+				position: absolute;
+				left: 10px;
+				top: 70%;
+				border: 1px white solid;
+				width: 300px;
+			}
+
 		</style>
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap" rel="stylesheet">
@@ -113,13 +131,81 @@
 		<div class="label"><div id="help-text"></div></div>
 		<div id="label-dots" class="label-dots"></div>
 		<img id="logo" src="images/hiq-logo-negative.png">
-		<div class="record"><span class="label-record">Current record:</span><h2>2.1 million</h2></div>
-		<div class="logo-container">
-			<img class="logo" src="../logos/js.png">
-			<img class="logo" src="../logos/brain.png">
-			<img class="logo" src="../logos/es6.png">
-			<img class="logo" src="../logos/node.png">
-			<img class="logo" src="../logos/d3.png">
+		<div id="scramble-info-box">
+			<table style="width: 100%">
+				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
+				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
+				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
+				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
+				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
+				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
+			</table>
+		</div>
+		<div style="position: absolute; left: 10px; top: 10px; border: 1px white solid;">
+			<p>Scramble the cube using these keys</p>
+			<table>
+				<tr>
+					<td>Name</td><td>Annotation</td><td>Key</td>
+				</tr>
+				<tr>
+					<td>Front</td><td>F</td><td>F</td>
+				</tr>
+				<tr>
+					<td>Front Prime</td><td>F'</td><td>Shift+F</td>
+				</tr>
+				<tr>
+					<td>Back</td><td>B</td><td>B</td>
+				</tr>
+				<tr>
+					<td>Back Prime</td><td>B'</td><td>Shift+B</td>
+				</tr>
+				<tr>
+					<td>Left</td><td>L</td><td>L</td>
+				</tr>
+				<tr>
+					<td>Left Prime</td><td>L'</td><td>Shift+L</td>
+				</tr>
+				<tr>
+					<td>Right</td><td>R</td><td>R</td>
+				</tr>
+				<tr>
+					<td>Right Prime</td><td>R'</td><td>Shift+R</td>
+				</tr>
+				<tr>
+					<td>Up</td><td>U</td><td>U</td>
+				</tr>
+				<tr>
+					<td>Up Prime</td><td>U'</td><td>Shift+U</td>
+				</tr>
+				<tr>
+					<td>Down</td><td>D</td><td>D</td>
+				</tr>
+				<tr>
+					<td>Down Prime</td><td>D'</td><td>Shift+D</td>
+				</tr>
+			</table>
+		</div>
+		<div style="position: absolute; left: 50%; top: 70%;">
+			<button onClick="reset()">Reset</button>
+			<button onClick="reset()">AI Solve from current state</button>
+			<button onClick="reset()">Random showcase</button>
+		</div>
+		<div style="position: absolute; left: 50%; top: 75%;">
+			<button onClick="reset()">Cancel</button>
+			<button onClick="reset()">Speed</button>
+		</div>
+		<div style="position: absolute; left: 50%; top: 80%;">
+			<p>Failed</p>
+			<button onClick="reset()">Reset to same scramble</button>
+			<button onClick="reset()">Reset to Solved</button>
+		</div>
+		<div style="position: absolute; left: 50%; top: 85%;">
+			<p>Success</p>
+			<button onClick="reset()">Show solution again</button>
+			<button onClick="reset()">Done</button>
+		</div>
+		<div style="position: absolute; left: 50%; top: 90%;">
+			<button onClick="reset()">Abort showcase</button>
 		</div>
 		<script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>
 		<script src="../node_modules/three/build/three.min.js"></script>
