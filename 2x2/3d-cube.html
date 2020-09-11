@@ -23,7 +23,7 @@
 			}
 
 			.label-dots {
-				top: 30%;
+				top: 31%;
 				width: 100%;
 				position: absolute;
 				z-index: 100;
@@ -132,14 +132,7 @@
 		<div id="label-dots" class="label-dots"></div>
 		<img id="logo" src="images/hiq-logo-negative.png">
 		<div id="scramble-info-box">
-			<table style="width: 100%">
-				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
-				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
-				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
-				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
-				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
-				<tr><td>Scramble: F B' U</td><td>Solution: B U D'</td></tr>
-			</table>
+			
 		</div>
 		<div style="position: absolute; left: 10px; top: 10px; border: 1px white solid;">
 			<p>Scramble the cube using these keys</p>
@@ -185,14 +178,14 @@
 				</tr>
 			</table>
 		</div>
-		<div style="position: absolute; left: 50%; top: 70%;">
+		<div id="popup1" style="position: absolute; left: 50%; top: 70%;">
 			<button onClick="reset()">Reset</button>
-			<button onClick="reset()">AI Solve from current state</button>
-			<button onClick="reset()">Random showcase</button>
+			<button onClick="aiSolveFromCurrent()">AI Solve from current state</button>
+			<button onClick="randomShowcase()">Random showcase</button>
 		</div>
 		<div style="position: absolute; left: 50%; top: 75%;">
 			<button onClick="reset()">Cancel</button>
-			<button onClick="reset()">Speed</button>
+			<button onClick="SPEED_MODE = !SPEED_MODE">Speed</button>
 		</div>
 		<div style="position: absolute; left: 50%; top: 80%;">
 			<p>Failed</p>
@@ -204,7 +197,7 @@
 			<button onClick="reset()">Show solution again</button>
 			<button onClick="reset()">Done</button>
 		</div>
-		<div style="position: absolute; left: 50%; top: 90%;">
+		<div id="popup2" style="position: absolute; left: 50%; top: 90%;">
 			<button onClick="reset()">Abort showcase</button>
 		</div>
 		<script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>

@@ -1,11 +1,13 @@
 
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
-const AUTOPLAY_SOLVES = false
-const ATTEMPT_THRESHOLD = 4
+const ATTEMPT_THRESHOLD = 12
 const HIQ_COLORS = true
 const ROTATION_ENABLED = false
+const MOVES = 12
 
+let AUTOPLAY_SOLVES = false
+let SPEED_MODE = false
 
 var loader = new THREE.GLTFLoader();
 
@@ -50,7 +52,7 @@ const visualBlueprint = [
 function init() {
 	queue = []
 
-	animationScrambles = new Array(scrambles.length).fill('empty')
+	animationScrambles = []
 
 	selectedIndex = null
 
@@ -70,13 +72,17 @@ function init() {
 	renderCube()
 
 	if (AUTOPLAY_SOLVES) {
-		timer = 0
-		nextScrambleSequence = 0
-		setState('SCRAMBLE')
-		loadNet()
+		startShowcase()
 	} else {
 		animate()
 	}
+}
+
+function startShowcase() {
+	timer = 0
+	nextScrambleSequence = 0
+	setState('SCRAMBLE')
+	loadNet()
 }
 
 function loadNet() {
@@ -383,9 +389,9 @@ function setState(s) {
 		cube = createCube()
 		document.getElementById('help-text').innerHTML = "Scrambling"
     	document.getElementById('help-text').className = "label-text scrambling"
-    	queue = [...scrambles[nextScrambleSequence]]
-    	nextScrambleSequence++
-		if (nextScrambleSequence >= scrambles.length) nextScrambleSequence = 0
+    	queue = new Array(MOVES).fill().map(randomAgent)
+    	document.getElementById('scramble-info-box').innerHTML += "<p>" + queue + "</p>"
+    	animationScrambles.push('empty') 
 	}
 	if (s === 'SOLVING') {
 		attempts = 0
@@ -393,20 +399,20 @@ function setState(s) {
     	document.getElementById('help-text').className = "label-text solving"
 	}
 	if (s === 'FINISHED') {
-		timer = 120
-		animationScrambles[nextScrambleSequence] = 'check'
-		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} successful`
+		timer = SPEED_MODE ? 1 : 120
+		animationScrambles[animationScrambles.length-1] = 'check' 
+		document.getElementById('help-text').innerHTML = `Solve ${animationScrambles.length-1} successful`
     	document.getElementById('help-text').className = "label-text success"
 	}
 	if (s === 'FAILED') {
-		timer = 120
-		animationScrambles[nextScrambleSequence] = 'cross'
-		document.getElementById('help-text').innerHTML = `Solve ${nextScrambleSequence} failed...`
+		timer = SPEED_MODE ? 1 : 120
+		animationScrambles[animationScrambles.length-1] = 'cross' 
+		document.getElementById('help-text').innerHTML = `Solve ${animationScrambles.length-1} failed...`
     	document.getElementById('help-text').className = "label-text failed"
 	}
 	if (s === 'READY') {
-		timer = 200
-		document.getElementById('help-text').innerHTML = `Ready to solve ${nextScrambleSequence}`
+		timer = SPEED_MODE ? 1 : 200 
+		document.getElementById('help-text').innerHTML = `Ready to solve ${animationScrambles.length-1}`
     	document.getElementById('help-text').className = "label-text ready"
 	}
 	renderIcons()
@@ -422,7 +428,7 @@ function animateSolving() {
 		return
 	}
 	const policy = brain.likely(binary(cube), net)
-	rotateSide(policy, 1000)
+	rotateSide(policy, SPEED_MODE ? 35 : 1000)
 }
 
 function animateScramble() {
@@ -432,7 +438,7 @@ function animateScramble() {
 	}
 
 	const move = queue.shift()
-	rotateSide(move, 70)
+	rotateSide(move, SPEED_MODE ? 1 : 70)
 }
 
 function animateEnd() {
@@ -449,6 +455,24 @@ function animateReady() {
 	if (timer < 0) {
 		setState('SOLVING')
 	}
+}
+
+function randomShowcase() {
+	AUTOPLAY_SOLVES = true;
+	startShowcase();
+	hideAll();
+	document.getElementById('popup1').style.visibility = "visible";
+}
+
+function abortShowcase() {
+	AUTOPLAY_SOLVES = false;
+	hideAll();
+	document.getElementById('popup2').style.visibility = "visible";
+}
+
+function hideAll() {
+	document.getElementById('popup1').style.visibility = "hidden";	
+	document.getElementById('popup2').style.visibility = "hidden";	
 }
 
 init()
