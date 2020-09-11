@@ -34,7 +34,7 @@ const {
 	moves
 } = require('./common')
 const { logFitness } = require('./fitness-benchmark.js')
-const brain = require('../brain-browser.js')
+const brain = require('brain.js')
 const fs = require('fs')
 const R = require('ramda')
 const colors = require('colors')
@@ -53,16 +53,17 @@ const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
 const MINUTE = 1000 * 60
+const HOUR = MINUTE * 60
 
 const HYPER = {
 	"EPOCHS": 1,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
 		iterations: 20000,
-		errorThresh: 0.05,
+		errorThresh: 0.0005,
 		callback: callback,
 		callbackPeriod: 1,
-		timeout: (1000 * 60 * 60) * 12
+		timeout: MINUTE
 
 	},
 	"BRAIN_CONFIG": {
@@ -99,7 +100,7 @@ function initTrainer() {
 	}
 
 	log('Creating new neural network')
-	net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
+	net = new brain.NeuralNetworkGPU(HYPER["BRAIN_CONFIG"])
 
 	persist(createCube())
 
