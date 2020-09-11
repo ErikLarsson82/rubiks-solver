@@ -59,15 +59,15 @@ const HYPER = {
 	"EPOCHS": 1,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 20000,
-		errorThresh: 0.0005,
+		iterations: 200000,
+		errorThresh: 0.00005,
 		callback: callback,
 		callbackPeriod: 1,
-		timeout: MINUTE
+		timeout: HOUR * 72
 
 	},
 	"BRAIN_CONFIG": {
-		//hiddenLayers: [100],
+		hiddenLayers: [200, 200, 200],
 		//learningRate: 0.95,
 		//momentum: 0.6,
   		//decayRate: 0.3,
