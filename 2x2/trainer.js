@@ -67,7 +67,7 @@ const HYPER = {
 
 	},
 	"BRAIN_CONFIG": {
-		hiddenLayers: [200, 200, 200],
+		//hiddenLayers: [200, 200, 200],
 		//learningRate: 0.95,
 		//momentum: 0.6,
   		//decayRate: 0.3,
