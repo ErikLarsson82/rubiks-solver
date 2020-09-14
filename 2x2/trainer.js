@@ -63,14 +63,15 @@ const HYPER = {
 		errorThresh: 0.00005,
 		callback: callback,
 		callbackPeriod: 1,
-		timeout: HOUR * 72
+		timeout: MINUTE * 5
 
 	},
 	"BRAIN_CONFIG": {
-		//hiddenLayers: [200, 200, 200],
-		//learningRate: 0.95,
+		hiddenLayers: [20],
+		activation: 'relu',
+		learningRate: 0.95,
 		//momentum: 0.6,
-  		//decayRate: 0.3,
+  		decayRate: 0.3,
 	}
 }
 

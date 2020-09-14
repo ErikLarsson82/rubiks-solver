@@ -25,8 +25,8 @@ require('dotenv').config()
 const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 20;
 const FITNESS_TESTS = (process.env.FITNESS_TESTS && parseInt(process.env.FITNESS_TESTS));
 const NOVEL_TESTS = (process.env.NOVEL_TESTS && parseInt(process.env.NOVEL_TESTS));
-const PRINT_SOLUTION_LIST = true
-let printFirst = false
+const PRINT_SOLUTION_LIST = false
+let printFirst = true
 
 let testDuration, scrambles, net, bar
 
