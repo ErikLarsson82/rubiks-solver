@@ -7,10 +7,30 @@
 			body {
 				padding: 0;
 				margin: 0;
-				background-color: #d9e7e8;
+				background-color: #1b1a1a;
+				color: white;
+				font-family: 'Poppins', sans-serif;
 			}
 			canvas {
 				display: block;
+			}
+
+			h1 {
+				width: 100%;
+				color: pink;
+				font-size: 90px;
+				margin-top: 0px;
+				text-align: center;
+			}
+
+			h2 {
+				position: absolute;
+				color: white;
+				font-size: 30px;
+				top: 300px;
+				left: 50px;
+				width: 350px;
+				margin-top: 0px;
 			}
 
 			.label {
@@ -62,9 +82,9 @@
 			#logo {
 				position: absolute;
 				z-index: 100;
-				top: 50px;
-				right: 50px;
-				width: 200px;
+				top: 20px;
+				right: 20px;
+				width: 100px;
 			}
 
 			#help-text {
@@ -123,14 +143,34 @@
 				width: 300px;
 			}
 
+			#network-info {
+				position: absolute;
+				right: 50px;
+				top: 300px;
+				width: 250px;
+			}
+
 		</style>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap" rel="stylesheet">
 	</head>
 	<body>
-		<div class="label"><div id="help-text"></div></div>
-		<div id="label-dots" class="label-dots"></div>
+		<h1>Utmana Eriks AI</h1>
+		<h2>- Tryck på knapparna för att blanda kuben<br><span style="color: green;"> F, B, L, Shift+R osv...</span><br><br>- Tryck på RÖDA knappen för att låta min AI lösa kuben</h2>
 		<img id="logo" src="images/hiq-logo-negative.png">
+		<div id="network-info">
+			<img src="https://robohash.org/24.218.243.24.png" width="100px" /><br>
+			Name: Janne Joffert Mark-XI<br>
+			Network architecture: 400 inputs, 200 fully connected hidden layer, 12 outputs<br>
+			Training time: 12h<br>
+			Experience bank: 120 000<br>
+			Estimated solve percentage: 30%<br>
+			Library used: brain.js<br>
+			<img src="../logos/brain.PNG" width="50px" /><br>
+		</div>
+		<!--div class="label"><div id="help-text"></div></div>
+		<div id="label-dots" class="label-dots"></div>
 		<div id="scramble-info-box">
 			
 		</div>
@@ -199,7 +239,7 @@
 		</div>
 		<div id="popup2" style="position: absolute; left: 50%; top: 90%;">
 			<button onClick="reset()">Abort showcase</button>
-		</div>
+		</div-->
 		<script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>
 		<script src="../node_modules/three/build/three.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
