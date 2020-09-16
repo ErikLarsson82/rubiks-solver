@@ -7,3 +7,4 @@ scrambles
 old-data
 .env
 .DS_Store
+dist

@@ -1,0 +1,1 @@
+With the introduction of react, now first run npm run build to bundle react and the source code before running npm run host
