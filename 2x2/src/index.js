@@ -4,6 +4,7 @@ import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/sty
 import Button from '@material-ui/core/Button';
 import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
+import initCube from './cube';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,6 +37,8 @@ const App = () => {
     const [view, setView] = useState("Welcome")
     const [solves, setSolves] = useState([])
 
+    useEffect(() => initCube(), [])
+
     let content
     switch(view) {
         case "Welcome":
@@ -49,6 +52,9 @@ const App = () => {
             break;
         case "Solving":
             content = <Solving setView={setView} addSolve={ item => setSolves(solves.concat(item))} />
+            break;
+        case "Result":
+            content = <Result setView={setView} />
             break;
     }
 
@@ -64,7 +70,7 @@ const App = () => {
 
 const SolveList = ({ solves }) => (
     <div id="solve-list">
-        { solves.map(({ scramble, solve, correct }) => <span>Scramble: { scramble.join(', ') } - Solve: { solve.join(', ') } { correct ? "✅" : "❌" }</span>)}
+        { solves.map(({ scramble, solve, correct, key }) => <span key={key}>Scramble: { scramble.join(', ') } - Solve: { solve.join(', ') } { correct ? "✅" : "❌" }</span>)}
     </div>
 )
 
@@ -111,28 +117,32 @@ const PrepareToSolve = ({ setView }) => {
 
 const Solving = ({ setView, addSolve }) => {
 
-    const [show, setShow] = useState(false)
-
     useEffect(() => {
         setTimeout(() => {
-            if (show === false) {
-                setShow(true)
-                addSolve({ scramble: ["F", "U"], solve: ["U","B"], correct: true})
-            }
+            setView("Result")
+            const r = Math.random() < 0.5
+            addSolve({ scramble: ["F", "U"], solve: ["U","B"], correct: r, key: Math.random() })
         }, 3000)
-    }, [show])
+    })
 
     return (
-        <div>
-            <h1>Löser kuben... 🕒</h1>
-            {
-                show && (
-                    <React.Fragment>
-                        <Button variant="contained" color="primary" onClick={ delay(() => setView('Welcome')) }>Starta om</Button>
-                        <Button variant="contained" color="primary" onClick={ delay(() => setShow(false)) }>Spela upp igen</Button>
-                    </React.Fragment>
-                )
-            }
+        <h1>Löser kuben... 🕒</h1>
+    )
+
+}
+
+const Result = ({ setView }) => {
+
+    const classes = useStyles();
+
+    const result = Math.random() < 0.5
+
+    return (
+        <div className={classes.root}>
+            <h1>Resultat 📄</h1>
+            <h2 style={ { color: result ? 'green' : 'red' } }>{ result ? 'LYCKAD' : 'MISSLYCKAD' }</h2>
+            <Button variant="contained" color="primary" onClick={ delay(() => setView('Welcome')) }>Starta om</Button>
+            <Button style={ { marginTop: '40px' } } variant="contained" color="primary" onClick={ delay(() => setView('Solving')) }>Spela upp igen</Button>
         </div>
     )
 }

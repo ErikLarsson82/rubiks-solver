@@ -1,3 +1,30 @@
+const {
+	createCube,
+	right,
+	rightPrim,
+	left,
+	leftPrim,
+	up,
+	upPrim,
+	down,
+	downPrim,
+	front,
+	frontPrim,
+	back,
+	backPrim,
+	persist,
+	compare,
+	binaryStr,
+	scrambleCube,
+	moveFuncs,
+	invertMove,
+	invertSequence,
+	randomAgent,
+	moves,
+	scrambles,
+	isSame,
+	positions
+} = require('../common')
 
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
@@ -475,4 +502,4 @@ function hideAll() {
 	document.getElementById('popup2').style.visibility = "hidden";	
 }
 
-init()
+module.exports = init

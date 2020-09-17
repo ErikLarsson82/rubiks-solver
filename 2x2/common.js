@@ -545,7 +545,7 @@ if (typeof module !== "undefined" && module.exports) {
 		backPrim,
 		persist,
 		compare,
-		binary,
+		binaryStr,
 		scrambleCube,
 		moveFuncs,
 		invertMove,
@@ -553,6 +553,7 @@ if (typeof module !== "undefined" && module.exports) {
 		randomAgent,
 		moves,
 		scrambles,
-		isSame
+		isSame,
+		positions
 	}
 }
