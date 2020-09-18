@@ -33,7 +33,7 @@ const HIQ_COLORS = true
 const ROTATION_ENABLED = false
 const MOVES = 12
 
-let AUTOPLAY_SOLVES = false
+let AUTOPLAY_SOLVES = true
 let SPEED_MODE = false
 
 var loader = new THREE.GLTFLoader();
@@ -77,13 +77,14 @@ const visualBlueprint = [
 ]
 
 function init() {
+
 	queue = []
 
 	animationScrambles = []
 
 	selectedIndex = null
 
-	isAnimating = false
+	isAnimating = false 
 
 	cube = createCube()
 	originalCubeBinaryString = binaryStr(cube)
@@ -103,6 +104,7 @@ function init() {
 	} else {
 		animate()
 	}
+	
 }
 
 function startShowcase() {
@@ -113,8 +115,8 @@ function startShowcase() {
 }
 
 function loadNet() {
-	const dir = 'training-data'
-	const trainingfile = `${dir}/training.json`
+	const dir = 'brains'
+	const trainingfile = `${dir}/2020-08-05-00-35-25-i-think-this-is-30-percent.json`
 	d3.json(trainingfile).then(data => {
 		net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
 		animate()

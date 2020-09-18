@@ -40,6 +40,7 @@ app.get('/', function (req, res) {
 
 app.use(express.static('./'))
 app.use('/2x2', express.static(path.join(__dirname, '2x2')))
+app.use('/2x2/brains', express.static(path.join(__dirname, '2x2/brains')))
 
 app.get('/ping', wrapper);
 
