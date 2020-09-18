@@ -4,7 +4,9 @@ import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/sty
 import Button from '@material-ui/core/Button';
 import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
-import initCube from './cube';
+import { init as initCube, initKeypress, randomShowcase as startAISolve } from './cube';
+
+console.log(brain)
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,10 +53,10 @@ const App = () => {
             content = <PrepareToSolve setView={setView} />
             break;
         case "Solving":
-            content = <Solving setView={setView} addSolve={ item => setSolves(solves.concat(item))} />
+            content = <Solving setView={setView} addSolve={ item => setSolves(solves => solves.concat(item))} />
             break;
         case "Result":
-            content = <Result setView={setView} />
+            content = <Result setView={setView} solves={solves} />
             break;
     }
 
@@ -70,7 +72,7 @@ const App = () => {
 
 const SolveList = ({ solves }) => (
     <div id="solve-list">
-        { solves.map(({ scramble, solve, correct, key }) => <span key={key}>Scramble: { scramble.join(', ') } - Solve: { solve.join(', ') } { correct ? "✅" : "❌" }</span>)}
+        { solves.map(({ scramble = [], solve = [], correct, key = Math.random() }) => <span key={key}>Scramble: { scramble.join(', ') } - Solve: { solve.join(', ') } { correct ? "✅" : "❌" }</span>)}
     </div>
 )
 
@@ -86,6 +88,7 @@ const Welcome = ({ setView }) => {
 
 const ScrambleInstructions = ({ setView }) => {
     const classes = useStyles();
+    initKeypress()
     return (
         <div className={classes.root}>
             <h1>Blanda kuben 🍳</h1>
@@ -117,12 +120,10 @@ const PrepareToSolve = ({ setView }) => {
 
 const Solving = ({ setView, addSolve }) => {
 
-    useEffect(() => {
-        setTimeout(() => {
-            setView("Result")
-            const r = Math.random() < 0.5
-            addSolve({ scramble: ["F", "U"], solve: ["U","B"], correct: r, key: Math.random() })
-        }, 3000)
+    startAISolve(data => {
+        console.log(data)
+        setView("Result")
+        addSolve(data)
     })
 
     return (
@@ -131,16 +132,18 @@ const Solving = ({ setView, addSolve }) => {
 
 }
 
-const Result = ({ setView }) => {
+const Result = ({ setView, solves }) => {
 
     const classes = useStyles();
 
-    const result = Math.random() < 0.5
+    if (solves.length === 0) return null
 
+    const { correct } = solves[solves.length-1]
+    
     return (
         <div className={classes.root}>
             <h1>Resultat 📄</h1>
-            <h2 style={ { color: result ? 'green' : 'red' } }>{ result ? 'LYCKAD' : 'MISSLYCKAD' }</h2>
+            <h2 style={ { color: correct ? 'green' : 'red' } }>{ correct ? 'LYCKAD' : 'MISSLYCKAD' }</h2>
             <Button variant="contained" color="primary" onClick={ delay(() => setView('Welcome')) }>Starta om</Button>
             <Button style={ { marginTop: '40px' } } variant="contained" color="primary" onClick={ delay(() => setView('Solving')) }>Spela upp igen</Button>
         </div>

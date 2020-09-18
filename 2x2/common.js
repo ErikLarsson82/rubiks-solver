@@ -545,6 +545,7 @@ if (typeof module !== "undefined" && module.exports) {
 		backPrim,
 		persist,
 		compare,
+		binary,
 		binaryStr,
 		scrambleCube,
 		moveFuncs,

@@ -1,29 +1,30 @@
 const {
-	createCube,
-	right,
-	rightPrim,
-	left,
-	leftPrim,
-	up,
-	upPrim,
-	down,
-	downPrim,
-	front,
-	frontPrim,
-	back,
-	backPrim,
-	persist,
-	compare,
-	binaryStr,
-	scrambleCube,
-	moveFuncs,
-	invertMove,
-	invertSequence,
-	randomAgent,
-	moves,
-	scrambles,
-	isSame,
-	positions
+    createCube,
+    right,
+    rightPrim,
+    left,
+    leftPrim,
+    up,
+    upPrim,
+    down,
+    downPrim,
+    front,
+    frontPrim,
+    back,
+    backPrim,
+    persist,
+    compare,
+    binary,
+    binaryStr,
+    scrambleCube,
+    moveFuncs,
+    invertMove,
+    invertSequence,
+    randomAgent,
+    moves,
+    scrambles,
+    isSame,
+    positions
 } = require('../common')
 
 const ANIMATIONS_ENABLED = true
@@ -33,7 +34,7 @@ const HIQ_COLORS = true
 const ROTATION_ENABLED = false
 const MOVES = 12
 
-let AUTOPLAY_SOLVES = true
+let AUTOPLAY_SOLVES = false
 let SPEED_MODE = false
 
 var loader = new THREE.GLTFLoader();
@@ -47,7 +48,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
 
-let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles, selectedIndex
+let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles, selectedIndex, callback
 
 const rotate = [0,0]
 const speed = 0.04
@@ -56,212 +57,215 @@ const baseSize = 0.97
 const sideSize = 0.85
 
 const colorRef = {
-	EMPTY: new THREE.Color(0,0,0),
-	WHITE: new THREE.Color(1,1,1),
-	GREEN: new THREE.Color(0,1,0),
-	RED: HIQ_COLORS ? new THREE.Color(225/255,22/255,124/255) : new THREE.Color(1,0,0),
-	BLUE: HIQ_COLORS ? new THREE.Color(100/255,22/255,225/255) : new THREE.Color(0,0,1),
-	YELLOW: HIQ_COLORS ? new THREE.Color(0,0,0) : new THREE.Color(1,1,0),
-	ORANGE: new THREE.Color(1,0.5,0),
+    EMPTY: new THREE.Color(0,0,0),
+    WHITE: new THREE.Color(1,1,1),
+    GREEN: new THREE.Color(0,1,0),
+    RED: HIQ_COLORS ? new THREE.Color(225/255,22/255,124/255) : new THREE.Color(1,0,0),
+    BLUE: HIQ_COLORS ? new THREE.Color(100/255,22/255,225/255) : new THREE.Color(0,0,1),
+    YELLOW: HIQ_COLORS ? new THREE.Color(0,0,0) : new THREE.Color(1,1,0),
+    ORANGE: new THREE.Color(1,0.5,0),
 }
 
 const visualBlueprint = [
-	{ x: -0.5, y: 0.5, z: -0.5, color: new THREE.Color(1,1,0) },
-	{ x: 0.5, y: 0.5, z: -0.5, color: new THREE.Color(0,1,0) },
-	{ x: -0.5, y: 0.5, z: 0.5, color: new THREE.Color(1,0,0) },
-	{ x: 0.5, y: 0.5, z: 0.5, color: new THREE.Color(0,0,1) },
-	{ x: -0.5, y: -0.5, z: -0.5, color: new THREE.Color(1,0.5,0) },
-	{ x: 0.5, y: -0.5, z: -0.5, color: new THREE.Color(1,1,1) },
-	{ x: -0.5, y: -0.5, z: 0.5, color: new THREE.Color(0.5,0.5,0) },
-	{ x: 0.5, y: -0.5, z: 0.5, color: new THREE.Color(0.5,0.5,0.5) }
+    { x: -0.5, y: 0.5, z: -0.5, color: new THREE.Color(1,1,0) },
+    { x: 0.5, y: 0.5, z: -0.5, color: new THREE.Color(0,1,0) },
+    { x: -0.5, y: 0.5, z: 0.5, color: new THREE.Color(1,0,0) },
+    { x: 0.5, y: 0.5, z: 0.5, color: new THREE.Color(0,0,1) },
+    { x: -0.5, y: -0.5, z: -0.5, color: new THREE.Color(1,0.5,0) },
+    { x: 0.5, y: -0.5, z: -0.5, color: new THREE.Color(1,1,1) },
+    { x: -0.5, y: -0.5, z: 0.5, color: new THREE.Color(0.5,0.5,0) },
+    { x: 0.5, y: -0.5, z: 0.5, color: new THREE.Color(0.5,0.5,0.5) }
 ]
 
 function init() {
 
-	queue = []
+    userQueue = []
 
-	animationScrambles = []
+    queue = []
+    animationScrambles = []
 
-	selectedIndex = null
+    selectedIndex = null
 
-	isAnimating = false 
+    isAnimating = false 
 
-	cube = createCube()
-	originalCubeBinaryString = binaryStr(cube)
+    cube = createCube()
+    originalCubeBinaryString = binaryStr(cube)
 
-	cubeContainer = new THREE.Object3D()
-	scene.add(cubeContainer)
+    cubeContainer = new THREE.Object3D()
+    scene.add(cubeContainer)
 
-	cubeContainer.rotation.x = 0.51
-	cubeContainer.rotation.y = -0.63
+    cubeContainer.rotation.x = 0.51
+    cubeContainer.rotation.y = -0.63
 
-	createScene()
+    createScene()
 
-	renderCube()
+    renderCube()
 
-	if (AUTOPLAY_SOLVES) {
-		startShowcase()
-	} else {
-		animate()
-	}
-	
+    if (AUTOPLAY_SOLVES) {
+        startShowcase()
+    } else {
+        animate()
+    }
+    
 }
 
 function startShowcase() {
-	timer = 0
-	nextScrambleSequence = 0
-	setState('SCRAMBLE')
-	loadNet()
+    timer = 0
+    nextScrambleSequence = 0
+    return loadNet().then(() => {
+        setState('SOLVING')
+    })
 }
 
 function loadNet() {
-	const dir = 'brains'
-	const trainingfile = `${dir}/2020-08-05-00-35-25-i-think-this-is-30-percent.json`
-	d3.json(trainingfile).then(data => {
-		net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
-		animate()
-	})
+    const dir = 'brains'
+    const trainingfile = `${dir}/2020-08-05-00-35-25-i-think-this-is-30-percent.json`
+    return d3.json(trainingfile).then(data => {
+        console.log('async callback')
+        net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
+        animate()
+    })
 
 }
 
 function createScene() {
-	if (!RENDER_SCENE) return
+    if (!RENDER_SCENE) return
 
-	var light = new THREE.PointLight( 0xff0000, 1, 100 );
-	light.position.set( 0, 10, 10 );
-	scene.add( light );
+    var light = new THREE.PointLight( 0xff0000, 1, 100 );
+    light.position.set( 0, 10, 10 );
+    scene.add( light );
 
-	loader.load( 'blender/test.glb', function ( gltf ) {
+    loader.load( 'blender/test.glb', function ( gltf ) {
 
-		gltf.scene.position.x = 1
+        gltf.scene.position.x = 1
 
-		gltf.scene.rotation.x = 0.51
-		gltf.scene.rotation.y = -0.63
+        gltf.scene.rotation.x = 0.51
+        gltf.scene.rotation.y = -0.63
 
-		scene.add( gltf.scene );
+        scene.add( gltf.scene );
 
-	}, undefined, function ( error ) {
+    }, undefined, function ( error ) {
 
-		console.error( error );
+        console.error( error );
 
-	} );
+    } );
 
 }
 
 function renderCube() {
-	removeChildren(cubeContainer)
+    removeChildren(cubeContainer)
 
-	rotater = new THREE.Object3D()
-	cubeContainer.add(rotater)
+    rotater = new THREE.Object3D()
+    cubeContainer.add(rotater)
 
-	cubits = cube.map(createCubit)
-	cubits.forEach(cubit => cubeContainer.add(cubit))
+    cubits = cube.map(createCubit)
+    cubits.forEach(cubit => cubeContainer.add(cubit))
 }
 
 function removeChildren(container) {
-	while (container.children.length)
-	{
-	    container.remove(container.children[0]);
-	}
+    while (container.children.length)
+    {
+        container.remove(container.children[0]);
+    }
 }
 
 function createCubit({ id, position, up, down, front, back, right, left }) {
-	const { color, x, y, z } = visualBlueprint[position]
-	const container = new THREE.Object3D()
-	container.customId = id
+    const { color, x, y, z } = visualBlueprint[position]
+    const container = new THREE.Object3D()
+    container.customId = id
 
-	const geometry = new THREE.BoxGeometry(baseSize, baseSize, baseSize)
-	const material = new THREE.MeshBasicMaterial( { color: new THREE.Color(0.2, 0.2, 0.2) } );
-	const cubitBase = new THREE.Mesh( geometry, material );
-	cubitBase.position.x = x
-	cubitBase.position.y = y
-	cubitBase.position.z = z
-	container.add(cubitBase)
+    const geometry = new THREE.BoxGeometry(baseSize, baseSize, baseSize)
+    const material = new THREE.MeshBasicMaterial( { color: new THREE.Color(0.2, 0.2, 0.2) } );
+    const cubitBase = new THREE.Mesh( geometry, material );
+    cubitBase.position.x = x
+    cubitBase.position.y = y
+    cubitBase.position.z = z
+    container.add(cubitBase)
 
-	const sides = [
-		{ dir: 'up', color: up },
-		{ dir: 'down', color: down },
-		{ dir: 'front', color: front },
-		{ dir: 'back', color: back },
-		{ dir: 'right', color: right },
-		{ dir: 'left', color: left }
-	]
+    const sides = [
+        { dir: 'up', color: up },
+        { dir: 'down', color: down },
+        { dir: 'front', color: front },
+        { dir: 'back', color: back },
+        { dir: 'right', color: right },
+        { dir: 'left', color: left }
+    ]
 
-	const faces = sides.map(side => createFace(side, x, y, z)).filter(x => x)
-	faces.forEach(face => container.add(face))
+    const faces = sides.map(side => createFace(side, x, y, z)).filter(x => x)
+    faces.forEach(face => container.add(face))
 
-	return container
+    return container
 }
 
 function createFace({ dir, color }, x, y, z) {
-	if (!color) return
-	const geometry = new THREE.BoxGeometry(sideSize, sideSize, sideSize)
-	const material = new THREE.MeshBasicMaterial( { color: colorRef[color.toUpperCase()] } )
-	const face = new THREE.Mesh( geometry, material )
-	face.position.x = x
-	face.position.y = y
-	face.position.z = z
-	if (dir === 'up') {
-		face.position.y = y + protrusion
-	}
-	if (dir === 'down') {
-		face.position.y = y - protrusion
-	}
-	if (dir === 'left') {
-		face.position.x = x - protrusion
-	}
-	if (dir === 'right') {
-		face.position.x = x + protrusion
-	}
-	if (dir === 'front') {
-		face.position.z = z + protrusion
-	}
-	if (dir === 'back') {
-		face.position.z = z - protrusion
-	}
+    if (!color) return
+    const geometry = new THREE.BoxGeometry(sideSize, sideSize, sideSize)
+    const material = new THREE.MeshBasicMaterial( { color: colorRef[color.toUpperCase()] } )
+    const face = new THREE.Mesh( geometry, material )
+    face.position.x = x
+    face.position.y = y
+    face.position.z = z
+    if (dir === 'up') {
+        face.position.y = y + protrusion
+    }
+    if (dir === 'down') {
+        face.position.y = y - protrusion
+    }
+    if (dir === 'left') {
+        face.position.x = x - protrusion
+    }
+    if (dir === 'right') {
+        face.position.x = x + protrusion
+    }
+    if (dir === 'front') {
+        face.position.z = z + protrusion
+    }
+    if (dir === 'back') {
+        face.position.z = z - protrusion
+    }
 
-	return face
+    return face
 }
 
 function rotateSide(move, speed = 700) {
-	if (!ANIMATIONS_ENABLED) {
-		cube = moveFuncs[move](cube)
-	} else {
-		if (isAnimating) return
+    if (!ANIMATIONS_ENABLED) {
+        cube = moveFuncs[move](cube)
+    } else {
+        if (isAnimating) return
 
-		isAnimating = true
+        isAnimating = true
 
-		const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
+        const getPosition = cubit => cube.find(rawCubeData => rawCubeData.id === cubit.customId).position
 
-		cubits.filter(cubit => positions[move].includes(getPosition(cubit)))
-			.forEach(cubit => rotater.attach(cubit))
+        cubits.filter(cubit => positions[move].includes(getPosition(cubit)))
+            .forEach(cubit => rotater.attach(cubit))
 
-		const direction = ["F", "R", "U", "B'", "L'", "D'"].includes(move) ? -1 : 1
-		const rotation = { value: 0 }
-		const tween = new TWEEN.Tween(rotation)
-			.to({ value: Math.PI / 2 * direction }, speed)
-			.onUpdate(() => {
-				if (["R", "R'", "L", "L'"].includes(move)) {
-					rotater.rotation.x = rotation.value
-				}
-				if (["F", "F'", "B", "B'"].includes(move)) {
-					rotater.rotation.z = rotation.value
-				}
-				if (["U", "U'", "D", "D'"].includes(move)) {
-					rotater.rotation.y = rotation.value
-				}
-	        })
-	        .onComplete(() => {
-	            cube = moveFuncs[move](cube)
-	        	renderCube(cube)
-	        	isAnimating = false
-	        })
-	        .start()
-	}
+        const direction = ["F", "R", "U", "B'", "L'", "D'"].includes(move) ? -1 : 1
+        const rotation = { value: 0 }
+        const tween = new TWEEN.Tween(rotation)
+            .to({ value: Math.PI / 2 * direction }, speed)
+            .onUpdate(() => {
+                if (["R", "R'", "L", "L'"].includes(move)) {
+                    rotater.rotation.x = rotation.value
+                }
+                if (["F", "F'", "B", "B'"].includes(move)) {
+                    rotater.rotation.z = rotation.value
+                }
+                if (["U", "U'", "D", "D'"].includes(move)) {
+                    rotater.rotation.y = rotation.value
+                }
+            })
+            .onComplete(() => {
+                cube = moveFuncs[move](cube)
+                renderCube(cube)
+                isAnimating = false
+            })
+            .start()
+    }
 }
 
 function keydown(e) {
-	if (e.keyCode === 37 && !e.shiftKey) { //left
+    if (e.keyCode === 37 && !e.shiftKey) { //left
         rotate[1] = -speed
     }
     if (e.keyCode === 39 && !e.shiftKey) { //right
@@ -274,77 +278,77 @@ function keydown(e) {
         rotate[0] = speed
     }
     if (e.keyCode === 82 && !e.shiftKey) {
-    	rotateSide("R")
+        userQueue.push("R")
     }
     if (e.keyCode === 82 && e.shiftKey) {
-    	rotateSide("R'")
+        userQueue.push("R'")
     }
     if (e.keyCode === 76 && !e.shiftKey) {
-    	rotateSide("L")
+        userQueue.push("L")
     }
     if (e.keyCode === 76 && e.shiftKey) {
-    	rotateSide("L'")
+        userQueue.push("L'")
     }
     if (e.keyCode === 70 && !e.shiftKey) {
-    	rotateSide("F")
+        userQueue.push("F")
     }
     if (e.keyCode === 70 && e.shiftKey) {
-    	rotateSide("F'")
+        userQueue.push("F'")
     }
     if (e.keyCode === 66 && !e.shiftKey) {
-    	rotateSide("B")
+        userQueue.push("B")
     }
     if (e.keyCode === 66 && e.shiftKey) {
-    	rotateSide("B'")
+        userQueue.push("B'")
     }
     if (e.keyCode === 68 && !e.shiftKey) {
-    	rotateSide("D")
+        userQueue.push("D")
     }
     if (e.keyCode === 68 && e.shiftKey) {
-    	rotateSide("D'")
+        userQueue.push("D'")
     }
     if (e.keyCode === 85 && !e.shiftKey) {
-    	rotateSide("U")
+        userQueue.push("U")
     }
     if (e.keyCode === 85 && e.shiftKey) {
-    	rotateSide("U'")
+        userQueue.push("U'")
     }
     if (e.keyCode === 80) {
-    	console.log(persist(cube))
+        console.log(persist(cube))
     }
     if (e.keyCode === 67) {
-    	console.log(compare(cube))
+        console.log(compare(cube))
     }
     if (e.keyCode === 49) { // 1
-    	binaryStr(cube)
+        binaryStr(cube)
     }
     if (e.keyCode === 50) { // 2
-    	binary(cube)
+        binary(cube)
     }
     if (e.keyCode === 37 && e.shiftKey) { // left
-    	if (selectedIndex < 0) {
-    		selectedIndex = scrambles.length
-    	} else if (selectedIndex === null) {
-    		selectedIndex = nextScrambleSequence--
-    	} else {
-    		selectedIndex--
-    	}	
-    	renderIcons()
+        if (selectedIndex < 0) {
+            selectedIndex = scrambles.length
+        } else if (selectedIndex === null) {
+            selectedIndex = nextScrambleSequence--
+        } else {
+            selectedIndex--
+        }   
+        renderIcons()
     }
     if (e.keyCode === 39 && e.shiftKey) { // right
-    	if (selectedIndex > scrambles.length) {
-    		selectedIndex = 0
-    	} else if (selectedIndex === null) {
-    		selectedIndex = nextScrambleSequence++
-    	} else {
-    		selectedIndex++
-    	}
-    	renderIcons()
+        if (selectedIndex > scrambles.length) {
+            selectedIndex = 0
+        } else if (selectedIndex === null) {
+            selectedIndex = nextScrambleSequence++
+        } else {
+            selectedIndex++
+        }
+        renderIcons()
     }
     if (e.keyCode === 13) {
-    	nextScrambleSequence = selectedIndex
-    	selectedIndex = null
-    	setState('SCRAMBLE')
+        nextScrambleSequence = selectedIndex
+        selectedIndex = null
+        setState('SCRAMBLE')
     }
 }
 
@@ -357,8 +361,10 @@ function keyup(e) {
     }
 }
 
-window.addEventListener('keydown', keydown)
-window.addEventListener('keyup', keyup)
+function initKeypress() {
+    window.addEventListener('keydown', keydown)
+    window.addEventListener('keyup', keyup) 
+}
 
 function animate(time) {
     requestAnimationFrame( animate )
@@ -366,9 +372,13 @@ function animate(time) {
 
     autoPlay()
 
+    if(userQueue.length > 0 && !isAnimating) {
+        rotateSide(userQueue.shift())
+    }
+
     if (ROTATION_ENABLED) cubeContainer.rotation.y += 0.001
 
-	if (rotate[0]) {
+    if (rotate[0]) {
         cubeContainer.rotation.x += rotate[0];
     }
     if (rotate[1]) {
@@ -378,130 +388,140 @@ function animate(time) {
 }
 
 function autoPlay() {
-	if (!AUTOPLAY_SOLVES || isAnimating) return
+    if (!AUTOPLAY_SOLVES || isAnimating) return
 
-	if (state === 'READY') {
-		animateReady()
-		return
-	}
-	if (state === 'SCRAMBLE') {
-		animateScramble()
-		return
-	}
-	if (state === 'SOLVING') {
-		animateSolving()
-		return
-	}
-	if (state === 'FINISHED' || state === 'FAILED') {
-		animateEnd()
-		return
-	}
+    if (state === 'READY') {
+        animateReady()
+        return
+    }
+    if (state === 'SCRAMBLE') {
+        animateScramble()
+        return
+    }
+    if (state === 'SOLVING') {
+        animateSolving()
+        return
+    }
+    if (state === 'FINISHED' || state === 'FAILED') {
+        animateEnd()
+        return
+    }
 }
 
 function renderIcons() {
-	let str = ""
-	
-	for (var i = 0; i < animationScrambles.length; i++) {
-		if (i === selectedIndex) {
-			str += `<img src='images/selected.png' width='14' height='14'>`
-		} else {
-			str += `<img src='images/${ animationScrambles[i] }.png' width='14' height='14'>`
-		}
-	}
+    let str = ""
+    
+    for (var i = 0; i < animationScrambles.length; i++) {
+        if (i === selectedIndex) {
+            str += `<img src='images/selected.png' width='14' height='14'>`
+        } else {
+            str += `<img src='images/${ animationScrambles[i] }.png' width='14' height='14'>`
+        }
+    }
 
-	document.getElementById('label-dots').innerHTML = str
+    document.getElementById('label-dots').innerHTML = str
 }
 
 function setState(s) {
-	state = s
-	if (s === 'SCRAMBLE') {
-		cube = createCube()
-		document.getElementById('help-text').innerHTML = "Scrambling"
-    	document.getElementById('help-text').className = "label-text scrambling"
-    	queue = new Array(MOVES).fill().map(randomAgent)
-    	document.getElementById('scramble-info-box').innerHTML += "<p>" + queue + "</p>"
-    	animationScrambles.push('empty') 
-	}
-	if (s === 'SOLVING') {
-		attempts = 0
-		document.getElementById('help-text').innerHTML = "Solving"
-    	document.getElementById('help-text').className = "label-text solving"
-	}
-	if (s === 'FINISHED') {
-		timer = SPEED_MODE ? 1 : 120
-		animationScrambles[animationScrambles.length-1] = 'check' 
-		document.getElementById('help-text').innerHTML = `Solve ${animationScrambles.length-1} successful`
-    	document.getElementById('help-text').className = "label-text success"
-	}
-	if (s === 'FAILED') {
-		timer = SPEED_MODE ? 1 : 120
-		animationScrambles[animationScrambles.length-1] = 'cross' 
-		document.getElementById('help-text').innerHTML = `Solve ${animationScrambles.length-1} failed...`
-    	document.getElementById('help-text').className = "label-text failed"
-	}
-	if (s === 'READY') {
-		timer = SPEED_MODE ? 1 : 200 
-		document.getElementById('help-text').innerHTML = `Ready to solve ${animationScrambles.length-1}`
-    	document.getElementById('help-text').className = "label-text ready"
-	}
-	renderIcons()
+    state = s
+    if (s === 'SCRAMBLE') {
+        cube = createCube()
+        document.getElementById('help-text').innerHTML = "Scrambling"
+        document.getElementById('help-text').className = "label-text scrambling"
+        queue = new Array(MOVES).fill().map(randomAgent)
+        document.getElementById('scramble-info-box').innerHTML += "<p>" + queue + "</p>"
+        animationScrambles.push('empty') 
+    }
+    if (s === 'SOLVING') {
+        attempts = 0
+        document.getElementById('help-text').innerHTML = "Solving"
+        document.getElementById('help-text').className = "label-text solving"
+    }
+    if (s === 'FINISHED') {
+        timer = SPEED_MODE ? 1 : 120
+        animationScrambles[animationScrambles.length-1] = 'check' 
+        document.getElementById('help-text').innerHTML = `Solve ${animationScrambles.length-1} successful`
+        document.getElementById('help-text').className = "label-text success"
+    }
+    if (s === 'FAILED') {
+        timer = SPEED_MODE ? 1 : 120
+        animationScrambles[animationScrambles.length-1] = 'cross' 
+        document.getElementById('help-text').innerHTML = `Solve ${animationScrambles.length-1} failed...`
+        document.getElementById('help-text').className = "label-text failed"
+    }
+    if (s === 'READY') {
+        timer = SPEED_MODE ? 1 : 200 
+        document.getElementById('help-text').innerHTML = `Ready to solve ${animationScrambles.length-1}`
+        document.getElementById('help-text').className = "label-text ready"
+    }
+    renderIcons()
 }
 
 function animateSolving() {
-	attempts++
-	if (binaryStr(cube) === binaryStr(createCube())) {
-		setState('FINISHED')
-		return
-	} else if (attempts > ATTEMPT_THRESHOLD) {
-		setState('FAILED')
-		return
-	}
-	const policy = brain.likely(binary(cube), net)
-	rotateSide(policy, SPEED_MODE ? 35 : 1000)
+    attempts++
+    if (binaryStr(cube) === binaryStr(createCube())) {
+        setState('FINISHED')
+        callback({ scramble: ["A"], solve: ["A"], correct: true })
+        return
+    } else if (attempts > ATTEMPT_THRESHOLD) {
+        setState('FAILED')
+        callback({ scramble: ["A"], solve: ["A"], correct: false })
+        return
+    }
+    console.log(brain, cube, net)
+    const policy = brain.likely(binary(cube), net)
+    rotateSide(policy, SPEED_MODE ? 35 : 1000)
 }
 
 function animateScramble() {
-	if (queue.length === 0) {
-		setState('READY')
-		return
-	}
+    if (queue.length === 0) {
+        setState('READY')
+        return
+    }
 
-	const move = queue.shift()
-	rotateSide(move, SPEED_MODE ? 1 : 70)
+    const move = queue.shift()
+    rotateSide(move, SPEED_MODE ? 1 : 70)
 }
 
 function animateEnd() {
-	timer--
+    timer--
 
-	if (timer < 0) {
-		setState('SCRAMBLE')
-	}
+    if (timer < 0) {
+        //setState('SCRAMBLE')
+    }
 }
 
 function animateReady() {
-	timer--
+    timer--
 
-	if (timer < 0) {
-		setState('SOLVING')
-	}
+    if (timer < 0) {
+        setState('SOLVING')
+    }
 }
 
-function randomShowcase() {
-	AUTOPLAY_SOLVES = true;
-	startShowcase();
-	hideAll();
-	document.getElementById('popup1').style.visibility = "visible";
+function randomShowcase(_callback) {
+    AUTOPLAY_SOLVES = true;
+    callback = _callback
+    
+    startShowcase().then(() => {
+        hideAll();
+        document.getElementById('popup1').style.visibility = "visible";
+    })
 }
 
 function abortShowcase() {
-	AUTOPLAY_SOLVES = false;
-	hideAll();
-	document.getElementById('popup2').style.visibility = "visible";
+    AUTOPLAY_SOLVES = false;
+    hideAll();
+    document.getElementById('popup2').style.visibility = "visible";
 }
 
 function hideAll() {
-	document.getElementById('popup1').style.visibility = "hidden";	
-	document.getElementById('popup2').style.visibility = "hidden";	
+    document.getElementById('popup1').style.visibility = "hidden";  
+    document.getElementById('popup2').style.visibility = "hidden";  
 }
 
-module.exports = init
+module.exports = {
+    init,
+    initKeypress,
+    randomShowcase
+}
