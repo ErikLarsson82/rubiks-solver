@@ -48,7 +48,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
 
-let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles, selectedIndex, callback
+let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles, selectedIndex, callback, scramble, solve
 
 const rotate = [0,0]
 const speed = 0.04
@@ -79,7 +79,29 @@ const visualBlueprint = [
 
 function init() {
 
+    createScene()
+
+    cubeContainer = new THREE.Object3D()
+    scene.add(cubeContainer)
+
+    cubeContainer.rotation.x = 0.51
+    cubeContainer.rotation.y = -0.63
+    
+    resetCube()
+
+    if (AUTOPLAY_SOLVES) {
+        startShowcase()
+    } else {
+        animate()
+    }
+    
+}
+
+function resetCube() {
     userQueue = []
+
+    scramble = []
+    solve = []
 
     queue = []
     animationScrambles = []
@@ -91,22 +113,7 @@ function init() {
     cube = createCube()
     originalCubeBinaryString = binaryStr(cube)
 
-    cubeContainer = new THREE.Object3D()
-    scene.add(cubeContainer)
-
-    cubeContainer.rotation.x = 0.51
-    cubeContainer.rotation.y = -0.63
-
-    createScene()
-
     renderCube()
-
-    if (AUTOPLAY_SOLVES) {
-        startShowcase()
-    } else {
-        animate()
-    }
-    
 }
 
 function startShowcase() {
@@ -227,7 +234,7 @@ function createFace({ dir, color }, x, y, z) {
     return face
 }
 
-function rotateSide(move, speed = 700) {
+function rotateSide(move, speed = 700) {    
     if (!ANIMATIONS_ENABLED) {
         cube = moveFuncs[move](cube)
     } else {
@@ -373,7 +380,9 @@ function animate(time) {
     autoPlay()
 
     if(userQueue.length > 0 && !isAnimating) {
-        rotateSide(userQueue.shift())
+        const popped = userQueue.shift()
+        rotateSide(popped)
+        scramble.push(popped)
     }
 
     if (ROTATION_ENABLED) cubeContainer.rotation.y += 0.001
@@ -461,16 +470,17 @@ function animateSolving() {
     attempts++
     if (binaryStr(cube) === binaryStr(createCube())) {
         setState('FINISHED')
-        callback({ scramble: ["A"], solve: ["A"], correct: true })
+        callback({ scramble: scramble, solve: solve, correct: true })
         return
     } else if (attempts > ATTEMPT_THRESHOLD) {
         setState('FAILED')
-        callback({ scramble: ["A"], solve: ["A"], correct: false })
+        callback({ scramble: scramble, solve: solve, correct: false })
         return
     }
     console.log(brain, cube, net)
     const policy = brain.likely(binary(cube), net)
     rotateSide(policy, SPEED_MODE ? 35 : 1000)
+    solve.push(policy)
 }
 
 function animateScramble() {
@@ -523,5 +533,6 @@ function hideAll() {
 module.exports = {
     init,
     initKeypress,
-    randomShowcase
+    randomShowcase,
+    resetCube
 }

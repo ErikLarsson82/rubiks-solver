@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
-import { init as initCube, initKeypress, randomShowcase as startAISolve } from './cube';
-
-console.log(brain)
+import { init as initCube, initKeypress, randomShowcase as startAISolve, resetCube } from './cube';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,6 +36,7 @@ const App = () => {
 
     const [view, setView] = useState("Welcome")
     const [solves, setSolves] = useState([])
+    const [showJanne, setShowJanne] = useState(true)
 
     useEffect(() => initCube(), [])
 
@@ -47,7 +46,7 @@ const App = () => {
             content = <Welcome setView={setView} />
             break;
         case "ScrambleInstructions":
-            content = <ScrambleInstructions setView={setView} />
+            content = <ScrambleInstructions setView={setView} showJanne={showJanne} setShowJanne={setShowJanne} />
             break;
         case "PrepareToSolve":
             content = <PrepareToSolve setView={setView} />
@@ -72,7 +71,27 @@ const App = () => {
 
 const SolveList = ({ solves }) => (
     <div id="solve-list">
-        { solves.map(({ scramble = [], solve = [], correct, key = Math.random() }) => <span key={key}>Scramble: { scramble.join(', ') } - Solve: { solve.join(', ') } { correct ? "✅" : "❌" }</span>)}
+        <div>
+            <span>Scramble</span>
+            <span>Solve</span>
+            <span>Success</span>
+        </div>
+        { solves.length === 0 && (
+            <div>
+                <span>-</span>
+                <span>-</span>
+                <span>-</span>
+            </div>
+        )}
+        { 
+            solves.map(({ scramble = [], solve = [], correct, key = Math.random() }) => (
+                <div key={key}>
+                    <span>{ scramble.join(', ') }</span>
+                    <span>{ solve.join(', ') }</span>
+                    <span>{ correct ? "✅" : "❌" }</span>
+                </div>
+            ))
+        }
     </div>
 )
 
@@ -86,14 +105,24 @@ const Welcome = ({ setView }) => {
     )
 }
 
-const ScrambleInstructions = ({ setView }) => {
+const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
     const classes = useStyles();
     initKeypress()
+
+    const callback = () => {
+        if (showJanne) {
+            setShowJanne(false)
+            setView('PrepareToSolve')
+        } else {
+            setView('Solving')
+        }
+    }
+
     return (
         <div className={classes.root}>
             <h1>Blanda kuben 🍳</h1>
             <h2>F, B, U, D, L, R + Shift</h2>
-            <Button variant="contained" color="primary" onClick={ delay(() => setView('PrepareToSolve')) }>Klar</Button>
+            <Button variant="contained" color="primary" onClick={ delay(callback) }>Klar</Button>
         </div>
     )
 }
@@ -136,6 +165,23 @@ const Result = ({ setView, solves }) => {
 
     const classes = useStyles();
 
+    const restart = () => {
+        setView('ScrambleInstructions')
+        resetCube()
+    }
+
+    const callback = useCallback(event => {
+        console.log('keydown in result')
+        setView('ScrambleInstructions')
+        resetCube()
+    }, [])
+
+    useEffect(() => {
+        window.addEventListener('keydown', callback)
+
+        return () => window.removeEventListener('keydown', callback)
+    }, [callback])
+
     if (solves.length === 0) return null
 
     const { correct } = solves[solves.length-1]
@@ -144,8 +190,8 @@ const Result = ({ setView, solves }) => {
         <div className={classes.root}>
             <h1>Resultat 📄</h1>
             <h2 style={ { color: correct ? 'green' : 'red' } }>{ correct ? 'LYCKAD' : 'MISSLYCKAD' }</h2>
-            <Button variant="contained" color="primary" onClick={ delay(() => setView('Welcome')) }>Starta om</Button>
-            <Button style={ { marginTop: '40px' } } variant="contained" color="primary" onClick={ delay(() => setView('Solving')) }>Spela upp igen</Button>
+            <Button variant="contained" color="primary" onClick={ delay(restart) }>Starta om</Button>
+            <Button style={ { display: 'none', marginTop: '40px' } } variant="contained" color="primary" onClick={ delay(() => setView('Solving')) }>Spela upp igen</Button>
         </div>
     )
 }
