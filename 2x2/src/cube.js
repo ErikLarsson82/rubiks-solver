@@ -48,7 +48,8 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
 
-let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, net, attempts, timer, animationScrambles, selectedIndex, callback, scramble, solve
+let cubeContainer, rotater, cube, cubits, isAnimating, queue, nextScrambleSequence, state, 
+	net, attempts, timer, animationScrambles, selectedIndex, callback, scramble, solve, visitedSteps
 
 const rotate = [0,0]
 const speed = 0.04
@@ -477,10 +478,40 @@ function animateSolving() {
         callback({ scramble: scramble, solve: solve, correct: false })
         return
     }
-    console.log(brain, cube, net)
-    const policy = brain.likely(binary(cube), net)
+    
+    let policy = brain.likely(binary(cube), net)
+
+    const hasSeen = hasSeenIt(binaryStr(cube), policy)
+
+    console.log('has seen', hasSeen)
+    if (hasSeen) {
+    	console.log('HEY IVE SEEN THIS BEFORE', policy)
+    	const floats = net.runInput(binary(cube))
+    	const second = secondBest(floats)
+    	policy = second
+    	console.log('OVERRIDING POLICY')
+    } else {
+    	console.log('novel')
+    }
+
+
+    visitedSteps.push({
+		cubeStr: binaryStr(cube),
+		policy: policy
+	})    	
+
     rotateSide(policy, SPEED_MODE ? 35 : 1000)
     solve.push(policy)
+}
+
+function hasSeenIt(cubeStr, policy) {
+	return visitedSteps.find(x => x.cubeStr === cubeStr && x.policy === policy) !== undefined
+}
+
+function secondBest(arr) {
+  const maxIdx = arr.findIndex(x => Math.max(...arr) === x)
+  arr[maxIdx] = 0
+  return moves[arr.findIndex(x => Math.max(...arr) === x)]
 }
 
 function animateScramble() {
@@ -510,6 +541,7 @@ function animateReady() {
 }
 
 function randomShowcase(_callback) {
+	visitedSteps = []
     AUTOPLAY_SOLVES = true;
     callback = _callback
     
