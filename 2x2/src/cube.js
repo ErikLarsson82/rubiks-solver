@@ -27,15 +27,17 @@ const {
     positions
 } = require('../common')
 
+const { sort } = require('ramda')
+
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
-const ATTEMPT_THRESHOLD = 12
+const ATTEMPT_THRESHOLD = 200
 const HIQ_COLORS = true
 const ROTATION_ENABLED = false
 const MOVES = 12
 
 let AUTOPLAY_SOLVES = false
-let SPEED_MODE = false
+let SPEED_MODE = true
 
 var loader = new THREE.GLTFLoader();
 
@@ -479,21 +481,17 @@ function animateSolving() {
         return
     }
     
-    let policy = brain.likely(binary(cube), net)
+    let policy, hasSeen
 
-    const hasSeen = hasSeenIt(binaryStr(cube), policy)
+	const policyDistribution = net.run(binary(cube))
+	const sortedPolicyDistribution = sortedPairs(policyDistribution)
 
-    console.log('has seen', hasSeen)
-    if (hasSeen) {
-    	console.log('HEY IVE SEEN THIS BEFORE', policy)
-    	const floats = net.runInput(binary(cube))
-    	const second = secondBest(floats)
-    	policy = second
-    	console.log('OVERRIDING POLICY')
-    } else {
-    	console.log('novel')
-    }
+    do {
+    	policy = sortedPolicyDistribution.shift().policy
+    	
+    	hasSeen = hasSeenIt(binaryStr(cube), policy)
 
+    } while (hasSeen && policy !== undefined) 
 
     visitedSteps.push({
 		cubeStr: binaryStr(cube),
@@ -508,11 +506,15 @@ function hasSeenIt(cubeStr, policy) {
 	return visitedSteps.find(x => x.cubeStr === cubeStr && x.policy === policy) !== undefined
 }
 
-function secondBest(arr) {
-  const maxIdx = arr.findIndex(x => Math.max(...arr) === x)
-  arr[maxIdx] = 0
-  return moves[arr.findIndex(x => Math.max(...arr) === x)]
+function rankedPolicies(arr) {
+  let copy = [...arr].sort()
+  return arr.map(x => copy.findIndex(y => y === x))
 }
+
+function sortedPairs(arr) {
+	return sort((a,b) => a.value > b.value ? -1 : 1, Object.values(arr).map((x, i) => ({ policy: Object.keys(arr)[i], value: x })))
+} 
+
 
 function animateScramble() {
     if (queue.length === 0) {

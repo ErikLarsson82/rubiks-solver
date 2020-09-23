@@ -74,7 +74,7 @@ const SolveList = ({ solves }) => (
         <div>
             <span>Scramble</span>
             <span>Solve</span>
-            <span>Success</span>
+            <span>Success rate <Percent solves={solves} /></span>
         </div>
         { solves.length === 0 && (
             <div>
@@ -86,14 +86,18 @@ const SolveList = ({ solves }) => (
         { 
             solves.map(({ scramble = [], solve = [], correct, key = Math.random() }) => (
                 <div key={key}>
-                    <span>{ scramble.join(', ') }</span>
-                    <span>{ solve.join(', ') }</span>
+                    <span alt={ scramble.join(', ')}>{ scramble.slice(0, 8).join(', ') } { scramble.length > 8 && '..'}</span>
+                    <span alt={ solve.join(', ')}>{ solve.slice(0, 8).join(', ') } { solve.length > 8 && '..'}</span>
                     <span>{ correct ? "✅" : "❌" }</span>
                 </div>
             ))
         }
     </div>
 )
+
+const Percent = ({solves}) => {
+    return solves.length > 0 && `${(100 * solves.filter(x => x.correct).length / solves.length).toFixed(1)}%`
+}
 
 const Welcome = ({ setView }) => {
     const classes = useStyles();
