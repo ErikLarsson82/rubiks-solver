@@ -125,6 +125,8 @@ const Welcome = ({ setView }) => {
 
 const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
     const classes = useStyles();
+
+    const [showButton, setShowButton] = useState(false)
     
     initKeypress()
 
@@ -137,7 +139,11 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
         }
     }
 
-    const keyCallback = useCallback(e => e.keyCode === 13 && callback())
+    const keyCallback = useCallback(e => {
+        e.keyCode === 13 && callback()
+
+        setShowButton(true)
+    })
 
     useEffect(() => {
         window.addEventListener('keydown', keyCallback)
@@ -154,7 +160,7 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
         <div className={classes.root}>
             <h1>Blanda kuben 🍳</h1>
             <h2>F, B, U, D, L, R + Shift</h2>
-            <Button variant="contained" color="primary" onClick={ delay(callback) }>Klar</Button>
+            { showButton && <Button variant="contained" color="primary" onClick={ delay(callback) }>Blandning färdig</Button> }
         </div>
     )
 }

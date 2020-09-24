@@ -22,10 +22,10 @@ const ProgressBar = require('progress')
 const rel = '2x2'
 
 require('dotenv').config()
-const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 20;
+const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 1000;
 const FITNESS_TESTS = (process.env.FITNESS_TESTS && parseInt(process.env.FITNESS_TESTS));
 const NOVEL_TESTS = (process.env.NOVEL_TESTS && parseInt(process.env.NOVEL_TESTS));
-const PRINT_SOLUTION_LIST = true
+const PRINT_SOLUTION_LIST = false
 let printFirst = false
 
 let testDuration, scrambles, net, bar
@@ -116,7 +116,7 @@ function testTarget(target) {
 }
 
 function loadNet() {
-	const file = `${rel}/training-data/training.json`
+	const file = `${rel}/brains/2020-08-06-00-10-10-impressive.json`
 	try {
 		const rawFile = fs.readFileSync(file)
 		return JSON.parse(rawFile).net
