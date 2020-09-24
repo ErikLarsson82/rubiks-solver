@@ -118,7 +118,7 @@ const Welcome = ({ setView }) => {
     return (
         <div className={classes.root}>
             <h1>🤔 Utmana Eriks AI 🤖</h1>
-            <Button variant="contained" color="secondary" onClick={ delay(() => setView('ScrambleInstructions')) }>Starta</Button>
+            <Button variant="contained" color="secondary" onClick={ delay(() => setView('ScrambleInstructions')) }>Enter</Button>
         </div>
     )
 }
