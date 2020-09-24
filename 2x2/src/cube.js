@@ -354,11 +354,11 @@ function keydown(e) {
         }
         renderIcons()
     }
-    if (e.keyCode === 13) {
+    /*if (e.keyCode === 13) {
         nextScrambleSequence = selectedIndex
         selectedIndex = null
         setState('SCRAMBLE')
-    }
+    }*/
 }
 
 function keyup(e) {
@@ -373,6 +373,11 @@ function keyup(e) {
 function initKeypress() {
     window.addEventListener('keydown', keydown)
     window.addEventListener('keyup', keyup) 
+}
+
+function cleanupKeypress() {
+    window.removeEventListener('keydown', keydown)
+    window.removeEventListener('keyup', keyup) 
 }
 
 function animate(time) {
@@ -566,6 +571,7 @@ function hideAll() {
 module.exports = {
     init,
     initKeypress,
+    cleanupKeypress,
     randomShowcase,
     resetCube
 }

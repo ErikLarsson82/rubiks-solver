@@ -4,7 +4,7 @@ import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/sty
 import Button from '@material-ui/core/Button';
 import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
-import { init as initCube, initKeypress, randomShowcase as startAISolve, resetCube } from './cube';
+import { init as initCube, initKeypress, cleanupKeypress, randomShowcase as startAISolve, resetCube } from './cube';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,7 +23,7 @@ const theme = createMuiTheme({
       main: purple[500],
     },
     secondary: {
-      main: green[500],
+      main: '#00ff00',
     },
   },
 });
@@ -90,7 +90,7 @@ const SolveList = ({ solves }) => {
             { 
                 [...solves].reverse().slice(0,SIZE).map(({ scramble = [], solve = [], correct, key }) => (
                     <div key={key} className="fade-row">
-                        <span alt={ scramble.join(', ')}>{ scramble.slice(0, 8).join(', ') } { scramble.length > 8 && '..'}</span>
+                        <span alt={ scramble.join(', ')}>{ scramble.slice(0, 6).join(', ') } { scramble.length > 6 && `.. (${scramble.length})`}</span>
                         <span alt={ solve.join(', ')}>{ solve.slice(0, 6).join(', ') } { solve.length > 6 && `.. (${solve.length})` }</span>
                         <span>{ correct ? "✅" : "❌" }</span>
                     </div>
@@ -107,16 +107,25 @@ const Percent = ({solves}) => {
 
 const Welcome = ({ setView }) => {
     const classes = useStyles();
+
+    const callback = useCallback(e => e.keyCode === 13 && setView('ScrambleInstructions'))
+
+    useEffect(() => {
+        window.addEventListener('keydown', callback)
+        return () => window.removeEventListener('keydown', callback)
+    }, [callback])
+
     return (
         <div className={classes.root}>
             <h1>🤔 Utmana Eriks AI 🤖</h1>
-            <Button variant="contained" color="primary" onClick={ delay(() => setView('ScrambleInstructions')) }>Börja</Button>
+            <Button variant="contained" color="secondary" onClick={ delay(() => setView('ScrambleInstructions')) }>Starta</Button>
         </div>
     )
 }
 
 const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
     const classes = useStyles();
+    
     initKeypress()
 
     const callback = () => {
@@ -127,6 +136,19 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
             setView('Solving')
         }
     }
+
+    const keyCallback = useCallback(e => e.keyCode === 13 && callback())
+
+    useEffect(() => {
+        window.addEventListener('keydown', keyCallback)
+        return () => window.removeEventListener('keydown', keyCallback)
+    }, [keyCallback])
+
+    useEffect(() => {
+        return () => {
+            cleanupKeypress()
+        }
+    }, [])
 
     return (
         <div className={classes.root}>
@@ -139,6 +161,14 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
 
 const PrepareToSolve = ({ setView }) => {
     const classes = useStyles();
+
+    const callback = useCallback(e => e.keyCode === 13 && setView('Solving'))
+
+    useEffect(() => {
+        window.addEventListener('keydown', callback)
+        return () => window.removeEventListener('keydown', callback)
+    }, [callback])
+
     return (
         <div className={classes.root}>
             <h1 style={ { fontSize: '65px' } }>Nu ska Janne Mk-XI lösa kuben 🧩</h1>
@@ -198,7 +228,7 @@ const Result = ({ setView, solves }) => {
         <div className={classes.root}>
             <h1>Resultat 📄</h1>
             <h2 style={ { color: correct ? 'green' : 'red' } }>{ correct ? 'LYCKAD' : 'MISSLYCKAD' }</h2>
-            <Button variant="contained" color="primary" onClick={ delay(restart) }>Starta om</Button>
+            <Button variant="contained" color="secondary" onClick={ delay(restart) }>Starta om</Button>
             <Button style={ { display: 'none', marginTop: '40px' } } variant="contained" color="primary" onClick={ delay(() => setView('Solving')) }>Spela upp igen</Button>
         </div>
     )
