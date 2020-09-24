@@ -88,10 +88,10 @@ const SolveList = ({ solves }) => {
                 </div>
             )}
             { 
-                [...solves].reverse().slice(0,SIZE).map(({ scramble = [], solve = [], correct, key = Math.random() }) => (
-                    <div key={key}>
+                [...solves].reverse().slice(0,SIZE).map(({ scramble = [], solve = [], correct, key }) => (
+                    <div key={key} className="fade-row">
                         <span alt={ scramble.join(', ')}>{ scramble.slice(0, 8).join(', ') } { scramble.length > 8 && '..'}</span>
-                        <span alt={ solve.join(', ')}>{ solve.slice(0, 8).join(', ') } { solve.length > 8 && '..'}</span>
+                        <span alt={ solve.join(', ')}>{ solve.slice(0, 6).join(', ') } { solve.length > 6 && `.. (${solve.length})` }</span>
                         <span>{ correct ? "✅" : "❌" }</span>
                     </div>
                 ))

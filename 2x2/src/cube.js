@@ -472,11 +472,11 @@ function animateSolving() {
     attempts++
     if (binaryStr(cube) === binaryStr(createCube())) {
         setState('FINISHED')
-        callback({ scramble: scramble, solve: solve, correct: true })
+        callback({ scramble: scramble, solve: solve, correct: true, key: Math.random() })
         return
     } else if (attempts > ATTEMPT_THRESHOLD) {
         setState('FAILED')
-        callback({ scramble: scramble, solve: solve, correct: false })
+        callback({ scramble: scramble, solve: solve, correct: false, key: Math.random() })
         return
     }
     
