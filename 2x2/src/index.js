@@ -186,16 +186,16 @@ const PrepareToSolve = ({ setView }) => {
                 Training time: 12h<br />
                 Experience bank: 120 000<br />
                 Estimated solve percentage: 30%<br />
-                Library used: brain.js <img id="brain-js" src="../logos/brain.PNG" /><br /><br />
+                Library used: brain.js <img id="brain-js" src="../logos/brain.PNG" /><br />
                 <code>
-                    Moves&nbsp;RateX&nbsp;RateY<br />
-                    1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;65%&nbsp;&nbsp;&nbsp;100%<br />
-                    2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;47%&nbsp;&nbsp;&nbsp;?<br />
-                    3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;35%&nbsp;&nbsp;&nbsp;?<br />
-                    6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;12%&nbsp;&nbsp;&nbsp;?<br />
-                    8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10%&nbsp;&nbsp;&nbsp;?<br />
-                    12&nbsp;&nbsp;&nbsp;&nbsp;3%&nbsp;&nbsp;&nbsp;&nbsp;?
-                </code><br /><br />
+                    Moves&nbsp;RateX&nbsp;RateY&nbsp;&nbsp;Random<br />
+                    1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;65%&nbsp;&nbsp;&nbsp;100%&nbsp;&nbsp;&nbsp;11%<br />
+                    2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;47%&nbsp;&nbsp;&nbsp;96%&nbsp;&nbsp;&nbsp;&nbsp;2%<br />
+                    3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;35%&nbsp;&nbsp;&nbsp;94%<br />
+                    6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;12%&nbsp;&nbsp;&nbsp;75%<br />
+                    8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10%&nbsp;&nbsp;&nbsp;67%<br />
+                    12&nbsp;&nbsp;&nbsp;&nbsp;3%&nbsp;&nbsp;&nbsp;&nbsp;45%
+                </code><br />
                 Network architecture:<br />
                 <img id="feed" src="feed-smaller.PNG" /><br />
             </div>

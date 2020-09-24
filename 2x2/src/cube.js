@@ -31,7 +31,7 @@ const { sort } = require('ramda')
 
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
-const ATTEMPT_THRESHOLD = 200
+const ATTEMPT_THRESHOLD = 2000
 const HIQ_COLORS = true
 const ROTATION_ENABLED = false
 const MOVES = 12

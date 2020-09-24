@@ -8,7 +8,8 @@
     "host": "node server.js",
     "start": "node server.js 12 run-trainer",
     "build": "webpack --mode development",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gauge": "node 2x2/deep-scramble-generator.js; node 2x2/fitness-benchmark.js run"
   },
   "author": "",
   "license": "ISC",

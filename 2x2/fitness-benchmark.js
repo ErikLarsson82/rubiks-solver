@@ -12,6 +12,7 @@ const {
 	scrambleCube,
 	moveFuncs,
 	binary,
+	binaryStr,
 	randomAgent,
 	moves
 } = require('./common')
@@ -19,6 +20,7 @@ const fs = require('fs')
 const brain = require('../brain-browser.js')
 const colors = require('colors')
 const ProgressBar = require('progress')
+const { sort } = require('ramda')
 const rel = '2x2'
 
 require('dotenv').config()
@@ -27,6 +29,7 @@ const FITNESS_TESTS = (process.env.FITNESS_TESTS && parseInt(process.env.FITNESS
 const NOVEL_TESTS = (process.env.NOVEL_TESTS && parseInt(process.env.NOVEL_TESTS));
 const PRINT_SOLUTION_LIST = false
 const ONLY_SUCCESS = true
+const RANDOM_AGENT = false
 let printFirst = false
 
 let testDuration, scrambles, net, bar
@@ -165,9 +168,28 @@ function seconds(dateA, dateB) {
 
 function solveCube(scramble) {
 	let solution = []
+	let visitedSteps = []
+
 	for (var i = 0; i < ATTEMPTS; i++) {
 		const binaryCube = binary(cube)
-		policy = brain.likely(binaryCube, net)
+		
+		let policy, hasSeen
+
+		const policyDistribution = RANDOM_AGENT ? randomUberAgent() : net.run(binary(cube))
+		const sortedPolicyDistribution = sortedPairs(policyDistribution)
+
+	    do {
+	    	policy = sortedPolicyDistribution.shift().policy
+	    	
+	    	hasSeen = hasSeenIt(visitedSteps, binaryStr(cube), policy)
+
+	    } while (hasSeen && policy !== undefined) 
+
+	    visitedSteps.push({
+			cubeStr: binaryStr(cube),
+			policy: policy
+		})    	
+
 		solution.push(policy)
 		cube = moveFuncs[policy](cube)
 		if (compare(cube)) break;
@@ -186,6 +208,31 @@ function solveCube(scramble) {
 
 	return compare(cube) ? i : -1
 }
+
+function randomUberAgent() {
+	return {
+		"U": Math.random(),
+		"U'": Math.random(),
+		"D": Math.random(),
+		"D'": Math.random(),
+		"L": Math.random(),
+		"L'": Math.random(),
+		"R": Math.random(),
+		"R'": Math.random(),
+		"F": Math.random(),
+		"F'": Math.random(),
+		"B": Math.random(),
+		"B'": Math.random()
+	}
+}
+
+function hasSeenIt(arr, cubeStr, policy) {
+	return arr.find(x => x.cubeStr === cubeStr && x.policy === policy) !== undefined
+}
+
+function sortedPairs(arr) {
+	return sort((a,b) => a.value > b.value ? -1 : 1, Object.values(arr).map((x, i) => ({ policy: Object.keys(arr)[i], value: x })))
+} 
 
 function primPrint(move) {
 	if (move === "L'") return "l'"
