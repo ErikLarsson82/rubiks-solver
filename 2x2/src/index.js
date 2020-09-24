@@ -62,38 +62,44 @@ const App = () => {
     return (
         <div>
             <ThemeProvider theme={theme}>
-                <SolveList solves={ solves } />
+                { !showJanne && <SolveList solves={ solves } /> }
                 { content }
             </ThemeProvider>
         </div>
     )
 }
 
-const SolveList = ({ solves }) => (
-    <div id="solve-list">
-        <div>
-            <span>Scramble</span>
-            <span>Solve</span>
-            <span>Success rate <Percent solves={solves} /></span>
-        </div>
-        { solves.length === 0 && (
+const SolveList = ({ solves }) => {
+
+    const SIZE = 10
+
+    return (
+        <div id="solve-list">
             <div>
-                <span>-</span>
-                <span>-</span>
-                <span>-</span>
+                <span>Scramble</span>
+                <span>Solve</span>
+                <span>Success rate <Percent solves={solves} /></span>
             </div>
-        )}
-        { 
-            solves.map(({ scramble = [], solve = [], correct, key = Math.random() }) => (
-                <div key={key}>
-                    <span alt={ scramble.join(', ')}>{ scramble.slice(0, 8).join(', ') } { scramble.length > 8 && '..'}</span>
-                    <span alt={ solve.join(', ')}>{ solve.slice(0, 8).join(', ') } { solve.length > 8 && '..'}</span>
-                    <span>{ correct ? "✅" : "❌" }</span>
+            { solves.length === 0 && (
+                <div>
+                    <span>-</span>
+                    <span>-</span>
+                    <span>-</span>
                 </div>
-            ))
-        }
-    </div>
-)
+            )}
+            { 
+                [...solves].reverse().slice(0,SIZE).map(({ scramble = [], solve = [], correct, key = Math.random() }) => (
+                    <div key={key}>
+                        <span alt={ scramble.join(', ')}>{ scramble.slice(0, 8).join(', ') } { scramble.length > 8 && '..'}</span>
+                        <span alt={ solve.join(', ')}>{ solve.slice(0, 8).join(', ') } { solve.length > 8 && '..'}</span>
+                        <span>{ correct ? "✅" : "❌" }</span>
+                    </div>
+                ))
+            }
+            { solves.length > SIZE && <div style={{ width: '100%', textAlign: 'center' }}>...</div> }
+        </div>
+    )
+}
 
 const Percent = ({solves}) => {
     return solves.length > 0 && `${(100 * solves.filter(x => x.correct).length / solves.length).toFixed(1)}%`
@@ -154,7 +160,6 @@ const PrepareToSolve = ({ setView }) => {
 const Solving = ({ setView, addSolve }) => {
 
     startAISolve(data => {
-        console.log(data)
         setView("Result")
         addSolve(data)
     })
@@ -175,7 +180,6 @@ const Result = ({ setView, solves }) => {
     }
 
     const callback = useCallback(event => {
-        console.log('keydown in result')
         setView('ScrambleInstructions')
         resetCube()
     }, [])
