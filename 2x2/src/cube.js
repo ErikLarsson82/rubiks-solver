@@ -130,10 +130,9 @@ function startShowcase() {
 function loadNet() {
     const dir = 'brains'
     const trainingfile = `${dir}/2020-08-06-00-10-10-impressive.json`
-    return d3.json(trainingfile).then(data => {
-        net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
-        animate()
-    })
+    return d3.json(trainingfile).then(data => 
+    	net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
+    )
 
 }
 
@@ -274,7 +273,7 @@ function rotateSide(move, speed = 700) {
 }
 
 function keydown(e) {
-    if (e.keyCode === 37 && !e.shiftKey) { //left
+	if (e.keyCode === 37 && !e.shiftKey) { //left
         rotate[1] = -speed
     }
     if (e.keyCode === 39 && !e.shiftKey) { //right
@@ -371,7 +370,7 @@ function keyup(e) {
 }
 
 function initKeypress() {
-    window.addEventListener('keydown', keydown)
+	window.addEventListener('keydown', keydown)
     window.addEventListener('keyup', keyup) 
 }
 

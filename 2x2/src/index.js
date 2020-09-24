@@ -128,7 +128,13 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
 
     const [showButton, setShowButton] = useState(false)
     
-    initKeypress()
+    useEffect(() => {
+        initKeypress()
+        
+        return () => {
+            cleanupKeypress()
+        }
+    }, [])
 
     const callback = () => {
         if (showJanne) {
@@ -150,11 +156,7 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
         return () => window.removeEventListener('keydown', keyCallback)
     }, [keyCallback])
 
-    useEffect(() => {
-        return () => {
-            cleanupKeypress()
-        }
-    }, [])
+
 
     return (
         <div className={classes.root}>

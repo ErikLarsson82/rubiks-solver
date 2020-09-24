@@ -25,7 +25,8 @@ require('dotenv').config()
 const ATTEMPTS = (process.env.ATTEMPTS && parseInt(process.env.ATTEMPTS)) || 1000;
 const FITNESS_TESTS = (process.env.FITNESS_TESTS && parseInt(process.env.FITNESS_TESTS));
 const NOVEL_TESTS = (process.env.NOVEL_TESTS && parseInt(process.env.NOVEL_TESTS));
-const PRINT_SOLUTION_LIST = false
+const PRINT_SOLUTION_LIST = true
+const ONLY_SUCCESS = true
 let printFirst = false
 
 let testDuration, scrambles, net, bar
@@ -151,6 +152,7 @@ function determineFitness() {
 		if (r !== -1) success += 1
 
 		!PRINT_SOLUTION_LIST && bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
+
 		return r
 	})
 
@@ -178,7 +180,7 @@ function solveCube(scramble) {
 		console.log('Solution', solution.map(primPrint), '\n')
 	}
 
-	if (PRINT_SOLUTION_LIST) {
+	if (PRINT_SOLUTION_LIST && (ONLY_SUCCESS && compare(cube) === true)) {
 		console.log('Scramble', scramble.map(primPrint), 'Solution', solution.map(primPrint), compare(cube) ? '\x1b[42m\x1b[37mCORRECT\x1b[0m' : '\x1b[41m\x1b[37mINCORRECT\x1b[0m')	
 	}
 
