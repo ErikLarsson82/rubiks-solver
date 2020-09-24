@@ -137,15 +137,14 @@ const PrepareToSolve = ({ setView }) => {
         <div className={classes.root}>
             <h1 style={ { fontSize: '65px' } }>Nu ska Janne Mk-XI lösa kuben 🧩</h1>
             <div id="network-info">
-                <img style={ { float: 'right', marginTop: '18px' } } src="../logos/brain.PNG" width="50px" />
                 <img src="https://robohash.org/24.218.243.24.png" width="100px" /><br/>
                 Name: <span style={{color: '#E1167C', fontWeight: 'bold'}}>Janne Joffert Mark-XI</span><br />
                 Training time: 12h<br />
                 Experience bank: 120 000<br />
                 Estimated solve percentage: 30%<br />
-                Library used: brain.js<br />
+                Library used: brain.js <img id="brain-js" src="../logos/brain.PNG" /><br />
                 Network architecture:<br />
-                <img src="feed.PNG" width="520px" /><br />
+                <img id="feed" src="feed-smaller.PNG" /><br />
             </div>
             <Button variant="contained" color="primary" onClick={ delay(() => setView('Solving')) }>Starta</Button>
         </div>

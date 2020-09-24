@@ -129,7 +129,7 @@ function startShowcase() {
 
 function loadNet() {
     const dir = 'brains'
-    const trainingfile = `${dir}/2020-08-05-00-35-25-i-think-this-is-30-percent.json`
+    const trainingfile = `${dir}/2020-08-06-00-10-10-impressive.json`
     return d3.json(trainingfile).then(data => {
         console.log('async callback')
         net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
