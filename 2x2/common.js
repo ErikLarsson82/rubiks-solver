@@ -200,9 +200,9 @@ function frontPrim(cube) {
 }
 
 function back(cube) {
-	let unaffected = cube.filter(cubit => !positions['B'].includes(cubit.position))
+	let unaffected = cube.filter(cubit => !positions["B"].includes(cubit.position))
 
-	let affected = cube.filter(cubit => positions['B'].includes(cubit.position))
+	let affected = cube.filter(cubit => positions["B"].includes(cubit.position))
 
 	affected = affected.map(corner => {
 		const newCorner = {}
@@ -214,7 +214,7 @@ function back(cube) {
 		newCorner.left = corner.up
 		newCorner.right = corner.down
 		newCorner.id = corner.id
-		newCorner.position = cycle(positions['B'], corner.position)
+		newCorner.position = cycle(positions["B"], corner.position)
 
 		return newCorner
 	})
@@ -487,6 +487,10 @@ function compare(cube) {
 	return persistedBinaryStr === currentCube
 }
 
+function isSame(cubeA, cubeB) {
+	return binaryStr(cubeA) === binaryStr(cubeB)
+}
+
 function binaryStr(cube) {
 	return cube.map(x=>x).sort(sorterPosition).flatMap(cornerToBinary).join("")
 }
@@ -520,6 +524,10 @@ function randomAgent() {
 	return moves[Math.floor(Math.random() * 12)]
 }
 
+const scrambles = [
+	["U"]
+]
+
 if (typeof module !== "undefined" && module.exports) {
 	module.exports = {
 		createCube,
@@ -538,11 +546,15 @@ if (typeof module !== "undefined" && module.exports) {
 		persist,
 		compare,
 		binary,
+		binaryStr,
 		scrambleCube,
 		moveFuncs,
 		invertMove,
 		invertSequence,
 		randomAgent,
-		moves
+		moves,
+		scrambles,
+		isSame,
+		positions
 	}
 }

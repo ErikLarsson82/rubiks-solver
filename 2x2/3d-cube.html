@@ -1,134 +1,231 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>Rubiks 2x2 3d-demo</title>
-		<style>
-			body {
-				padding: 0;
-				margin: 0;
-				background-color: #d9e7e8;
-			}
-			canvas {
-				display: block;
-			}
+    <head>
+        <meta charset="utf-8">
+        <title>Rubiks 2x2 3d-demo</title>
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+                background-color: #1b1a1a;
+                color: white;
+                font-family: 'Poppins', sans-serif;
+            }
+            canvas {
+                display: block;
+            }
 
-			.label {
-				top: 27%;
-				width: 100%;
-				position: absolute;
-				z-index: 100;
-				display: flex;
-    			justify-content: center;
-			}
+            h1 {
+                width: 100%;
+                color: pink;
+                font-size: 90px;
+                margin-top: 50px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
 
-			.label-dots {
-				top: 30%;
-				width: 100%;
-				position: absolute;
-				z-index: 100;
-				display: flex;
-    			justify-content: center;
-			}
+            h2 {
+                color: white;
+                font-size: 30px;
+                width: 100%;
+                margin-top: 0px;
+                text-align: center;
+            }
 
-			.label-text {
-				font-family: 'Roboto Mono';
-				font-size: 20px;
-				background-color: rgba(0,0,0,0.3);
-				width: 350px;
-				text-align: center;
-			}
+            #root {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+            }
 
-			.solving {
-				color: #7a00ff;
-			}
+            .label {
+                top: 27%;
+                width: 100%;
+                position: absolute;
+                z-index: 100;
+                display: flex;
+                justify-content: center;
+            }
 
-			.scrambling {
-				color: #efff00;
-			}
+            .label-dots {
+                top: 31%;
+                width: 100%;
+                position: absolute;
+                z-index: 100;
+                display: flex;
+                justify-content: center;
+            }
 
-			.success {
-				color: #10ff00;
-			}
+            .label-text {
+                font-family: 'Roboto Mono';
+                font-size: 20px;
+                background-color: rgba(0,0,0,0.3);
+                text-align: center;
+                position: fixed;
+                width: 350px;
+                top: 25%;
+                left: 50%;
+                margin-left: -175px;
+            }
 
-			.ready {
-				color: white;
-			}
+            .solving {
+                color: #7a00ff;
+            }
 
-			.failed {
-				color: red;
-			}
+            .scrambling {
+                color: #efff00;
+            }
 
-			#logo {
-				position: absolute;
-				z-index: 100;
-				top: 50px;
-				right: 50px;
-				width: 200px;
-			}
+            .success {
+                color: #10ff00;
+            }
 
-			#help-text {
-				text-transform: uppercase;
-			}
+            .ready {
+                color: white;
+            }
 
-			.logo {
-				width: 120px;
-				height: 120px;
-			}
+            .failed {
+                color: red;
+            }
 
-			.logo-container {
-				position: absolute;
-				bottom: 40px;
-				right: 40px;
-			}
+            #logo {
+                position: absolute;
+                z-index: 100;
+                top: 20px;
+                right: 20px;
+                width: 100px;
+            }
 
-			.record {
-				position: absolute;
-				bottom: 40px;
-				left: 20px;
-				z-index: 100;
-				color: white;
-				font-size: 80px;
-				padding: 0;
-				margin: 0;
-		    font-family: 'Roboto Slab', serif;
-			}
+            #help-text {
+                text-transform: uppercase;
+                display: none;
+            }
 
-			.record > h2 {
-				padding: 0;
-				margin: 0;
-			}
+            .logo {
+                width: 120px;
+                height: 120px;
+            }
 
-			.label-record {
-				font-size: 40px;
-				padding: 0;
-				margin: 0;
-			}
+            .logo-container {
+                position: absolute;
+                bottom: 40px;
+                right: 40px;
+            }
 
-		</style>
-		<link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap" rel="stylesheet">
-	</head>
-	<body>
-		<div class="label"><div id="help-text"></div></div>
-		<div id="label-dots" class="label-dots"></div>
-		<img id="logo" src="images/hiq-logo-negative.png">
-		<div class="record"><span class="label-record">Current record:</span><h2>2.1 million</h2></div>
-		<div class="logo-container">
-			<img class="logo" src="../logos/js.png">
-			<img class="logo" src="../logos/brain.png">
-			<img class="logo" src="../logos/es6.png">
-			<img class="logo" src="../logos/node.png">
-			<img class="logo" src="../logos/d3.png">
-		</div>
-		<script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>
-		<script src="../node_modules/three/build/three.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
-		<script src="../node_modules/@tweenjs/tween.js/dist/tween.umd.js"></script>
-		<script src="../node_modules/ramda/dist/ramda.min.js"></script>
-		<script src="https://d3js.org/d3.v5.min.js"></script>
-		<script src="scrambles.js"></script>
-		<script src="common.js"></script>
-		<script src="3d-cube.js"></script>
-	</body>
+            .record {
+                position: absolute;
+                bottom: 40px;
+                left: 20px;
+                z-index: 100;
+                color: white;
+                font-size: 80px;
+                padding: 0;
+                margin: 0;
+                font-family: 'Roboto Slab', serif;
+            }
+
+            .record > h2 {
+                padding: 0;
+                margin: 0;
+            }
+
+            .label-record {
+                font-size: 40px;
+                padding: 0;
+                margin: 0;
+            }
+
+            table {
+                color: white;
+            }
+
+            p {
+                color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            #scramble-info-box {
+                position: absolute;
+                left: 10px;
+                top: 70%;
+                border: 1px white solid;
+                width: 300px;
+                display: none;
+            }
+
+            #network-info {
+                position: fixed;
+                top: 17%;
+                right: 20%;
+                width: 300px;
+                margin-right: -150px;
+            }
+
+            #solve-list {
+                position: fixed;
+                width: 600px;
+                top: 40%;
+                display: flex;
+                flex-direction: column;
+                left: 23%;
+                margin-left: -300px;
+
+            }
+
+            #solve-list span {
+                width: 170px;
+                display: inline-block;
+                margin: 4px;
+                vertical-align: top;
+            }
+
+            #feed {
+                margin-top: 14px;
+                margin-left: -31px;
+                width: 300px;
+            }
+
+            #brain-js {
+                vertical-align: middle;
+                width: 19px;
+            }
+
+            .fade-row {
+                animation-duration: 1s;
+                animation-name: fadein;
+            }
+
+            @keyframes fadein {
+              from {
+                opacity: 0;
+              }
+
+              to {
+                opacity: 1;
+              }
+            }
+
+        </style>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap" rel="stylesheet">
+        
+    </head>
+    <body>
+        <div id="root"></div>
+        <div id="help-text"></div>
+        <div id="scramble-info-box"></div>
+        <div id="label-dots"></div>
+        <div id="popup1"></div>
+        <div id="popup2"></div>
+        <script src="https://www.unpkg.com/brain.js@2.0.0-alpha.12/dist/brain-browser.min.js"></script>
+        <script src="../node_modules/three/build/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
+        <script src="../node_modules/@tweenjs/tween.js/dist/tween.umd.js"></script>
+        <script src="../node_modules/ramda/dist/ramda.min.js"></script>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="dist/build.js"></script>
+        <!--script src="3d-cube.js"></script-->
+    </body>
 </html>

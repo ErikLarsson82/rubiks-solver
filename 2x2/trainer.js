@@ -1,4 +1,6 @@
 
+console.log('\n\n --- \x1b[4m\x1b[32m2x2/\x1b[35mtrainer.js\x1b[0m ---')
+
 /*
 	Training tool to solve a 2x2 Rubiks Cube - data model completely made up by me
 
@@ -13,7 +15,7 @@
 	to view live graph visualizations as the network trains
 */
 
-let cube, net, trainer, file, dataCollection, lastEpochResults, scrambles, trainDuration, testDuration
+let cube, net, trainer, file, experience, lastEpochResults, trainDuration, testDuration, bar
 
 const {
 	createCube,
@@ -31,11 +33,18 @@ const {
 	randomAgent,
 	moves
 } = require('./common')
-const brain = require('../brain-browser.js')
+const { logFitness } = require('./fitness-benchmark.js')
+const brain = require('brain.js')
 const fs = require('fs')
 const R = require('ramda')
 const colors = require('colors')
-const dir = 'training-data'
+const rel = '2x2'
+const dir = `${rel}/`
+const dirData = `${rel}/training-data`
+const dirLogs = `${rel}/training-logs`
+const dirFitnessLogs = `${rel}/fitness-logs`
+const ProgressBar = require('progress')
+const fetch = require('node-fetch')
 
 const startDate = new Date()
 const LOGGING = true
@@ -43,96 +52,113 @@ const DEBUG_LOGGING = true
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
+const MINUTE = 1000 * 60
+const HOUR = MINUTE * 60
+
 const HYPER = {
 	"EPOCHS": 1,
-	"MOVES": 3,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 3,
+		iterations: 20000,
 		errorThresh: 0.005,
-		log: true,
-	  	logPeriod: 200,
-	  	timeout: 900000,
+		callback: callback,
+		callbackPeriod: 1,
+		timeout: MINUTE * 10
+
 	},
-	"BRAIN_CONFIG": {}
+	"BRAIN_CONFIG": {
+		//hiddenLayers: [200, 200, 200],
+		learningRate: 0.95,
+		momentum: 0.6,
+  		decayRate: 0.3,
+	}
+}
+
+function callback({ error }) {
+	bar.tick({'token1': error });
 }
 
 function initTrainer() {
 	
-	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
+	if (!fs.existsSync(dirData)) fs.mkdirSync(dirData)
+	if (!fs.existsSync(dirLogs)) fs.mkdirSync(dirLogs)
+	if (!fs.existsSync(dirFitnessLogs)) fs.mkdirSync(dirFitnessLogs)
 
 	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
-	log(`Loading non-distinct permutation set of scrambles using ${ HYPER.MOVES } moves`)
-	scrambles = loadScrambles(HYPER["MOVES"])
-	if (!scrambles) return
-	log(`${scrambles.length} scrambles loaded from file`)
 
 	try {
-		const rawFile = fs.readFileSync(`${dir}/data-collection.json`)
-		dataCollection = JSON.parse(rawFile)
-		log(`File data-collection read - binary samples:`, dataCollection.length)
+		const rawFile = fs.readFileSync(`${rel}/experience-data/experience-collection.json`)
+		const parsed = JSON.parse(rawFile)
+		experience = parsed.snapshots
+
+		log(`File experience-collection read - binary samples ${experience.length} - parameters`, parsed["experience-parameters"])
 	} catch(e) {
-		console.error('Cannot read file data-collection.json')
+		console.error('Cannot read file experience-collection.json')
 		return
 	}
 
 	log('Creating new neural network')
-	net = new brain.NeuralNetwork(HYPER["BRAIN_CONFIG"])
+	net = new brain.NeuralNetworkGPU(HYPER["BRAIN_CONFIG"])
 
 	persist(createCube())
 
 	train()
 }
 
-function train() {
-	
+async function train() {
+
+	const path = `${dirFitnessLogs}/fitness.json`
+	console.log('Writing file on startup', path) // remove or replace with writeFile function?
+	fs.writeFileSync( path, JSON.stringify({ training: true, dataset: [] }) )
+
+	log('Websocket ping')
+	const result = await fetch('http://localhost:8080/ping')
+
 	log('\n\n--- [ BEGIN TRAINING ] ---')
+	log(`Running brain.js train API`)
+	let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
+		log(`Epoch ${j+1} of ${HYPER.EPOCHS}`)
+		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40, complete: '=', incomplete: ' ' });
+		bar.tick({ token1: "N/A" })
 
-		log(`Running brain.js train API`)
-		let start = new Date()
-		const trainingStats = net.train(dataCollection, HYPER["TRAINING_OPTIONS"])
-		trainDuration = seconds(new Date(), start)
-
-		log('\n\n--- [ TESTING SCRAMBLES ] ---')
-		start = new Date()
-		const epochFitness = determineFitness()
-		testDuration = seconds(new Date(), start)
-		log(`${ scrambles.length} tested`)
+		const ref = rand(experience.length/100)
+		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
+		console.log(`\nTraining stats`, trainingStats)
 		
-		lastEpochResults = {
-			trainingStats: trainingStats,
-			epochFitness: epochFitness
-		}
+		writeFile(`${dirData}/training.json`, j, true)
 
-		if (epochFitness.filter(isSuccess).length === scrambles.length) break;
+		logFitness(j, true)
+		
+		log('Websocket ping')
+		await fetch('http://localhost:8080/ping')
+
+		log('\n')
 	}
 
-	logResults()
+	logFitness(null, false)
+
+	trainDuration = seconds(new Date(), start)
+	log(`Training complete in ${trainDuration}\n`)
+
+	writeFile(`${dirData}/training.json`, j, false)
+
+	writeFile(`${dirLogs}/${formatDate(new Date())}.json`, j, false)
+
+	killSwitch()
 }
 
-function solveCube(scramble) {
-	for (var i = 0; i < HYPER.MOVES; i++) {
-		const binaryCube = binary(cube)
-		policy = brain.likely(binaryCube, net)
-		cube = moveFuncs[policy](cube)
-		if (compare(cube)) break;
-	}
+function killSwitch() {
 
-	return compare(cube) ? i : -1
+	console.log(' --- \x1b[32mDONE\x1b[0m --- ')
+	process.exit(0)
 }
 
-function loadScrambles() {
-	const file = `training-data/moveset-${HYPER.MOVES}.json`
-	try {
-		const rawFile = fs.readFileSync(file)
-		return JSON.parse(rawFile)
-	} catch(e) {
-		console.error(`Error loading file ${file}`, e)
-	}
+function rand(input) {
+  return Math.floor(Math.random() * (input+1))
 }
 
 function aggregateRewards(snaps) {
@@ -147,17 +173,6 @@ function assignRewards({ binarySnapshots, success }) {
 	return binarySnapshots.map(x => brainJsFormat(success, x, 1))
 }
 
-function logResults() {
-	log('\n--- [ FINAL RESULT BY PLAYING TEST-DATA ] ---')
-	log('Start date:', startDate)
-	log('Completion date:', new Date())
-	log('\nTraining duration:', trainDuration)
-	log('Testing duration:', testDuration)
-	log(`Network error: ${lastEpochResults.trainingStats.error}`)
-	const rate = ((lastEpochResults.epochFitness.filter(isSuccess).length / lastEpochResults.epochFitness.length ) * 100).toFixed(1)
-	log(`\nSuccess rate: ${ colors.bold(colors.cyan(rate)) }%`)
-}
-
 function seconds(dateA, dateB) {
 	return `${ Math.round((dateA.getTime() - dateB.getTime()) / 1000) } seconds`
 }
@@ -166,7 +181,7 @@ function logEpochToFile(epoch, trainingStats, epochFitness) {
 	console.log('trainingStats', epoch, trainingStats, epochFitness)
 
 	if (epoch % LOG_INTERVAL === 0) {
-		writeLogFile('training', epoch, true)
+		writeFile(`${dirData}/training.json`, epoch, true)
 	}
 }
 
@@ -221,55 +236,20 @@ function isSuccess(x) {
 	return x !== -1
 }
 
-function determineFitness() {
-	const epochFitness = scrambles.map(scramble => {
-		cube = scrambleCube(scramble)
-		return solveCube(scramble)
-	})
-
-	//epochFitness.forEach((x,i) => log(isSuccess(x) ? "✓" : "X", scrambles[i]))
-
-	return epochFitness
-}
-
-function writeLogFile(file, epochs, isTraining) {
+function writeFile(path, epochs, isTraining) {
 	if (!WRITE_FILES) return
 
-	const path = `${dir}/${file}.json`
-	log(`Writing file ${path} epoch ${epochs} - training: ${isTraining}`)
+	log(`Writing file ${path} epoch ${epochs} - training: ${isTraining}\n`)
 
 	const json = {
-		training: isTraining,
-		"max-fitness": scrambles.length,
+		"training": isTraining,
 		"epochs": epochs,
-		file: file,
-		"fitness-snapshots": fitnessSnapshots,
-		"binary-snapshots": binarySnapshotsAggregate.flatMap(x=>x),
+		"file": path,
 		"hyper-parameters": HYPER,
-		"iterations": resultAggregate.filter(x=>x!==null).map(x => x.trainingStats.iterations).reduce((acc, curr) => acc + curr, 0),
-		net: net.toJSON()
+		"net": net.toJSON()
 	}
 
 	fs.writeFileSync(path, JSON.stringify(json))
-}
-
-function createTrainingFile() {
-	if (!WRITE_FILES) return
-
-	log('Create new training.json file')
-
-	const json = {
-		training: true,
-		"max-fitness": "-",
-		"epochs": "-",
-		"fitness-snapshots": [],
-		"binary-snapshots": [],
-		"hyper-parameters": HYPER,
-		"iterations": "-",
-		net: null
-	}
-
-	fs.writeFileSync(`${dir}/training.json`, JSON.stringify(json))
 }
 
 function brainJsFormat(success, snap, falloff) {
