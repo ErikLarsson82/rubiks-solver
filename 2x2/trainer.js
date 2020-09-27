@@ -46,6 +46,8 @@ const dirFitnessLogs = `${rel}/fitness-logs`
 const ProgressBar = require('progress')
 const fetch = require('node-fetch')
 
+require('dotenv').config()
+
 const startDate = new Date()
 const LOGGING = true
 const DEBUG_LOGGING = true
@@ -54,23 +56,23 @@ const LOG_INTERVAL = 1
 
 const MINUTE = 1000 * 60
 const HOUR = MINUTE * 60
+const DAYS = HOUR * 24
 
 const HYPER = {
 	"EPOCHS": 1,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
 		iterations: 20000,
-		errorThresh: 0.005,
+		errorThresh: 0.0001,
 		callback: callback,
 		callbackPeriod: 1,
-		timeout: MINUTE * 10
+		timeout: HOUR * 7
 
 	},
 	"BRAIN_CONFIG": {
-		//hiddenLayers: [200, 200, 200],
-		learningRate: 0.95,
-		momentum: 0.6,
-  		decayRate: 0.3,
+		hiddenLayers: [100],
+		activation: 'relu',
+		learningRate: 0.4
 	}
 }
 
@@ -246,6 +248,13 @@ function writeFile(path, epochs, isTraining) {
 		"epochs": epochs,
 		"file": path,
 		"hyper-parameters": HYPER,
+		"env-file": {
+			MOVES: process.env.MOVES,
+			ATTEMPTS: process.env.ATTEMPTS,
+			SCRAMBLES: process.env.SCRAMBLES,
+			FITNESS_TESTS: process.env.FITNESS_TESTS,
+			NOVEL_TESTS: process.env.NOVEL_TESTS,
+		},
 		"net": net.toJSON()
 	}
 

@@ -32,6 +32,8 @@ const ONLY_SUCCESS = true
 const RANDOM_AGENT = false
 let printFirst = false
 
+const filename = '/training-data/training.json' //`/brains/2020-08-06-00-10-10-impressive.json`
+
 let testDuration, scrambles, net, bar
 
 let fitness = {
@@ -120,7 +122,7 @@ function testTarget(target) {
 }
 
 function loadNet() {
-	const file = `${rel}/brains/2020-08-06-00-10-10-impressive.json`
+	const file = `${rel}${filename}`
 	try {
 		const rawFile = fs.readFileSync(file)
 		return JSON.parse(rawFile).net
