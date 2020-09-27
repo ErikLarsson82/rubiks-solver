@@ -129,7 +129,7 @@ function startShowcase() {
 
 function loadNet() {
     const dir = 'brains'
-    const trainingfile = `${dir}/2020-08-06-00-10-10-impressive.json`
+    const trainingfile = `${dir}/janne-joffert-mkvi.json`
     return d3.json(trainingfile).then(data => 
     	net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
     )
