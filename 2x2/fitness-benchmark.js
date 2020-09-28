@@ -32,6 +32,8 @@ const ONLY_SUCCESS = true
 const RANDOM_AGENT = false
 let printFirst = false
 
+console.log(FITNESS_TESTS, NOVEL_TESTS)
+
 const filename = '/training-data/training.json' //`/brains/2020-08-06-00-10-10-impressive.json`
 
 let testDuration, scrambles, net, bar
@@ -102,7 +104,7 @@ function testTarget(target) {
 	const color = target === 'training-scrambles' ? colors.brightCyan : colors.green;
 	
 	console.log(`\n\n--- [ LOADING ${color(target.toUpperCase())} SCRAMBLES ] ---`)
-	scrambles = loadScrambles(target)
+	scrambles = loadScrambles(target).slice(0, target === 'training-scrambles' ? FITNESS_TESTS : NOVEL_TESTS)
 	if (!scrambles) {
 		console.log('Could not load scramble file')
 		return
