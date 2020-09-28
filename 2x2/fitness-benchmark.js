@@ -33,8 +33,6 @@ const ONLY_SUCCESS = true
 const RANDOM_AGENT = false
 let printFirst = false
 
-console.log(FITNESS_TESTS, NOVEL_TESTS)
-
 const filename = '/training-data/training.json' //`/brains/2020-08-06-00-10-10-impressive.json`
 
 let testDuration, scrambles, net, bar
@@ -152,14 +150,14 @@ function logResults(fitness, target) {
 	console.log(`\nSuccess rate: ${ colors.bold(colors.cyan(rate)) }%`)
 }
 
-function determineFitness() {
+function determineFitness(scrambles, agent, attempts) {
 	let success = 0
 	const fitness = scrambles.map((scramble, idx) => {
 		cube = scrambleCube(scramble)
-		let r = solveCube(scramble, randomUberAgent, ATTEMPTS, false)
+		let r = solveCube(scramble, agent, attempts, false)
 		if (r.correct !== -1) success += 1
 
-		bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
+		//bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
 
 		return r
 	})
@@ -171,22 +169,6 @@ function seconds(dateA, dateB) {
 	return `${ Math.round((dateA.getTime() - dateB.getTime()) / 1000) } seconds`
 }
 
-function randomUberAgent() {
-	return {
-		"U": Math.random(),
-		"U'": Math.random(),
-		"D": Math.random(),
-		"D'": Math.random(),
-		"L": Math.random(),
-		"L'": Math.random(),
-		"R": Math.random(),
-		"R'": Math.random(),
-		"F": Math.random(),
-		"F'": Math.random(),
-		"B": Math.random(),
-		"B'": Math.random()
-	}
-}
 
 function hasSeenIt(arr, cubeStr, policy) {
 	return arr.find(x => x.cubeStr === cubeStr && x.policy === policy) !== undefined
@@ -219,6 +201,7 @@ if (process.argv[2] === "run") {
 
 if (typeof module !== "undefined" && module.exports) {
 	module.exports = {
-		logFitness
+		logFitness,
+		determineFitness
 	}
 }

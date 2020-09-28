@@ -31,9 +31,10 @@ const {
 	moveFuncs,
 	binary,
 	randomAgent,
+	randomDistAgent,
 	moves
 } = require('./common')
-const { logFitness } = require('./fitness-benchmark.js')
+const { logFitness, determineFitness } = require('./fitness-benchmark.js')
 const brain = require('brain.js')
 const fs = require('fs')
 const R = require('ramda')
@@ -59,10 +60,10 @@ const HOUR = MINUTE * 60
 const DAYS = HOUR * 24
 
 const HYPER = {
-	"EPOCHS": 10,
+	"EPOCHS": 3,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 5,
+		iterations: 1000,
 		errorThresh: 0.01,
 		callback: callback,
 		callbackPeriod: 1,
@@ -70,8 +71,8 @@ const HYPER = {
 
 	},
 	"BRAIN_CONFIG": {
-		hiddenLayers: [12],
-		learningRate: 0.4
+		//hiddenLayers: [12],
+		//learningRate: 0.4
 	}
 }
 
@@ -125,10 +126,33 @@ function trainerSchema() {
 	
 		// try to solve the cube using the selected agent	
 		const scrambles = [
-			'U'
+			["R"]
 		]
 
-		//logFitness
+		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : net.run(cube), 1)
+
+		console.log('fit', fit)
+
+		const experienceSequences = [
+			{ 
+				scramble: [ 'R' ],
+				solution: [ "R'" ],
+				correct: 0
+			}
+		]
+
+		const c = createCube()
+		const snap = binary( moveFuncs[experienceSequences[0].scramble[0]](c) )
+		const experienceSnapshots = [
+			{
+				input: snap,
+				output: {
+					"R'": 1
+				}
+			}
+		]
+		
+		console.log('experienceSnapshots', experienceSnapshots)
 
 		// gather new experience
 			// pick a scramble/solve pair that solves the cube
@@ -140,7 +164,7 @@ function trainerSchema() {
 		bar.tick({ token1: "N/A" })
 
 		
-		const trainingStats = net.train([], HYPER["TRAINING_OPTIONS"])
+		const trainingStats = net.train(experienceSnapshots, HYPER["TRAINING_OPTIONS"])
 		console.log(`\nTraining stats`, trainingStats)
 		
 		//writeFile(`${dirData}/training.json`, j, true)

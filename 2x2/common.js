@@ -14,6 +14,8 @@
 	24 rotations per cubit - 8 cubits = 192
 	00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - [000] */
 
+const { sort } = require('ramda')
+
 const moves = ["U", "U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
 
 function createCube() {
@@ -41,6 +43,8 @@ function solveCube(scramble, agent, attempts, print) {
 
 		const sortedPolicyDistribution = sortedPairs(agent(cube))
 
+		console.log('sortedPolicyDistribution', sortedPolicyDistribution, agent(cube))
+
 	    do {
 	    	policy = sortedPolicyDistribution.shift().policy
 	    	
@@ -67,6 +71,15 @@ function solveCube(scramble, agent, attempts, print) {
 		solution: solution,
 		correct: compare(cube) ? i : -1	
 	}
+}
+
+function sortedPairs(arr) {
+	return sort((a,b) => a.value > b.value ? -1 : 1, Object.values(arr).map((x, i) => ({ policy: Object.keys(arr)[i], value: x })))
+}
+
+
+function hasSeenIt(visitedSteps, cubeStr, policy) {
+	return visitedSteps.find(x => x.cubeStr === cubeStr && x.policy === policy) !== undefined
 }
 
 
@@ -553,9 +566,27 @@ function randomAgent() {
 	return moves[Math.floor(Math.random() * 12)]
 }
 
-const scrambles = [
-	["U"]
-]
+function randomDistAgent() {
+	return {
+		"U": Math.random(),
+		"U'": Math.random(),
+		"D": Math.random(),
+		"D'": Math.random(),
+		"L": Math.random(),
+		"L'": Math.random(),
+		"R": Math.random(),
+		"R'": Math.random(),
+		"F": Math.random(),
+		"F'": Math.random(),
+		"B": Math.random(),
+		"B'": Math.random()
+	}
+}
+
+
+function compare(cube) {
+	return binaryStr(cube) === binaryStr(createCube())
+}
 
 if (typeof module !== "undefined" && module.exports) {
 	module.exports = {
@@ -579,8 +610,8 @@ if (typeof module !== "undefined" && module.exports) {
 		invertMove,
 		invertSequence,
 		randomAgent,
+		randomDistAgent,
 		moves,
-		scrambles,
 		isSame,
 		positions,
 		solveCube
