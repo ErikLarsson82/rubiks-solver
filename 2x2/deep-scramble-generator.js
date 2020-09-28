@@ -11,6 +11,7 @@ const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
 const SCRAMBLES = (process.env.SCRAMBLES && parseInt(process.env.SCRAMBLES)) || 10000;
 const rel = '2x2' //remove to create relative paths
 
+if (!fs.existsSync(rel + '/scrambles')) fs.mkdirSync(rel + '/scrambles')
 
 function generateScrambleSet() {
 	const bar = new ProgressBar('Scrambles [:bar] :percent of :total :etas', { total: SCRAMBLES, width: 40, complete: '=', incomplete: ' ' });
@@ -24,14 +25,18 @@ function generateScrambleSet() {
 	return scrambles	
 }
 
-if (!fs.existsSync(rel + '/scrambles')) fs.mkdirSync(rel + '/scrambles')
+if (typeof module !== "undefined" && module.exports) {
+	module.exports = {
+		generateScrambleSet
+	}
+} else {
+	const fileA = `${rel}/scrambles/training-scrambles.json`
+	console.log('\n\nSaving to file', fileA)
+	fs.writeFileSync(fileA, JSON.stringify(generateScrambleSet()))
+	console.log(`Saved ${SCRAMBLES} scrambles with ${MOVES} depth`)
 
-const fileA = `${rel}/scrambles/training-scrambles.json`
-console.log('\n\nSaving to file', fileA)
-fs.writeFileSync(fileA, JSON.stringify(generateScrambleSet()))
-console.log(`Saved ${SCRAMBLES} scrambles with ${MOVES} depth`)
-
-const fileB = `${rel}/scrambles/novel-scrambles.json`
-console.log('\n\nSaving to file', fileB)
-fs.writeFileSync(fileB, JSON.stringify(generateScrambleSet()))
-console.log(`Saved ${SCRAMBLES} scrambles with ${MOVES} depth`)
+	const fileB = `${rel}/scrambles/novel-scrambles.json`
+	console.log('\n\nSaving to file', fileB)
+	fs.writeFileSync(fileB, JSON.stringify(generateScrambleSet()))
+	console.log(`Saved ${SCRAMBLES} scrambles with ${MOVES} depth`)
+}

@@ -59,11 +59,11 @@ const HOUR = MINUTE * 60
 const DAYS = HOUR * 24
 
 const HYPER = {
-	"EPOCHS": 1,
+	"EPOCHS": 10,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 20000,
-		errorThresh: 0.0001,
+		iterations: 5,
+		errorThresh: 0.01,
 		callback: callback,
 		callbackPeriod: 1,
 		timeout: HOUR
@@ -79,16 +79,17 @@ function callback({ error }) {
 	bar.tick({'token1': error });
 }
 
-function initTrainer() {
+function trainerSchema() {
 	
-	if (!fs.existsSync(dirData)) fs.mkdirSync(dirData)
-	if (!fs.existsSync(dirLogs)) fs.mkdirSync(dirLogs)
-	if (!fs.existsSync(dirFitnessLogs)) fs.mkdirSync(dirFitnessLogs)
+	//if (!fs.existsSync(dirData)) fs.mkdirSync(dirData)
+	//if (!fs.existsSync(dirLogs)) fs.mkdirSync(dirLogs)
+	//if (!fs.existsSync(dirFitnessLogs)) fs.mkdirSync(dirFitnessLogs)
 
 	log('\n--- [ 2X2 RUBIKS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
 
+	/*
 	try {
 		const rawFile = fs.readFileSync(`${rel}/experience-data/experience-collection.json`)
 		const parsed = JSON.parse(rawFile)
@@ -99,57 +100,69 @@ function initTrainer() {
 		console.error('Cannot read file experience-collection.json')
 		return
 	}
+	*/
 
 	log('Creating new neural network')
 	net = new brain.NeuralNetworkGPU(HYPER["BRAIN_CONFIG"])
 
-	persist(createCube())
+	//persist(createCube())
 
-	train()
-}
+	
+	//const path = `${dirFitnessLogs}/fitness.json`
+	//console.log('Writing file on startup', path) // remove or replace with writeFile function?
+	//fs.writeFileSync( path, JSON.stringify({ training: true, dataset: [] }) )
 
-async function train() {
+	//log('Websocket ping')
+	//const result = await fetch('http://localhost:8080/ping')
 
-	const path = `${dirFitnessLogs}/fitness.json`
-	console.log('Writing file on startup', path) // remove or replace with writeFile function?
-	fs.writeFileSync( path, JSON.stringify({ training: true, dataset: [] }) )
+	log('\n\n--- [ BEGIN TRAINING SCHEMA ] ---')
 
-	log('Websocket ping')
-	const result = await fetch('http://localhost:8080/ping')
-
-	log('\n\n--- [ BEGIN TRAINING ] ---')
-	log(`Running brain.js train API`)
-	let start = new Date()
+	//log(`Running brain.js train API`)
+	//let start = new Date()
 
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
 		log(`Epoch ${j+1} of ${HYPER.EPOCHS}`)
+	
+		// try to solve the cube using the selected agent	
+		const scrambles = [
+			'U'
+		]
+
+		//logFitness
+
+		// gather new experience
+			// pick a scramble/solve pair that solves the cube
+			// pick a place and solve the cube randomly with reversed rewards
+
+		// train the network
+
 		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40, complete: '=', incomplete: ' ' });
 		bar.tick({ token1: "N/A" })
 
-		const ref = rand(experience.length/100)
-		const trainingStats = net.train(experience, HYPER["TRAINING_OPTIONS"])
+		
+		const trainingStats = net.train([], HYPER["TRAINING_OPTIONS"])
 		console.log(`\nTraining stats`, trainingStats)
 		
-		writeFile(`${dirData}/training.json`, j, true)
+		//writeFile(`${dirData}/training.json`, j, true)
 
-		logFitness(j, true)
+		//logFitness(j, true)
 		
-		log('Websocket ping')
-		await fetch('http://localhost:8080/ping')
+		//log('Websocket ping')
+		//await fetch('http://localhost:8080/ping')
 
 		log('\n')
 	}
 
-	logFitness(null, false)
+	//logFitness(null, false)
 
-	trainDuration = seconds(new Date(), start)
-	log(`Training complete in ${trainDuration}\n`)
+	//trainDuration = seconds(new Date(), start)
+	//log(`Training complete in ${trainDuration}\n`)
 
-	writeFile(`${dirData}/training.json`, j, false)
+	//writeFile(`${dirData}/training.json`, j, false)
 
-	writeFile(`${dirLogs}/${formatDate(new Date())}.json`, j, false)
+	//writeFile(`${dirLogs}/${formatDate(new Date())}.json`, j, false)
 
-	killSwitch()
+	//killSwitch()	
 }
 
 function killSwitch() {
@@ -331,4 +344,4 @@ function logObj(obj) {
 	}
 }
 
-initTrainer()
+trainerSchema()

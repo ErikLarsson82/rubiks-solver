@@ -14,8 +14,7 @@
 	24 rotations per cubit - 8 cubits = 192
 	00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - 00000 - [000] */
 
-
-let persistedBinaryStr
+const moves = ["U", "U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
 
 function createCube() {
 	return [
@@ -29,7 +28,47 @@ function createCube() {
 		defs({ id: 7, position: 7, down: 'yellow', front: 'green', right: 'red' }),
 	]
 }
-const moves = ["U", "U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
+
+
+function solveCube(scramble, agent, attempts, print) {
+	let solution = []
+	let visitedSteps = []
+
+	for (var i = 0; i < attempts; i++) {
+		const binaryCube = binary(cube)
+		
+		let policy, hasSeen
+
+		const sortedPolicyDistribution = sortedPairs(agent(cube))
+
+	    do {
+	    	policy = sortedPolicyDistribution.shift().policy
+	    	
+	    	hasSeen = hasSeenIt(visitedSteps, binaryStr(cube), policy)
+
+	    } while (hasSeen && policy !== undefined) 
+
+	    visitedSteps.push({
+			cubeStr: binaryStr(cube),
+			policy: policy
+		})    	
+
+		solution.push(policy)
+		cube = moveFuncs[policy](cube)
+		if (compare(cube)) break;
+	}
+
+	if (print) {
+		console.log('Scramble', scramble.map(primPrint), 'Solution', solution.map(primPrint), compare(cube) ? '\x1b[42m\x1b[37mCORRECT\x1b[0m' : '\x1b[41m\x1b[37mINCORRECT\x1b[0m')	
+	}
+
+	return {
+		scramble: scramble,
+		solution: solution,
+		correct: compare(cube) ? i : -1	
+	}
+}
+
 
 const positions = {
 	"R": [3,1,5,7],
@@ -477,16 +516,6 @@ function scrambleCube(scramble) {
 	return cube
 }
 
-function persist(cube) {
-	persistedBinaryStr = binaryStr(cube)
-	return "Current cube configuration persisted"
-}
-
-function compare(cube) {
-	const currentCube = binaryStr(cube)
-	return persistedBinaryStr === currentCube
-}
-
 function isSame(cubeA, cubeB) {
 	return binaryStr(cubeA) === binaryStr(cubeB)
 }
@@ -543,8 +572,6 @@ if (typeof module !== "undefined" && module.exports) {
 		frontPrim,
 		back,
 		backPrim,
-		persist,
-		compare,
 		binary,
 		binaryStr,
 		scrambleCube,
@@ -555,6 +582,7 @@ if (typeof module !== "undefined" && module.exports) {
 		moves,
 		scrambles,
 		isSame,
-		positions
+		positions,
+		solveCube
 	}
 }

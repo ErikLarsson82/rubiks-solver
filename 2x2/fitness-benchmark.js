@@ -14,7 +14,8 @@ const {
 	binary,
 	binaryStr,
 	randomAgent,
-	moves
+	moves,
+	solveCube
 } = require('./common')
 const fs = require('fs')
 const brain = require('../brain-browser.js')
@@ -155,10 +156,10 @@ function determineFitness() {
 	let success = 0
 	const fitness = scrambles.map((scramble, idx) => {
 		cube = scrambleCube(scramble)
-		let r = solveCube(scramble)
-		if (r !== -1) success += 1
+		let r = solveCube(scramble, randomUberAgent, ATTEMPTS, false)
+		if (r.correct !== -1) success += 1
 
-		!PRINT_SOLUTION_LIST && bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
+		bar.tick({ token1: `${ (100 * (success / (idx+1))).toFixed(0) }% success` })
 
 		return r
 	})
@@ -168,49 +169,6 @@ function determineFitness() {
 
 function seconds(dateA, dateB) {
 	return `${ Math.round((dateA.getTime() - dateB.getTime()) / 1000) } seconds`
-}
-
-function solveCube(scramble) {
-	let solution = []
-	let visitedSteps = []
-
-	for (var i = 0; i < ATTEMPTS; i++) {
-		const binaryCube = binary(cube)
-		
-		let policy, hasSeen
-
-		const policyDistribution = RANDOM_AGENT ? randomUberAgent() : net.run(binary(cube))
-		const sortedPolicyDistribution = sortedPairs(policyDistribution)
-
-	    do {
-	    	policy = sortedPolicyDistribution.shift().policy
-	    	
-	    	hasSeen = hasSeenIt(visitedSteps, binaryStr(cube), policy)
-
-	    } while (hasSeen && policy !== undefined) 
-
-	    visitedSteps.push({
-			cubeStr: binaryStr(cube),
-			policy: policy
-		})    	
-
-		solution.push(policy)
-		cube = moveFuncs[policy](cube)
-		if (compare(cube)) break;
-	}
-
-	if (printFirst && compare(cube)) {
-		printFirst = false
-		console.log('First solution')
-		console.log('Scramble', scramble.map(primPrint))
-		console.log('Solution', solution.map(primPrint), '\n')
-	}
-
-	if (PRINT_SOLUTION_LIST && (ONLY_SUCCESS && compare(cube) === true)) {
-		console.log('Scramble', scramble.map(primPrint), 'Solution', solution.map(primPrint), compare(cube) ? '\x1b[42m\x1b[37mCORRECT\x1b[0m' : '\x1b[41m\x1b[37mINCORRECT\x1b[0m')	
-	}
-
-	return compare(cube) ? i : -1
 }
 
 function randomUberAgent() {
