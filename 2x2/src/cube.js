@@ -31,7 +31,7 @@ const { sort } = require('ramda')
 
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
-const ATTEMPT_THRESHOLD = 2000
+const ATTEMPT_THRESHOLD = 10
 const HIQ_COLORS = true
 const ROTATION_ENABLED = false
 const MOVES = 12
@@ -128,8 +128,8 @@ function startShowcase() {
 }
 
 function loadNet() {
-    const dir = 'brains'
-    const trainingfile = `${dir}/janne-joffert-mkvi.json`
+    const dir = 'training-data'
+    const trainingfile = `${dir}/training.json` //`${dir}/janne-joffert-mkvi.json`
     return d3.json(trainingfile).then(data => 
     	net = new brain.NeuralNetwork(data['hyper-parameters']["BRAIN_CONFIG"]).fromJSON(data.net)
     )

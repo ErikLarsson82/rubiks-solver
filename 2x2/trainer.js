@@ -66,12 +66,11 @@ const HYPER = {
 		errorThresh: 0.0001,
 		callback: callback,
 		callbackPeriod: 1,
-		timeout: HOUR * 7
+		timeout: HOUR
 
 	},
 	"BRAIN_CONFIG": {
-		hiddenLayers: [100],
-		activation: 'relu',
+		hiddenLayers: [12],
 		learningRate: 0.4
 	}
 }
@@ -86,7 +85,7 @@ function initTrainer() {
 	if (!fs.existsSync(dirLogs)) fs.mkdirSync(dirLogs)
 	if (!fs.existsSync(dirFitnessLogs)) fs.mkdirSync(dirFitnessLogs)
 
-	log('\n--- [ 2X2 RUBICS CUBE SOLVING USING BRAIN.JS ] ---')
+	log('\n--- [ 2X2 RUBIKS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
 
