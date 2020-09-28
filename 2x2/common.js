@@ -43,7 +43,7 @@ function solveCube(scramble, agent, attempts, print) {
 
 		const sortedPolicyDistribution = sortedPairs(agent(cube))
 
-		console.log('sortedPolicyDistribution', sortedPolicyDistribution, agent(cube))
+		//console.log('sortedPolicyDistribution', sortedPolicyDistribution, agent(cube))
 
 	    do {
 	    	policy = sortedPolicyDistribution.shift().policy

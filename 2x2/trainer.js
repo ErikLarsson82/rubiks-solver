@@ -35,6 +35,7 @@ const {
 	moves
 } = require('./common')
 const { logFitness, determineFitness } = require('./fitness-benchmark.js')
+const { permutations } = require('./scramble-permutation-generator.js')
 const brain = require('brain.js')
 const fs = require('fs')
 const R = require('ramda')
@@ -63,8 +64,8 @@ const HYPER = {
 	"EPOCHS": 3,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 1000,
-		errorThresh: 0.01,
+		iterations: 10,
+		errorThresh: 0.1,
 		callback: callback,
 		callbackPeriod: 1,
 		timeout: HOUR
@@ -129,7 +130,7 @@ function trainerSchema() {
 			["R"]
 		]
 
-		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : net.run(cube), 1)
+		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : net.run(binary(cube)), 1)
 
 		console.log('fit', fit)
 
@@ -187,6 +188,12 @@ function trainerSchema() {
 	//writeFile(`${dirLogs}/${formatDate(new Date())}.json`, j, false)
 
 	//killSwitch()	
+
+	console.log(`Creating non-distinct scramble set of maximum ${3} moves`)
+
+	const fit = determineFitness(permutations(3, moves), cube => net.run(binary(cube)), 1)
+
+	console.log('final fitness test', fit.filter(x=>x.correct !== -1).length, 'of', fit.length)
 }
 
 function killSwitch() {
@@ -238,8 +245,6 @@ function positiveReward(obj) {
 		target["B"] > 0 ||
 		target["B'"] > 0
 }
-
-const permutations = R.compose(R.sequence(R.of), R.flip(R.repeat));
 
 function prettySnap(snap) {
 	return snap.input.join("") + "\n" + formatPolicyObj(snap.output, 2) + "\n"
