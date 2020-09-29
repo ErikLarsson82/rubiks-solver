@@ -168,6 +168,8 @@ function renderCube() {
 
     cubits = cube.map(createCubit)
     cubits.forEach(cubit => cubeContainer.add(cubit))
+
+    window.dispatchEvent(new CustomEvent("cube-binary", { detail: { cube: binary(cube) }}))
 }
 
 function removeChildren(container) {
@@ -266,7 +268,7 @@ function rotateSide(move, speed = 700) {
             .onComplete(() => {
                 cube = moveFuncs[move](cube)
                 renderCube(cube)
-                isAnimating = false
+                isAnimating = false                
             })
             .start()
     }

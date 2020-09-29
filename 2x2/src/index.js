@@ -1,10 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, createRef } from "react";
 import ReactDOM from "react-dom";
 import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
 import { init as initCube, initKeypress, cleanupKeypress, randomShowcase as startAISolve, resetCube } from './cube';
+import { binary, createCube } from '../common';
+
+
+
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,6 +32,11 @@ const theme = createMuiTheme({
     },
   },
 });
+
+
+
+
+
 
 const DELAY = 200
 
@@ -64,10 +74,100 @@ const App = () => {
             <ThemeProvider theme={theme}>
                 { !showJanne && <SolveList solves={ solves } /> }
                 { content }
+                <Canvas />
             </ThemeProvider>
         </div>
     )
 }
+
+
+
+
+
+
+
+
+const Canvas = () => {
+    const canvasRef = createRef()
+    const canvasHiddenRef = createRef()
+
+    const renderCanvas = e => {
+
+        const cube = binary(createCube())
+        
+        const binaryCube = e.detail.cube
+
+        const contextHidden = canvasHiddenRef.current.getContext('2d')
+        
+        const myImageData = contextHidden.createImageData(8, 60)
+        var data = myImageData.data;
+
+        const colors = {
+            'off-incorrect': [0, 115, 0, 255],
+            'off-correct': [140, 12, 76, 255],
+            'on-incorrect': [0, 255, 0, 255],
+            'on-correct': [225, 22, 124, 255]
+        }
+
+        for (var i = 0; i < data.length; i += 4) {
+          const cubeIndex = i / 4
+          const correct = binaryCube[cubeIndex] === cube[cubeIndex]
+          const on = binaryCube[cubeIndex] === 0
+          const color = colors[`${on ? 'on' : 'off'}-${correct ? 'correct' : 'incorrect'}`]
+          data[i]     = color[0]
+          data[i + 1] = color[1]
+          data[i + 2] = color[2]
+          data[i + 3] = color[3]
+        }
+
+        contextHidden.putImageData(myImageData, 0, 0)
+
+        
+        var imageObject=new Image();
+        imageObject.onload=function(){
+            
+            const contextScaledVisible = canvasRef.current.getContext('2d')
+
+            contextScaledVisible.imageSmoothingEnabled = false;
+            
+            contextScaledVisible.save()
+            contextScaledVisible.clearRect(0,0,canvasRef.current.width,canvasRef.current.height);
+            contextScaledVisible.scale(10,10);
+            contextScaledVisible.drawImage(imageObject,0,0);
+            contextScaledVisible.restore()
+            
+        }
+        imageObject.src=canvasHiddenRef.current.toDataURL();
+    }
+
+    const callback = useCallback(renderCanvas)
+
+    useEffect(() => {
+        window.addEventListener('cube-binary', callback)
+        return () => window.removeEventListener('cube-binary', callback)
+    }, [callback])
+
+    return (
+        <div id="canvas-container">
+            <canvas id="canvas" ref={canvasRef} width="80" height="600" />
+            <canvas id="hidden-canvas" ref={canvasHiddenRef} width="8" height="60" style={ { display: 'none' }} />
+        </div>
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const SolveList = ({ solves }) => {
 
@@ -101,9 +201,32 @@ const SolveList = ({ solves }) => {
     )
 }
 
+
+
+
+
+
+
+
+
+
+
 const Percent = ({solves}) => {
     return solves.length > 0 && `${(100 * solves.filter(x => x.correct).length / solves.length).toFixed(1)}%`
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const Welcome = ({ setView }) => {
     const classes = useStyles();
@@ -122,6 +245,17 @@ const Welcome = ({ setView }) => {
         </div>
     )
 }
+
+
+
+
+
+
+
+
+
+
+
 
 const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
     const classes = useStyles();
@@ -167,6 +301,17 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
     )
 }
 
+
+
+
+
+
+
+
+
+
+
+
 const PrepareToSolve = ({ setView }) => {
     const classes = useStyles();
 
@@ -204,6 +349,16 @@ const PrepareToSolve = ({ setView }) => {
     )
 }
 
+
+
+
+
+
+
+
+
+
+
 const Solving = ({ setView, addSolve }) => {
 
     startAISolve(data => {
@@ -216,6 +371,17 @@ const Solving = ({ setView, addSolve }) => {
     )
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 const Result = ({ setView, solves }) => {
 
@@ -250,5 +416,13 @@ const Result = ({ setView, solves }) => {
         </div>
     )
 }
+
+
+
+
+
+
+
+
 
 ReactDOM.render(<App/>, document.getElementById("root"));
