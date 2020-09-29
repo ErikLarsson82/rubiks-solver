@@ -61,7 +61,10 @@ const MINUTE = 1000 * 60
 const HOUR = MINUTE * 60
 const DAYS = HOUR * 24
 
-
+const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
+const EPOCHS = (process.env.EPOCHS && parseInt(process.env.EPOCHS)) || 1;
+const ITERATIONS = (process.env.ITERATIONS && parseInt(process.env.ITERATIONS)) || 20000;
+const ERROR_THRESH = (process.env.ERROR_THRESH && parseFloat(process.env.ERROR_THRESH)) || 0.002;
 
 
 
@@ -73,11 +76,10 @@ const DAYS = HOUR * 24
 
 
 const HYPER = {
-	"EPOCHS": 5,
-	"NETS": 1,
+	"EPOCHS": EPOCHS,
 	"TRAINING_OPTIONS": {
-		iterations: 2000,
-		errorThresh: 0.1,
+		iterations: ITERATIONS,
+		errorThresh: ERROR_THRESH,
 		callback: callback,
 		callbackPeriod: 1,
 		timeout: HOUR
@@ -112,7 +114,7 @@ function trainerSchema() {
 	log('\n\n--- [ BEGIN TRAINING SCHEMA ] ---')
 
 	log(`Creating non-distinct scramble set of maximum ${3} moves`)
-	const scrambles = permutations(3, moves)
+	const scrambles = permutations(2, moves)
 
 	const agent = cube => net.run(binary(cube))
 	
@@ -120,7 +122,7 @@ function trainerSchema() {
 		log(`Epoch ${j+1} of ${HYPER.EPOCHS}`)
 	
 		log(`Determine current fitness`)
-		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : agent(cube), 3)
+		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : agent(cube), MOVES)
 		const onlySuccess = fit.filter(x=>x.correct !== -1)
 		log(onlySuccess.length, 'of', fit.length)
 
@@ -151,7 +153,7 @@ function trainerSchema() {
 			})
 			
 
-		} while (experienceSnapshots.length < 20)
+		} while (experienceSnapshots.length < 500)
 
 		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40, complete: '=', incomplete: ' ' });
 		bar.tick({ token1: "N/A" })
@@ -163,7 +165,7 @@ function trainerSchema() {
 	}
 
 	log('final fitness test')
-	const fit = determineFitness(scrambles, agent, 3)
+	const fit = determineFitness(scrambles, agent, MOVES)
 
 	log(fit.filter(x=>x.correct !== -1).length, 'of', fit.length)
 }
