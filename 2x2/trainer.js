@@ -32,6 +32,7 @@ const {
 	binary,
 	randomAgent,
 	randomDistAgent,
+	invertMove,
 	moves
 } = require('./common')
 const { logFitness, determineFitness } = require('./fitness-benchmark.js')
@@ -60,11 +61,22 @@ const MINUTE = 1000 * 60
 const HOUR = MINUTE * 60
 const DAYS = HOUR * 24
 
+
+
+
+
+
+
+
+
+
+
+
 const HYPER = {
-	"EPOCHS": 3,
+	"EPOCHS": 5,
 	"NETS": 1,
 	"TRAINING_OPTIONS": {
-		iterations: 10,
+		iterations: 2000,
 		errorThresh: 0.1,
 		callback: callback,
 		callbackPeriod: 1,
@@ -81,120 +93,98 @@ function callback({ error }) {
 	bar.tick({'token1': error });
 }
 
+
+
+
+
+
+
+
 function trainerSchema() {
 	
-	//if (!fs.existsSync(dirData)) fs.mkdirSync(dirData)
-	//if (!fs.existsSync(dirLogs)) fs.mkdirSync(dirLogs)
-	//if (!fs.existsSync(dirFitnessLogs)) fs.mkdirSync(dirFitnessLogs)
-
 	log('\n--- [ 2X2 RUBIKS CUBE SOLVING USING BRAIN.JS ] ---')
 	log('Hyper-parameters', HYPER)
 	log('\n\n--- [ SETUP ] ---')
 
-	/*
-	try {
-		const rawFile = fs.readFileSync(`${rel}/experience-data/experience-collection.json`)
-		const parsed = JSON.parse(rawFile)
-		experience = parsed.snapshots
-
-		log(`File experience-collection read - binary samples ${experience.length} - parameters`, parsed["experience-parameters"])
-	} catch(e) {
-		console.error('Cannot read file experience-collection.json')
-		return
-	}
-	*/
-
 	log('Creating new neural network')
 	net = new brain.NeuralNetworkGPU(HYPER["BRAIN_CONFIG"])
 
-	//persist(createCube())
-
-	
-	//const path = `${dirFitnessLogs}/fitness.json`
-	//console.log('Writing file on startup', path) // remove or replace with writeFile function?
-	//fs.writeFileSync( path, JSON.stringify({ training: true, dataset: [] }) )
-
-	//log('Websocket ping')
-	//const result = await fetch('http://localhost:8080/ping')
-
 	log('\n\n--- [ BEGIN TRAINING SCHEMA ] ---')
 
-	//log(`Running brain.js train API`)
-	//let start = new Date()
+	log(`Creating non-distinct scramble set of maximum ${3} moves`)
+	const scrambles = permutations(3, moves)
 
+	const agent = cube => net.run(binary(cube))
+	
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
 		log(`Epoch ${j+1} of ${HYPER.EPOCHS}`)
 	
-		// try to solve the cube using the selected agent	
-		const scrambles = [
-			["R"]
-		]
+		log(`Determine current fitness`)
+		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : agent(cube), 3)
+		const onlySuccess = fit.filter(x=>x.correct !== -1)
+		log(onlySuccess.length, 'of', fit.length)
 
-		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : net.run(binary(cube)), 1)
+		const experienceSnapshots = []
 
-		console.log('fit', fit)
+		log('Generate new experience data\n')
+		do {
+			let cube = createCube()
 
-		const experienceSequences = [
-			{ 
-				scramble: [ 'R' ],
-				solution: [ "R'" ],
-				correct: 0
-			}
-		]
-
-		const c = createCube()
-		const snap = binary( moveFuncs[experienceSequences[0].scramble[0]](c) )
-		const experienceSnapshots = [
-			{
-				input: snap,
-				output: {
-					"R'": 1
+			if (onlySuccess.length > 0) {
+				const r1 = Math.floor(Math.random() * (onlySuccess.length-1))
+				const seq = onlySuccess[r1]
+				const r2 = Math.floor(Math.random() * (seq.scramble.length+1))
+				const scr = seq.scramble.slice(0, r2)
+				for (var i = 0; i < scr.length; i++) {
+					cube = moveFuncs[scr[i]](cube)
 				}
 			}
-		]
-		
-		console.log('experienceSnapshots', experienceSnapshots)
 
-		// gather new experience
-			// pick a scramble/solve pair that solves the cube
-			// pick a place and solve the cube randomly with reversed rewards
+			const agentMove = randomAgent()
+			cube = moveFuncs[agentMove](cube)
 
-		// train the network
+			experienceSnapshots.push({
+				input: binary(cube),
+				output: {
+					[invertMove(agentMove)]: 1
+				}
+			})
+			
+
+		} while (experienceSnapshots.length < 20)
 
 		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40, complete: '=', incomplete: ' ' });
 		bar.tick({ token1: "N/A" })
-
 		
 		const trainingStats = net.train(experienceSnapshots, HYPER["TRAINING_OPTIONS"])
-		console.log(`\nTraining stats`, trainingStats)
-		
-		//writeFile(`${dirData}/training.json`, j, true)
-
-		//logFitness(j, true)
-		
-		//log('Websocket ping')
-		//await fetch('http://localhost:8080/ping')
+		log(`\nTraining stats`, trainingStats)
 
 		log('\n')
 	}
 
-	//logFitness(null, false)
+	log('final fitness test')
+	const fit = determineFitness(scrambles, agent, 3)
 
-	//trainDuration = seconds(new Date(), start)
-	//log(`Training complete in ${trainDuration}\n`)
-
-	//writeFile(`${dirData}/training.json`, j, false)
-
-	//writeFile(`${dirLogs}/${formatDate(new Date())}.json`, j, false)
-
-	//killSwitch()	
-
-	console.log(`Creating non-distinct scramble set of maximum ${3} moves`)
-
-	const fit = determineFitness(permutations(3, moves), cube => net.run(binary(cube)), 1)
-
-	console.log('final fitness test', fit.filter(x=>x.correct !== -1).length, 'of', fit.length)
+	log(fit.filter(x=>x.correct !== -1).length, 'of', fit.length)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function killSwitch() {
 

@@ -178,17 +178,6 @@ function sortedPairs(arr) {
 	return sort((a,b) => a.value > b.value ? -1 : 1, Object.values(arr).map((x, i) => ({ policy: Object.keys(arr)[i], value: x })))
 } 
 
-function primPrint(move) {
-	if (move === "L'") return "l'"
-	if (move === "R'") return "r'"
-	if (move === "F'") return "f'"
-	if (move === "B'") return "b'"
-	if (move === "U'") return "u'"
-	if (move === "D'") return "d'"
-
-	return move
-}
-
 
 function isSuccess(x) {
 	return x !== -1

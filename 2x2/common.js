@@ -43,8 +43,6 @@ function solveCube(scramble, agent, attempts, print) {
 
 		const sortedPolicyDistribution = sortedPairs(agent(cube))
 
-		//console.log('sortedPolicyDistribution', sortedPolicyDistribution, agent(cube))
-
 	    do {
 	    	policy = sortedPolicyDistribution.shift().policy
 	    	
@@ -400,6 +398,17 @@ const COLORS = [
 	"YELLOW",
 	"ORANGE"
 ]
+
+function primPrint(move) {
+	if (move === "L'") return "l'"
+	if (move === "R'") return "r'"
+	if (move === "F'") return "f'"
+	if (move === "B'") return "b'"
+	if (move === "U'") return "u'"
+	if (move === "D'") return "d'"
+
+	return move
+}
 
 function defs(x) {
 	return {
