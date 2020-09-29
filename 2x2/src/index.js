@@ -93,9 +93,13 @@ const Canvas = () => {
 
     const renderCanvas = e => {
 
+        console.log('rendering', canvasHiddenRef.current, canvasRef.current)
+
         const cube = binary(createCube())
         
         const binaryCube = e.detail.cube
+
+        if (!canvasHiddenRef.current) return
 
         const contextHidden = canvasHiddenRef.current.getContext('2d')
         
@@ -126,6 +130,7 @@ const Canvas = () => {
         var imageObject=new Image();
         imageObject.onload=function(){
             
+            if (!canvasRef.current) return
             const contextScaledVisible = canvasRef.current.getContext('2d')
 
             contextScaledVisible.imageSmoothingEnabled = false;
