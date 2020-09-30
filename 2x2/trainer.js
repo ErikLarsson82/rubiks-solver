@@ -37,6 +37,7 @@ const {
 } = require('./common')
 const { logFitness, determineFitness } = require('./fitness-benchmark.js')
 const { permutations } = require('./scramble-permutation-generator.js')
+const { generateScrambleSet } = require('./deep-scramble-generator.js')
 const brain = require('brain.js')
 const fs = require('fs')
 const R = require('ramda')
@@ -57,13 +58,16 @@ const DEBUG_LOGGING = true
 const WRITE_FILES = true
 const LOG_INTERVAL = 1
 
-const MINUTE = 1000 * 60
+const SECOND = 1000
+const MINUTE = SECOND * 60
 const HOUR = MINUTE * 60
 const DAYS = HOUR * 24
 
 const MOVES = (process.env.MOVES && parseInt(process.env.MOVES)) || 12;
 const EPOCHS = (process.env.EPOCHS && parseInt(process.env.EPOCHS)) || 1;
 const ITERATIONS = (process.env.ITERATIONS && parseInt(process.env.ITERATIONS)) || 20000;
+const EXPERIENCE_SNAPSHOTS = (process.env.EXPERIENCE_SNAPSHOTS && parseInt(process.env.EXPERIENCE_SNAPSHOTS)) || 10;
+
 const ERROR_THRESH = (process.env.ERROR_THRESH && parseFloat(process.env.ERROR_THRESH)) || 0.002;
 
 
@@ -82,7 +86,7 @@ const HYPER = {
 		errorThresh: ERROR_THRESH,
 		callback: callback,
 		callbackPeriod: 1,
-		timeout: HOUR
+		timeout: SECOND * 10
 
 	},
 	"BRAIN_CONFIG": {
@@ -114,12 +118,14 @@ function trainerSchema() {
 	log('\n\n--- [ BEGIN TRAINING SCHEMA ] ---')
 
 	log(`Creating non-distinct scramble set of maximum ${3} moves`)
-	const scrambles = permutations(2, moves)
+	const scrambles = generateScrambleSet()
+
+	//permutations(2, moves)
 
 	const agent = cube => net.run(binary(cube))
 	
 	for (var j = 0; j < HYPER.EPOCHS; j++) {
-		log(`Epoch ${j+1} of ${HYPER.EPOCHS}`)
+		log(`\n\n\n\x1b[36mEpoch \x1b[0m${j+1} of ${HYPER.EPOCHS}`)
 	
 		log(`Determine current fitness`)
 		const fit = determineFitness(scrambles, cube => j === 0 ? randomDistAgent() : agent(cube), MOVES)
@@ -128,7 +134,7 @@ function trainerSchema() {
 
 		const experienceSnapshots = []
 
-		log('Generate new experience data\n')
+		log('\nGenerate new experience data')
 		do {
 			let cube = createCube()
 
@@ -153,7 +159,8 @@ function trainerSchema() {
 			})
 			
 
-		} while (experienceSnapshots.length < 500)
+		} while (experienceSnapshots.length < EXPERIENCE_SNAPSHOTS)
+		log(experienceSnapshots.length, 'generated\n')
 
 		bar = new ProgressBar('Training network     [:bar] :percent of :total :etas - error :token1', { total: HYPER["TRAINING_OPTIONS"].iterations, width: 40, complete: '=', incomplete: ' ' });
 		bar.tick({ token1: "N/A" })
@@ -164,7 +171,7 @@ function trainerSchema() {
 		log('\n')
 	}
 
-	log('final fitness test')
+	log('Final fitness test')
 	const fit = determineFitness(scrambles, agent, MOVES)
 
 	log(fit.filter(x=>x.correct !== -1).length, 'of', fit.length)
