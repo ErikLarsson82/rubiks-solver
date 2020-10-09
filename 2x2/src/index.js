@@ -5,7 +5,7 @@ import Button from '@material-ui/core/Button';
 import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
 import { init as initCube, initKeypress, cleanupKeypress, randomShowcase as startAISolve, resetCube } from './cube';
-import { binary, createCube } from '../common';
+import { binary, createCube, correctCubit } from '../common';
 
 
 
@@ -92,36 +92,35 @@ const Canvas = () => {
     const canvasHiddenRef = createRef()
 
     const renderCanvas = e => {
-
-        console.log('rendering', canvasHiddenRef.current, canvasRef.current)
-
-        const cube = binary(createCube())
-        
-        const binaryCube = e.detail.cube
+        console.log('renderCanvas', e, canvasHiddenRef.current, canvasRef.current)
+        const cube = e.detail.cube
+        const binaryCube = binary(cube)
 
         if (!canvasHiddenRef.current) return
 
         const contextHidden = canvasHiddenRef.current.getContext('2d')
         
-        const myImageData = contextHidden.createImageData(8, 60)
+        const myImageData = contextHidden.createImageData(6, 80)
         var data = myImageData.data;
 
         const colors = {
-            'off-incorrect': [0, 115, 0, 255],
-            'off-correct': [140, 12, 76, 255],
-            'on-incorrect': [0, 255, 0, 255],
-            'on-correct': [225, 22, 124, 255]
+            'off-correct': [0, 115, 0, 255],
+            'off-incorrect': [140, 12, 76, 255],
+            'on-correct': [0, 255, 0, 255],
+            'on-incorrect': [225, 22, 124, 255]
         }
+        const cubitIndex = i => Math.floor(i / 60)
+        const correctCubits = new Array(8).fill().map((x, i) => correctCubit(cube, i))  
 
         for (var i = 0; i < data.length; i += 4) {
-          const cubeIndex = i / 4
-          const correct = binaryCube[cubeIndex] === cube[cubeIndex]
-          const on = binaryCube[cubeIndex] === 0
-          const color = colors[`${on ? 'on' : 'off'}-${correct ? 'correct' : 'incorrect'}`]
-          data[i]     = color[0]
-          data[i + 1] = color[1]
-          data[i + 2] = color[2]
-          data[i + 3] = color[3]
+            const cubeIndex = i / 4
+            const correct = correctCubits[cubitIndex(cubeIndex)]
+            const on = binaryCube[cubeIndex] === 0
+            const color = colors[`${on ? 'on' : 'off'}-${correct ? 'correct' : 'incorrect'}`]
+            data[i]     = color[0]
+            data[i + 1] = color[1]
+            data[i + 2] = color[2]
+            data[i + 3] = color[3]
         }
 
         contextHidden.putImageData(myImageData, 0, 0)
@@ -130,6 +129,8 @@ const Canvas = () => {
         var imageObject=new Image();
         imageObject.onload=function(){
             
+            console.log('hmm', canvasRef.current)
+
             if (!canvasRef.current) return
             const contextScaledVisible = canvasRef.current.getContext('2d')
 
@@ -140,22 +141,24 @@ const Canvas = () => {
             contextScaledVisible.scale(10,10);
             contextScaledVisible.drawImage(imageObject,0,0);
             contextScaledVisible.restore()
+            console.log('end2')
             
         }
         imageObject.src=canvasHiddenRef.current.toDataURL();
+        console.log('end1')
     }
 
     const callback = useCallback(renderCanvas)
 
     useEffect(() => {
-        window.addEventListener('cube-binary', callback)
-        return () => window.removeEventListener('cube-binary', callback)
+        window.addEventListener('cube-object', callback)
+        return () => window.removeEventListener('cube-object', callback)
     }, [callback])
 
     return (
         <div id="canvas-container">
-            <canvas id="canvas" ref={canvasRef} width="80" height="600" />
-            <canvas id="hidden-canvas" ref={canvasHiddenRef} width="8" height="60" style={ { display: 'none' }} />
+            <canvas id="canvas" ref={canvasRef} width="60" height="800" />
+            <canvas id="hidden-canvas" ref={canvasHiddenRef} width="6" height="80" style={ { display: 'none' }} />
         </div>
     )
 }

@@ -35,7 +35,7 @@ wss.on('connection', ws => {
 })
 
 app.get('/', function (req, res) {
-  res.redirect('./2x2/statistics.html')
+  res.redirect('./2x2/3d-cube.html')
 })
 
 app.use(express.static('./'))
