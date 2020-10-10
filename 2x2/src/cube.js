@@ -170,7 +170,6 @@ function renderCube() {
     cubits = cube.map(createCubit)
     cubits.forEach(cubit => cubeContainer.add(cubit))
 
-    console.log('render cube', cube)
     window.dispatchEvent(new CustomEvent("cube-object", { detail: { cube: [...cube] }}))
 }
 

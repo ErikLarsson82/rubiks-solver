@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, createRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactDOM from "react-dom";
 import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -88,11 +88,10 @@ const App = () => {
 
 
 const Canvas = () => {
-    const canvasRef = createRef()
-    const canvasHiddenRef = createRef()
+    const canvasRef = useRef()
+    const canvasHiddenRef = useRef()
 
     const renderCanvas = e => {
-        console.log('renderCanvas', e, canvasHiddenRef.current, canvasRef.current)
         const cube = e.detail.cube
         const binaryCube = binary(cube)
 
@@ -129,8 +128,6 @@ const Canvas = () => {
         var imageObject=new Image();
         imageObject.onload=function(){
             
-            console.log('hmm', canvasRef.current)
-
             if (!canvasRef.current) return
             const contextScaledVisible = canvasRef.current.getContext('2d')
 
@@ -141,11 +138,9 @@ const Canvas = () => {
             contextScaledVisible.scale(10,10);
             contextScaledVisible.drawImage(imageObject,0,0);
             contextScaledVisible.restore()
-            console.log('end2')
             
         }
         imageObject.src=canvasHiddenRef.current.toDataURL();
-        console.log('end1')
     }
 
     const callback = useCallback(renderCanvas)
