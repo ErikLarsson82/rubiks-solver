@@ -6,9 +6,10 @@ import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
 import { init as initCube, initKeypress, cleanupKeypress, randomShowcase as startAISolve, resetCube } from './cube';
 import { binary, createCube, correctCubit } from '../common';
-
-
-
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -90,9 +91,17 @@ const App = () => {
 const Canvas = () => {
     const canvasRef = useRef()
     const canvasHiddenRef = useRef()
+    const latestCube = useRef()
+
+    const [open, setOpen] = useState(false)
+    const [showCorrect, setShowCorrect] = useState(true)
 
     const renderCanvas = e => {
-        const cube = e.detail.cube
+        if (e) {
+            latestCube.current = e.detail.cube
+        }
+        if (!latestCube.current) return
+        const cube = latestCube.current 
         const binaryCube = binary(cube)
 
         if (!canvasHiddenRef.current) return
@@ -115,7 +124,7 @@ const Canvas = () => {
             const cubeIndex = i / 4
             const correct = correctCubits[cubitIndex(cubeIndex)]
             const on = binaryCube[cubeIndex] === 0
-            const color = colors[`${on ? 'on' : 'off'}-${correct ? 'correct' : 'incorrect'}`]
+            const color = colors[`${on ? 'on' : 'off'}-${correct && showCorrect ? 'correct' : 'incorrect'}`]
             data[i]     = color[0]
             data[i + 1] = color[1]
             data[i + 2] = color[2]
@@ -150,9 +159,20 @@ const Canvas = () => {
         return () => window.removeEventListener('cube-object', callback)
     }, [callback])
 
+    useEffect(() => renderCanvas(), [showCorrect])
+
     return (
         <div id="canvas-container">
-            <canvas id="canvas" ref={canvasRef} width="60" height="800" />
+            <div style={ { display: 'flex', justifyContent: 'space-between', width: '100%' } }>
+                { open && showCorrect && <CheckBoxIcon onClick={() => setShowCorrect(false) } /> }
+                { open && !showCorrect && <CheckBoxOutlineBlankIcon onClick={() => setShowCorrect(true) } /> }
+                {
+                    open
+                        ? <ArrowDropUpIcon onClick={() => setOpen(false)} />
+                        : <ArrowDropDownIcon onClick={() => setOpen(true)} />
+                }
+            </div>
+            <canvas id="canvas" ref={canvasRef} width="60" height="800" style={ { display: open ? 'inherit' : 'none' } } />
             <canvas id="hidden-canvas" ref={canvasHiddenRef} width="6" height="80" style={ { display: 'none' }} />
         </div>
     )
