@@ -29,6 +29,7 @@ function createCube() {
 		defs({ id: 7, position: 7, down: 'yellow', front: 'green', right: 'red' }),
 	]
 }
+
 const moves = ["U", "U'", "D", "D'", "L", "L'", "R", "R'", "F", "F'", "B", "B'"]
 
 const positions = {
@@ -491,6 +492,16 @@ function isSame(cubeA, cubeB) {
 	return binaryStr(cubeA) === binaryStr(cubeB)
 }
 
+function correctCubit(cube, index) {
+	const reference = binaryStr(createCube())
+	const comparee = binaryStr(cube)
+
+	const a = 0 + (index * 60)
+	const b = 60
+	return reference.substr(a, b) === comparee.substr(a, b)
+}
+
+
 function binaryStr(cube) {
 	return cube.map(x=>x).sort(sorterPosition).flatMap(cornerToBinary).join("")
 }
@@ -555,6 +566,7 @@ if (typeof module !== "undefined" && module.exports) {
 		moves,
 		scrambles,
 		isSame,
-		positions
+		positions,
+		correctCubit
 	}
 }

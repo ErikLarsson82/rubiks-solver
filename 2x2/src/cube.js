@@ -24,14 +24,15 @@ const {
     moves,
     scrambles,
     isSame,
-    positions
+    positions,
+    correctCubit
 } = require('../common')
 
 const { sort } = require('ramda')
 
 const ANIMATIONS_ENABLED = true
 const RENDER_SCENE = false
-const ATTEMPT_THRESHOLD = 10
+const ATTEMPT_THRESHOLD = 2000
 const HIQ_COLORS = true
 const ROTATION_ENABLED = false
 const MOVES = 12
@@ -168,6 +169,8 @@ function renderCube() {
 
     cubits = cube.map(createCubit)
     cubits.forEach(cubit => cubeContainer.add(cubit))
+
+    window.dispatchEvent(new CustomEvent("cube-object", { detail: { cube: [...cube] }}))
 }
 
 function removeChildren(container) {
@@ -265,8 +268,8 @@ function rotateSide(move, speed = 700) {
             })
             .onComplete(() => {
                 cube = moveFuncs[move](cube)
-                renderCube(cube)
-                isAnimating = false
+                renderCube()
+                isAnimating = false                
             })
             .start()
     }

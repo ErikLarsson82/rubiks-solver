@@ -1,10 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactDOM from "react-dom";
 import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import purple from '@material-ui/core/colors/purple';
 import green from '@material-ui/core/colors/green';
 import { init as initCube, initKeypress, cleanupKeypress, randomShowcase as startAISolve, resetCube } from './cube';
+import { binary, createCube, correctCubit } from '../common';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,6 +33,11 @@ const theme = createMuiTheme({
     },
   },
 });
+
+
+
+
+
 
 const DELAY = 200
 
@@ -64,10 +75,122 @@ const App = () => {
             <ThemeProvider theme={theme}>
                 { !showJanne && <SolveList solves={ solves } /> }
                 { content }
+                <Canvas />
             </ThemeProvider>
         </div>
     )
 }
+
+
+
+
+
+
+
+
+const Canvas = () => {
+    const canvasRef = useRef()
+    const canvasHiddenRef = useRef()
+    const latestCube = useRef()
+
+    const [open, setOpen] = useState(false)
+    const [showCorrect, setShowCorrect] = useState(true)
+
+    const renderCanvas = e => {
+        if (e) {
+            latestCube.current = e.detail.cube
+        }
+        if (!latestCube.current) return
+        const cube = latestCube.current 
+        const binaryCube = binary(cube)
+
+        if (!canvasHiddenRef.current) return
+
+        const contextHidden = canvasHiddenRef.current.getContext('2d')
+        
+        const myImageData = contextHidden.createImageData(6, 80)
+        var data = myImageData.data;
+
+        const colors = {
+            'off-correct': [0, 115, 0, 255],
+            'off-incorrect': [140, 12, 76, 255],
+            'on-correct': [0, 255, 0, 255],
+            'on-incorrect': [225, 22, 124, 255]
+        }
+        const cubitIndex = i => Math.floor(i / 60)
+        const correctCubits = new Array(8).fill().map((x, i) => correctCubit(cube, i))  
+
+        for (var i = 0; i < data.length; i += 4) {
+            const cubeIndex = i / 4
+            const correct = correctCubits[cubitIndex(cubeIndex)]
+            const on = binaryCube[cubeIndex] === 0
+            const color = colors[`${on ? 'on' : 'off'}-${correct && showCorrect ? 'correct' : 'incorrect'}`]
+            data[i]     = color[0]
+            data[i + 1] = color[1]
+            data[i + 2] = color[2]
+            data[i + 3] = color[3]
+        }
+
+        contextHidden.putImageData(myImageData, 0, 0)
+
+        
+        var imageObject=new Image();
+        imageObject.onload=function(){
+            
+            if (!canvasRef.current) return
+            const contextScaledVisible = canvasRef.current.getContext('2d')
+
+            contextScaledVisible.imageSmoothingEnabled = false;
+            
+            contextScaledVisible.save()
+            contextScaledVisible.clearRect(0,0,canvasRef.current.width,canvasRef.current.height);
+            contextScaledVisible.scale(10,10);
+            contextScaledVisible.drawImage(imageObject,0,0);
+            contextScaledVisible.restore()
+            
+        }
+        imageObject.src=canvasHiddenRef.current.toDataURL();
+    }
+
+    const callback = useCallback(renderCanvas)
+
+    useEffect(() => {
+        window.addEventListener('cube-object', callback)
+        return () => window.removeEventListener('cube-object', callback)
+    }, [callback])
+
+    useEffect(() => renderCanvas(), [showCorrect])
+
+    return (
+        <div id="canvas-container">
+            <div style={ { display: 'flex', justifyContent: 'space-between', width: '100%' } }>
+                { open && showCorrect && <CheckBoxIcon onClick={() => setShowCorrect(false) } /> }
+                { open && !showCorrect && <CheckBoxOutlineBlankIcon onClick={() => setShowCorrect(true) } /> }
+                {
+                    open
+                        ? <ArrowDropUpIcon onClick={() => setOpen(false)} />
+                        : <ArrowDropDownIcon onClick={() => setOpen(true)} />
+                }
+            </div>
+            <canvas id="canvas" ref={canvasRef} width="60" height="800" style={ { display: open ? 'inherit' : 'none' } } />
+            <canvas id="hidden-canvas" ref={canvasHiddenRef} width="6" height="80" style={ { display: 'none' }} />
+        </div>
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const SolveList = ({ solves }) => {
 
@@ -101,9 +224,32 @@ const SolveList = ({ solves }) => {
     )
 }
 
+
+
+
+
+
+
+
+
+
+
 const Percent = ({solves}) => {
     return solves.length > 0 && `${(100 * solves.filter(x => x.correct).length / solves.length).toFixed(1)}%`
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const Welcome = ({ setView }) => {
     const classes = useStyles();
@@ -122,6 +268,17 @@ const Welcome = ({ setView }) => {
         </div>
     )
 }
+
+
+
+
+
+
+
+
+
+
+
 
 const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
     const classes = useStyles();
@@ -167,6 +324,17 @@ const ScrambleInstructions = ({ setView, showJanne, setShowJanne }) => {
     )
 }
 
+
+
+
+
+
+
+
+
+
+
+
 const PrepareToSolve = ({ setView }) => {
     const classes = useStyles();
 
@@ -204,6 +372,16 @@ const PrepareToSolve = ({ setView }) => {
     )
 }
 
+
+
+
+
+
+
+
+
+
+
 const Solving = ({ setView, addSolve }) => {
 
     startAISolve(data => {
@@ -216,6 +394,17 @@ const Solving = ({ setView, addSolve }) => {
     )
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 const Result = ({ setView, solves }) => {
 
@@ -250,5 +439,13 @@ const Result = ({ setView, solves }) => {
         </div>
     )
 }
+
+
+
+
+
+
+
+
 
 ReactDOM.render(<App/>, document.getElementById("root"));
