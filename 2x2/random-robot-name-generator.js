@@ -176,11 +176,27 @@ function generate() {
 	return `${ likely(5, prefix) }${randomInArray(names)} ${randomInArray(numberPrefix)}${randomInArray(numbers)}`
 }
 
-if (require.main === module) {
-    console.log(generate())
-}
+// Export
+{
+	// Run from terminal
+	if (typeof require !== 'undefined' && require.main === module) {
+		const args = parseInt(process.argv[2])
+		if (isNaN(args)) {
+	    	console.log(generate())
+	    } else {
+	    	for (var i = 0; i < args; i++) {
+				console.log(generate())
+			}
+	    }
+	}
 
-module.exports = {
-	generate
-}
+	// Require in node or browser bundle
+	if (typeof module !== 'undefined') {
+		module.exports = generate
+	}
 
+	// Use as a basic script tag
+	if (typeof window !== 'undefined' && typeof window.generateRandomRobotName === 'undefined') {
+		window.generateRandomRobotName = generate
+	}
+}
