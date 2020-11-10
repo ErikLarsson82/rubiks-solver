@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "webpack --mode production & node server.js",
+    "combo": "node server.js 12 run-trainer",
     "train": "node 2x2/suite.js",
     "host": "node server.js",
-    "start": "node server.js 12 run-trainer",
-    "build": "webpack --mode development",
-    "gauge": "node 2x2/deep-scramble-generator.js; node 2x2/fitness-benchmark.js run",    
-    
+    "dev": "webpack --watch --mode development",
+    "build": "webpack",
+    "gauge": "node 2x2/deep-scramble-generator.js; node 2x2/fitness-benchmark.js run",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
