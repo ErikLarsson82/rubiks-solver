@@ -10,7 +10,7 @@
     "host": "node server.js",
     "dev": "webpack --watch --mode development",
     "build": "webpack",
-    "gauge": "node 2x2/deep-scramble-generator.js; node 2x2/fitness-benchmark.js run",
+    "gauge": "node 2x2/deep-scramble-generator.js & node 2x2/fitness-benchmark.js run",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

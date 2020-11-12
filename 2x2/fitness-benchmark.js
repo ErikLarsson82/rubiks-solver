@@ -32,8 +32,6 @@ const ONLY_SUCCESS = true
 const RANDOM_AGENT = false
 let printFirst = false
 
-console.log(FITNESS_TESTS, NOVEL_TESTS)
-
 const filename = '/training-data/training.json' //`/brains/2020-08-06-00-10-10-impressive.json`
 
 let testDuration, scrambles, net, bar

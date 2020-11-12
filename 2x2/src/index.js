@@ -354,7 +354,7 @@ const PrepareToSolve = ({ setView }) => {
                 Training time: 12h<br />
                 Experience bank: 120 000<br />
                 Estimated solve percentage: 30%<br />
-                Library used: brain.js <img id="brain-js" src="../logos/brain.PNG" /><br />
+                Library used: brain.js <img id="brain-js" src="../logos/brain.png" /><br />
                 <code>
                     Moves&nbsp;RateX&nbsp;RateY&nbsp;&nbsp;Random<br />
                     1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;65%&nbsp;&nbsp;&nbsp;100%&nbsp;&nbsp;&nbsp;11%<br />
@@ -365,7 +365,7 @@ const PrepareToSolve = ({ setView }) => {
                     12&nbsp;&nbsp;&nbsp;&nbsp;3%&nbsp;&nbsp;&nbsp;&nbsp;45%
                 </code><br />
                 Network architecture:<br />
-                <img id="feed" src="feed-smaller.PNG" /><br />
+                <img id="feed" src="feed-smaller.png" /><br />
             </div>
             <Button variant="contained" color="primary" onClick={ delay(() => setView('Solving')) }>Starta</Button>
         </div>
